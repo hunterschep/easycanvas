@@ -2,8 +2,15 @@
 export default {
   content: ['./src/**/*.{js,jsx,ts,tsx}'],
   theme: {
-    extend: {},
+    extend: {
+      transitionProperty: {
+        'all': 'all',
+      },
+      scale: {
+        '102': '1.02',
+      },
+    },
   },
-  plugins: [require('daisyui')],
+  plugins: [],
 }
 
