@@ -4,6 +4,7 @@ import { User, onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase/config';
 import Login from './components/login';
 import Setup from './components/setup';
+import Home from './components/home';
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -32,6 +33,10 @@ function App() {
         <Route 
           path="/setup" 
           element={user ? <Setup /> : <Navigate to="/login" />} 
+        />
+        <Route 
+          path="/" 
+          element={user ? <Home /> : <Navigate to="/login" />} 
         />
       </Routes>
     </Router>
