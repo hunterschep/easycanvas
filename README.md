@@ -162,7 +162,3 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 - Built by [Hunter Scheppat](https://linkedin.com/in/hunterscheppat/)
 - Powered by **Canvas LMS API**
 - Built with **React** and **Firebase**
-
----
-
-Feel free to customize further based on your project's needs!
