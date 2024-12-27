@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { User, onAuthStateChanged } from 'firebase/auth';
 import { auth } from './firebase/config';
 import Login from './components/login';
+import Setup from './components/setup';
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -29,8 +30,8 @@ function App() {
           element={user ? <Navigate to="/" /> : <Login />} 
         />
         <Route 
-          path="/" 
-          element={user ? <div>Home Page</div> : <Navigate to="/login" />} 
+          path="/setup" 
+          element={user ? <Setup /> : <Navigate to="/login" />} 
         />
       </Routes>
     </Router>
