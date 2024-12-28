@@ -1,20 +1,27 @@
 import { useState } from 'react';
 import { auth, googleProvider } from '../firebase/config';
 import { signInWithPopup } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
+import Loading from './loading';
+
 
 const Login = () => {
   const [error, setError] = useState('');
-  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleGoogleSignIn = async () => {
     try {
+      setIsLoading(true);
       await signInWithPopup(auth, googleProvider);
-      navigate('/setup');
+      // The App component will handle navigation based on API key status
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      setIsLoading(false);
     }
   };
+
+  if (isLoading) {
+    return <Loading message="Setting up your account..." />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-between bg-black p-4 sm:p-6 md:p-8">
