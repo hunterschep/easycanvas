@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import Loading from './Loading';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -7,11 +8,13 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute = ({ children, requiresSetup = false }: ProtectedRouteProps) => {
-  const { user, loading, hasCanvasToken } = useAuth();
+  const { currentUser, loading, hasCanvasToken } = useAuth();
 
-  if (loading) return null;
+  if (loading) {
+    return <Loading message="Loading your account..." />;
+  }
 
-  if (!user) {
+  if (!currentUser) {
     return <Navigate to="/login" />;
   }
 

@@ -1,52 +1,73 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { auth } from '../firebase/config';
 import { getUserSettings } from '../firebase/firestore';
-import { useNavigate } from 'react-router-dom';
+import { User } from 'firebase/auth';
 
 interface AuthContextType {
-  user: any;
   loading: boolean;
   hasCanvasToken: boolean;
+  currentUser: User | null;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
-  user: null,
+  currentUser: null,
   loading: true,
   hasCanvasToken: false,
+  signOut: async () => {},
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasCanvasToken, setHasCanvasToken] = useState(false);
-  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await auth.signOut();
+  };
 
   useEffect(() => {
-    return auth.onAuthStateChanged(async (user) => {
-      setUser(user);
-      
-      if (user) {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      try {
+        if (!user) {
+          setCurrentUser(null);
+          setHasCanvasToken(false);
+          setLoading(false);
+          return;
+        }
+
+        setCurrentUser(user);
         try {
           await getUserSettings(user.uid);
           setHasCanvasToken(true);
-          navigate('/home');
         } catch (error: any) {
-          if (error.message.includes('404')) {
+          if (error.message === 'NEW_USER') {
             setHasCanvasToken(false);
-            navigate('/setup');
+          } else {
+            console.error('Error fetching user settings:', error);
+            setHasCanvasToken(false);
           }
         }
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
     });
-  }, [navigate]);
 
-  return (
-    <AuthContext.Provider value={{ user, loading, hasCanvasToken }}>
-      {!loading && children}
-    </AuthContext.Provider>
-  );
+    return () => unsubscribe();
+  }, []);
+
+  const value = {
+    currentUser,
+    loading,
+    hasCanvasToken,
+    signOut: handleSignOut
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
-export const useAuth = () => useContext(AuthContext); 
+export const useAuth = () => {
+  return useContext(AuthContext);
+};
+
+export default AuthContext;

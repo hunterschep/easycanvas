@@ -25,7 +25,7 @@ const Setup = () => {
       if (user) {
         try {
           await saveUserSettings(user.uid, canvasUrl, apiToken);
-          navigate('/');
+          navigate('/home');
         } catch (err) {
           setError(err instanceof Error ? err.message : 'An error occurred');
         }

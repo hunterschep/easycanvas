@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { auth } from '../firebase/config';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from 'firebase/auth';
+import Account from './Account';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -38,12 +39,7 @@ const Home = () => {
             <h1 className="text-2xl font-black tracking-tighter">
               easy<span className="text-gray-500">canvas</span>
             </h1>
-            <button
-              onClick={handleSignOut}
-              className="px-4 py-2 border border-gray-800 hover:border-gray-600 text-gray-400 hover:text-white rounded-lg transition-all duration-200"
-            >
-              Sign Out
-            </button>
+            <Account />
           </div>
         </div>
       </header>

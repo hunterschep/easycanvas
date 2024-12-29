@@ -4,31 +4,40 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import Login from './components/login';
 import Setup from './components/setup';
 import Home from './components/home';
+import AccountDetails from './components/AccountDetails';
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route 
-            path="/setup" 
-            element={
-              <ProtectedRoute requiresSetup>
-                <Setup />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/home" 
-            element={
-              <ProtectedRoute>
-                <Home />
-              </ProtectedRoute>
-            } 
-          />
-          <Route path="/" element={<Navigate to="/home" />} />
-        </Routes>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route 
+          path="/setup" 
+          element={
+            <ProtectedRoute requiresSetup>
+              <Setup />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/home" 
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/account" 
+          element={
+            <ProtectedRoute>
+              <AccountDetails />
+            </ProtectedRoute>
+          } 
+        />
+        <Route path="/" element={<Navigate to="/home" />} />
+      </Routes>
       </AuthProvider>
     </BrowserRouter>
   );

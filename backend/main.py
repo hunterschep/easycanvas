@@ -43,6 +43,12 @@ class UserData(BaseModel):
     avatar_url: str
     email: Optional[str] = None
 
+# Model to update user settings
+class UserSettingsUpdate(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    name: Optional[str] = None
+    
 # Verify that Firebase access is allowed 
 async def verify_firebase_token(authorization: str = Header(...)):
     try:
@@ -100,12 +106,15 @@ async def get_user_settings(
         
         if not doc.exists:
             logger.info(f"No settings found for user: {user_id}")
-            raise HTTPException(status_code=404, detail="User settings not found")
+            # Return a specific response for new users
+            raise HTTPException(
+                status_code=404,
+                detail="NEW_USER"
+            )
             
         user_data = doc.to_dict()
         logger.info(f"Successfully retrieved settings for user: {user_id}")
         
-        # Remove sensitive data before returning
         response_data = {
             'canvasUrl': user_data['canvasUrl'],
             'canvas_user_id': user_data['canvas_user_id'],
@@ -113,11 +122,75 @@ async def get_user_settings(
             'first_name': user_data['first_name'],
             'last_name': user_data['last_name'],
             'avatar_url': user_data['avatar_url'],
-            'email': user_data.get('email')  # Using get() in case email is not present
+            'email': user_data.get('email')
         }
         
         return response_data
         
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error retrieving user settings: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.patch("/api/user/settings", response_model=UserData)
+async def update_user_settings(
+    updates: UserSettingsUpdate,
+    user_id: str = Depends(verify_firebase_token)
+):
+    try:
+        doc_ref = db.collection('users').document(user_id)
+        doc = doc_ref.get()
+        
+        if not doc.exists:
+            raise HTTPException(status_code=404, detail="User not found")
+            
+        # Update the document with the new fields
+        update_data = updates.dict(exclude_unset=True)
+        update_data['updatedAt'] = firestore.SERVER_TIMESTAMP
+        doc_ref.update(update_data)
+        
+        # Get and return the updated document
+        updated_doc = doc_ref.get()
+        user_data = updated_doc.to_dict()
+        
+        return {
+            'canvasUrl': user_data['canvasUrl'],
+            'canvas_user_id': user_data['canvas_user_id'],
+            'name': user_data['name'],
+            'first_name': user_data['first_name'],
+            'last_name': user_data['last_name'],
+            'avatar_url': user_data['avatar_url'],
+            'email': user_data.get('email')
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.delete("/api/user/settings")
+async def delete_user_settings(
+    user_id: str = Depends(verify_firebase_token)
+):
+    try:
+        # Delete user document from Firestore
+        doc_ref = db.collection('users').document(user_id)
+        doc = doc_ref.get()
+        
+        if not doc.exists:
+            raise HTTPException(status_code=404, detail="User not found")
+            
+        # Delete the document from Firestore
+        doc_ref.delete()
+        
+        # Delete the user from Firebase Auth
+        try:
+            auth.delete_user(user_id)
+        except Exception as e:
+            logger.error(f"Error deleting Firebase Auth user: {str(e)}")
+            # Even if Auth deletion fails, we've already deleted from Firestore
+            
+        return {"message": "Account successfully deleted"}
+        
+    except Exception as e:
+        logger.error(f"Error deleting user account: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
