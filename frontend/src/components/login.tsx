@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { auth, googleProvider } from '../firebase/config';
 import { signInWithPopup } from 'firebase/auth';
-import Loading from './loading';
+import Loading from './Loading';
 
 
 const Login = () => {

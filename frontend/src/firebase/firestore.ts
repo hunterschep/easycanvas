@@ -1,21 +1,31 @@
-import { getFirestore, doc, setDoc, getDoc } from 'firebase/firestore';
-import { app } from './config';
-import CryptoJS from 'crypto-js';
-
-const db = getFirestore(app);
-const ENCRYPTION_KEY = import.meta.env.VITE_ENCRYPTION_KEY || 'your-fallback-key';
+import { auth } from './config';
 
 export const saveUserSettings = async (userId: string, canvasUrl: string, apiToken: string) => {
   try {
-    // Encrypt the API token
-    const encryptedToken = CryptoJS.AES.encrypt(apiToken, ENCRYPTION_KEY).toString();
+    const idToken = await auth.currentUser?.getIdToken();
+    if (!idToken) {
+      throw new Error('Not authenticated');
+    }
 
-    // Save to Firestore
-    await setDoc(doc(db, 'users', userId), {
-      canvasUrl,
-      apiToken: encryptedToken,
-      updatedAt: new Date().toISOString()
+    // Add https:// if not present
+    const formattedUrl = canvasUrl.startsWith('http') ? canvasUrl : `https://${canvasUrl}`;
+
+    const response = await fetch('http://localhost:8000/api/user/settings', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${idToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        canvasUrl: formattedUrl,
+        apiToken,
+      }),
     });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to save settings');
+    }
 
     return true;
   } catch (error) {
@@ -26,19 +36,23 @@ export const saveUserSettings = async (userId: string, canvasUrl: string, apiTok
 
 export const getUserSettings = async (userId: string) => {
   try {
-    const userDoc = await getDoc(doc(db, 'users', userId));
-    const data = userDoc.data();
-
-    if (data?.apiToken) {
-      // Decrypt the API token
-      const decryptedToken = CryptoJS.AES.decrypt(data.apiToken, ENCRYPTION_KEY).toString(CryptoJS.enc.Utf8);
-      return {
-        ...data,
-        apiToken: decryptedToken
-      };
+    const idToken = await auth.currentUser?.getIdToken();
+    if (!idToken) {
+      throw new Error('Not authenticated');
     }
 
-    return data;
+    const response = await fetch('http://localhost:8000/api/user/settings', {
+      headers: {
+        'Authorization': `Bearer ${idToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.detail || 'Failed to get settings');
+    }
+
+    return response.json();
   } catch (error) {
     console.error('Error getting user settings:', error);
     throw error;
