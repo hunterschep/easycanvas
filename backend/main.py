@@ -7,6 +7,8 @@ from firebase_admin_config import db
 from canvasapi import Canvas
 from google.cloud import firestore  # Add this for SERVER_TIMESTAMP
 import logging
+from utils.encryption import encrypt_token, decrypt_token
+import os
 
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
@@ -22,7 +24,7 @@ def read_root():
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=os.getenv('CORS_ORIGINS').split(','),  # Now reads from env
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -65,6 +67,9 @@ async def save_user_settings(
     user_id: str = Depends(verify_firebase_token)
 ):
     try:
+        # Encrypt the Canvas API token before storing
+        encrypted_token = encrypt_token(settings.apiToken)
+        
         # Validate Canvas API token and get user info
         canvas = Canvas(settings.canvasUrl, settings.apiToken)
         canvas_user = canvas.get_current_user()
@@ -72,7 +77,7 @@ async def save_user_settings(
         # Extract user details from Canvas response
         user_data = {
             'canvasUrl': settings.canvasUrl,
-            'apiToken': settings.apiToken,
+            'apiToken': encrypted_token,  # Store encrypted token
             'canvas_user_id': canvas_user.id,
             'name': canvas_user.name,
             'first_name': canvas_user.first_name,
