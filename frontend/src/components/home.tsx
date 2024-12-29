@@ -1,22 +1,6 @@
-import { useState } from 'react';
-import { auth } from '../firebase/config';
-import { useNavigate } from 'react-router-dom';
-import { signOut } from 'firebase/auth';
 import Account from './Account';
 
 const Home = () => {
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-
-  const handleSignOut = async () => {
-    try {
-      await signOut(auth);
-      navigate('/login');
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
-
   // Placeholder data (replace with actual data from Canvas API)
   const assignments = [
     { id: 1, title: 'Final Project', course: 'Web Development', dueDate: '2024-03-20' },
@@ -97,13 +81,6 @@ const Home = () => {
           </div>
         </div>
       </main>
-
-      {/* Loading Overlay */}
-      {loading && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-white"></div>
-        </div>
-      )}
     </div>
   );
 };

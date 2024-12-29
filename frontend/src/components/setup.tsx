@@ -17,7 +17,7 @@ const Setup = () => {
   
       // Validate Canvas URL format
       if (!canvasUrl.endsWith('.instructure.com')) {
-        setError('Please enter a valid Canvas URL (e.g., bostoncollege.instructure.com)');
+        setError('Please enter a valid Canvas URL (e.g., <yourschool>.instructure.com)');
         return;
       }
   
@@ -25,7 +25,8 @@ const Setup = () => {
       if (user) {
         try {
           await saveUserSettings(user.uid, canvasUrl, apiToken);
-          navigate('/home');
+          // Force reload to update hasCanvasToken state
+          window.location.href = '/home';
         } catch (err) {
           setError(err instanceof Error ? err.message : 'An error occurred');
         }
@@ -79,10 +80,10 @@ const Setup = () => {
           {/* Steps Content */}
           <div className="space-y-6">
             {step === 1 && (
-              <div className="space-y-4">
+              <div className="min-h-[300px] min-w-[600px] space-y-4">
                 <h3 className="text-xl font-bold text-white">Enter Your Canvas URL</h3>
                 <p className="text-gray-400 leading-relaxed">
-                  Please enter your institution's Canvas URL (e.g., bostoncollege.instructure.com)
+                  Please enter your institution's Canvas URL (e.g., yourschool.instructure.com)
                 </p>
                 <input
                   type="text"
@@ -96,24 +97,32 @@ const Setup = () => {
             )}
 
             {step === 2 && (
-              <div className="space-y-4">
+              <div className="min-h-[300px] min-w-[600px] space-y-4">
                 <h3 className="text-xl font-bold text-white">How to Get Your Canvas Access Token</h3>
                 <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-6 space-y-4">
-                  <p className="text-gray-400 leading-relaxed">
-                    1. Go to your Canvas URL: <span className="text-white">{canvasUrl}</span>
+                  <p className="text-gray-400 leading-relaxed"> 
+                    1. Click here to open your Canvas settings: {" "}
+                    <a 
+                      href={`https://${canvasUrl}/profile/settings`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-white hover:text-gray-300 underline transition-colors duration-200"
+                    >
+                      {canvasUrl}/profile/settings
+                    </a>
                     <br />
-                    2. Navigate to <span className="text-white">Account → Settings</span>
+                    2. Scroll to <span className="text-white">Approved Integrations</span>
                     <br />
-                    3. Scroll to <span className="text-white">Approved Integrations</span>
+                    3. Click <span className="text-white">+ New Access Token</span>
                     <br />
-                    4. Click <span className="text-white">+ New Access Token</span>
+                    4. Copy <span className="text-white">Your Access Token to Clipboard</span>
                   </p>
                 </div>
               </div>
             )}
 
             {step === 3 && (
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="min-h-[300px] min-w-[600px] space-y-4">
                 <h3 className="text-xl font-bold text-white">Enter Your Canvas Access Token</h3>
                 <div className="space-y-4">
                   <input

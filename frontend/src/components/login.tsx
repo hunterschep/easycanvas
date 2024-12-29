@@ -48,7 +48,7 @@ const Login = () => {
                 easy<span className="text-gray-500">canvas</span>
               </h1>
               <p className="text-sm sm:text-base text-gray-400 font-light">
-                streamline your Canvas experience
+                Streamline your Canvas experience
               </p>
             </div>
 
@@ -67,14 +67,14 @@ const Login = () => {
                 alt="Google"
                 className="w-5 h-5"
               />
-              <span className="font-medium">sign up or log in with Google</span>
+              <span className="font-medium">Sign up or Log in with Google</span>
             </button>
           </div>
         </div>
       </div>
 
       <p className="text-xs text-gray-500 mt-4">
-        made by <a href="https://linkedin.com/in/hunterscheppat/" target="_blank" rel="noopener noreferrer" className="text-white hover:text-gray-300 transition-colors">hunter scheppat</a>
+        Made by <a href="https://linkedin.com/in/hunterscheppat/" target="_blank" rel="noopener noreferrer" className="text-white hover:text-gray-300 transition-colors">hunter scheppat</a>
       </p>
     </div>
   );

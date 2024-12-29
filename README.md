@@ -1,84 +1,52 @@
+```markdown
 # easyCanvas 🎨
 
 A streamlined interface for Canvas LMS that simplifies managing your courses and assignments.
 
-## 🚧 Current Issues & Needed Features
+---
+
+## 🚀 Current Features
+
+### Completed
+- ✅ Google Authentication with modern sign-in UI (`Login.tsx`, lines 45-72)
+- ✅ Three-step setup wizard with progress tracking (`Setup.tsx`, lines 41-165)
+- ✅ Profile management with editable fields (`AccountDetails.tsx`, lines 162-199)
+- ✅ Account deletion with confirmation (`AccountDetails.tsx`, lines 64-87)
+- ✅ Loading states and error handling (`AccountDetails.tsx`, lines 99-105)
+- ✅ Canvas URL validation and direct settings integration
+- ✅ Consistent header design across all pages
+- ✅ Avatar integration with hover effects (`Account.tsx`, lines 31-40)
+- ✅ Responsive layout with mobile considerations
+- ✅ Modern gradient UI elements with hover states
+
+### In Progress
+- 🔄 Canvas API integration
+- 🔄 Assignment dashboard (`Home.tsx`, lines 31-60)
+- 🔄 Course overview system (`Home.tsx`, lines 62-76)
+- 🔄 Real-time data fetching
+
+---
+
+## 🚧 Upcoming Features & Fixes
 
 ### High Priority
-- [ ] Encrypt the Canvas API in the user's Firebase Collection 
-- [ ] Validate the Canvas API key's authenticity before login
-- [ ] Add backend functionality to utilize the api 
-- [ ] Add error handling for invalid Canvas tokens
-- [ ] Implement proper error handling for Firebase operations
-- [ ] Add loading states for async operations
+- [ ] Encrypt Canvas API tokens in Firebase
+- [ ] Implement token validation before storage
+- [ ] Add backend Canvas API integration
+- [ ] Improve error handling for Firebase operations
+- [ ] Add comprehensive loading states
+- [ ] Implement real-time Canvas data sync
 
 ### Future Features
 - [ ] Dark/Light theme toggle
 - [ ] Calendar view for assignments
 - [ ] Grade analytics dashboard
-- [ ] Mobile responsive design improvements
+- [ ] Enhanced mobile responsiveness
 - [ ] Multiple Canvas instance support
-- [ ] Export assignments to calendar
-- [ ] Email notifications for upcoming deadlines
+- [ ] Calendar export functionality
+- [ ] Email notifications system
 
-## 🚀 Getting Started
-
-### Prerequisites
-- **Node.js** (v18 or higher)
-- **Python** 3.8+ (for backend)
-- **Firebase** account
-- **Canvas LMS API** access
-
-### Environment Setup
-
-1. **Clone the repository:**
-    ```bash
-    git clone https://github.com/yourusername/easycanvas.git
-    cd easycanvas
-    ```
-
-2. **Frontend setup:**
-    ```bash
-    cd frontend
-    npm install
-    ```
-
-3. **Create a `.env` file in the frontend directory:**
-    ```env
-    VITE_ENCRYPTION_KEY=your-secure-key-here
-    ```
-
-4. **Backend setup (optional):**
-    ```bash
-    cd backend
-    python -m venv venv
-    source venv/bin/activate  # On Windows: venv\Scripts\activate
-    pip install -r requirements.txt
-    ```
-
-### Firebase Configuration
-
-1. **Create a new Firebase project.**
-2. **Enable Authentication with Google sign-in.**
-3. **Enable Firestore Database.**
-4. **Add your Firebase config to `frontend/src/firebase/config.ts`.**
-5. **Update Firestore rules for security.**
-
-### Running the Application
-
-1. **Start the frontend:**
-    ```bash
-    cd frontend
-    npm run dev
-    ```
-
-2. **Start the backend (if using):**
-    ```bash
-    cd backend
-    uvicorn main:app --reload
-    ```
-
-3. **Visit** [`http://localhost:5173`](http://localhost:5173) **to view the application.**
+---
 
 ## 🏗️ Project Structure
 
@@ -87,78 +55,97 @@ easycanvas/
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── login.tsx
-│   │   │   ├── setup.tsx
-│   │   │   └── home.tsx
+│   │   │   ├── Account.tsx        # User profile widget
+│   │   │   ├── AccountDetails.tsx # Settings management
+│   │   │   ├── Home.tsx           # Main dashboard
+│   │   │   ├── Login.tsx          # Authentication
+│   │   │   └── Setup.tsx          # Setup wizard
+│   │   ├── contexts/
+│   │   │   └── AuthContext.tsx    # Auth state management
 │   │   ├── firebase/
-│   │   │   ├── config.ts
-│   │   │   └── firestore.ts
+│   │   │   ├── config.ts          # Firebase configuration
+│   │   │   └── firestore.ts       # Database operations
 │   │   └── App.tsx
 │   ├── .env
 │   └── package.json
 ├── backend/
 │   ├── main.py
 │   └── requirements.txt
-├── firebase/
-│   ├── firestore.rules
-│   └── firebase.json
 └── README.md
 ```
+*(TailwindCSS)*
 
-## 🔒 Security
+---
 
-- **User authentication** handled by Firebase
-- **Canvas API tokens** encrypted using CryptoJS before storage
-- **Firestore rules** restrict data access to authenticated users
-- **Environment variables** for sensitive data
-- **Backend proxy** for Canvas API calls (planned)
+## 🎨 Design System
 
-## 🛠️ Built With
+### Components
+- **Headers**: Consistent black background with border
+- **Cards**: Gradient borders with hover animations
+- **Buttons**: Multiple styles
+  - **Primary**: White background with hover scaling
+  - **Secondary**: Border with hover color transition
+  - **Danger**: Red tinted for destructive actions
+- **Inputs**: Dark theme with white focus states
+- **Loading States**: Animated spinners
+- **Error Messages**: Red-tinted containers
 
-- **React 18 + TypeScript**
-- **Tailwind CSS** for styling
-- **Firebase Authentication**
-- **Firestore Database**
-- **FastAPI** (Backend - planned)
-- **Vite** (Build tool)
-- **CryptoJS** for encryption
+### Typography
+- **Logo**: Black weight font with gray accent
+- **Headings**: Bold with tight tracking
+- **Body**: Regular weight with high readability
+- **Accents**: `gray-400` for secondary text
 
-## 📝 License
+### Animations
+- Gradient border transitions
+- Button hover scaling
+- Smooth page transitions
+- Loading state animations
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js (v18+)
+- Python 3.8+ (backend)
+- Firebase account
+- Canvas LMS access
+
+### Setup Steps
+1. Clone repository
+2. Install dependencies: `npm install`
+3. Configure environment variables
+4. Set up Firebase project
+5. Run development server: `npm run dev`
+
+---
+
+## 🔒 Security Features
+- Google OAuth authentication
+- Protected routes
+- Firestore security rules
+- Environment variable protection
+- CORS configuration
+
+---
 
 ## 🤝 Contributing
+1. Fork repository
+2. Create feature branch
+3. Commit changes
+4. Push to branch
+5. Open pull request
 
-1. **Fork the repository.**
-2. **Create your feature branch:**
-    ```bash
-    git checkout -b feature/AmazingFeature
-    ```
-3. **Commit your changes:**
-    ```bash
-    git commit -m 'Add some AmazingFeature'
-    ```
-4. **Push to the branch:**
-    ```bash
-    git push origin feature/AmazingFeature
-    ```
-5. **Open a Pull Request.**
+---
 
-## 🔧 Development Status
+## 📝 License
+MIT License - see `LICENSE` file
 
-### Completed
-- ✅ Google Authentication
-- ✅ User setup flow
-- ✅ Secure token storage
-- ✅ Basic routing structure
-
-### In Progress
-- 🔄 Canvas API integration
-- 🔄 Assignment dashboard
-- 🔄 Course overview
+---
 
 ## ✨ Acknowledgments
-
 - Built by [Hunter Scheppat](https://linkedin.com/in/hunterscheppat/)
-- Powered by **Canvas LMS API**
-- Built with **React** and **Firebase**
+- Powered by Canvas LMS API
+- Built with React, Firebase, and TailwindCSS
+```

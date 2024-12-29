@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserSettings, updateUserSettings, deleteUserAccount } from '../firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import Account from './Account';
 
 interface UserSettings {
   first_name: string;
@@ -17,6 +18,7 @@ interface UserSettings {
 
 export default function AccountDetails() {
   const [settings, setSettings] = useState<UserSettings | null>(null);
+  const [loading, setLoading] = useState(true);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -28,12 +30,15 @@ export default function AccountDetails() {
     const fetchSettings = async () => {
       if (!currentUser?.uid) return;
       try {
+        setLoading(true);
         const data = await getUserSettings(currentUser.uid);
         setSettings(data);
         setFirstName(data.first_name);
         setLastName(data.last_name);
       } catch (error) {
         console.error('Error fetching settings:', error);
+      } finally {
+        setLoading(false);
       }
     };
     fetchSettings();
@@ -91,20 +96,48 @@ export default function AccountDetails() {
     });
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-white"></div>
+      </div>
+    );
+  }
+
   if (!settings) return null;
 
   const createdDate = formatDate(settings.updatedAt);
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 sm:p-6 md:p-8">
-      <div className="max-w-2xl mx-auto">
-        {/* Header */}
+    <div className="min-h-screen bg-black text-white">
+      {/* Header */}
+      <header className="border-b border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => navigate('/home')}
+                className="px-4 py-2 text-sm text-gray-400 hover:text-white border border-gray-800 hover:border-gray-600 rounded-lg transition-all duration-200"
+              >
+                ← Back
+              </button>
+              <h1 className="text-2xl font-black tracking-tighter">
+                easy<span className="text-gray-500">canvas</span>
+              </h1>
+            </div>
+            <Account />
+          </div>
+        </div>
+      </header>
+
+      <div className="max-w-2xl mx-auto p-4 sm:p-6 md:p-8">
+        {/* Hello Message */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-black tracking-tighter mb-2">
             hey, {settings.first_name}!
           </h1>
         </div>
-
+        
         {/* Main Content */}
         <div className="relative group">
           <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-lg blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
