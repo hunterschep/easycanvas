@@ -74,7 +74,7 @@ const Login = () => {
       </div>
 
       <p className="text-xs text-gray-500 mt-4">
-        Made by <a href="https://linkedin.com/in/hunterscheppat/" target="_blank" rel="noopener noreferrer" className="text-white hover:text-gray-300 transition-colors">hunter scheppat</a>
+        Made by <a href="https://linkedin.com/in/hunterscheppat/" target="_blank" rel="noopener noreferrer" className="text-white hover:text-gray-300 transition-colors">Hunter Scheppat</a>
       </p>
     </div>
   );

@@ -1,7 +1,5 @@
 import { useState } from 'react';
 import { auth } from '../firebase/config';
-import { updateProfile } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
 import { saveUserSettings } from '../firebase/firestore';
 
 const Setup = () => {
@@ -9,7 +7,6 @@ const Setup = () => {
     const [apiToken, setApiToken] = useState('');
     const [canvasUrl, setCanvasUrl] = useState('');
     const [error, setError] = useState('');
-    const navigate = useNavigate();
   
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
@@ -37,6 +34,18 @@ const Setup = () => {
 
   const nextStep = () => setStep((prev) => Math.min(prev + 1, 3));
   const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
+
+  // Add keyPress handler for input fields
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (step === 1 && canvasUrl) {
+        setStep(2);
+      } else if (step === 3 && apiToken) {
+        handleSubmit();
+      }
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-black p-4 sm:p-6 md:p-8">
@@ -90,6 +99,7 @@ const Setup = () => {
                   placeholder="yourschool.instructure.com"
                   value={canvasUrl}
                   onChange={(e) => setCanvasUrl(e.target.value)}
+                  onKeyPress={handleKeyPress}
                   className="w-full px-4 py-3 bg-transparent border border-gray-800 rounded-lg focus:border-white focus:ring-1 focus:ring-white text-white placeholder-gray-600 transition-all"
                   required
                 />
@@ -130,6 +140,7 @@ const Setup = () => {
                     placeholder="Paste your token here"
                     value={apiToken}
                     onChange={(e) => setApiToken(e.target.value)}
+                    onKeyPress={handleKeyPress}
                     className="w-full px-4 py-3 bg-transparent border border-gray-800 rounded-lg focus:border-white focus:ring-1 focus:ring-white text-white placeholder-gray-600 transition-all"
                     required
                   />

@@ -5,9 +5,9 @@ from base64 import b64encode
 def get_encryption_key():
     key = os.getenv('ENCRYPTION_KEY')
     if not key:
-        key = Fernet.generate_key()
-        # Save this key securely!
-    return key
+        raise ValueError("Encryption key not found in environment variables")
+    # Convert the string back to bytes
+    return key.encode()
 
 def encrypt_token(token: str) -> str:
     f = Fernet(get_encryption_key())
