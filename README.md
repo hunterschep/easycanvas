@@ -49,6 +49,7 @@ A streamlined interface for Canvas LMS that simplifies managing your courses and
 
 ## 🏗️ Project Structure
 
+```markdown
 easycanvas/
 ├── frontend/
 │   ├── src/
@@ -70,6 +71,7 @@ easycanvas/
 │   ├── main.py
 │   └── requirements.txt
 └── README.md
+```
 
 *(TailwindCSS)*
 
