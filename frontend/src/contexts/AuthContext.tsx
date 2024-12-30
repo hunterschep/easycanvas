@@ -37,6 +37,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
 
         setCurrentUser(user);
+        
         try {
           await getUserSettings(user.uid);
           setHasCanvasToken(true);
@@ -48,6 +49,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setHasCanvasToken(false);
           }
         }
+      } catch (error) {
+        console.error('Auth error:', error);
       } finally {
         setLoading(false);
       }

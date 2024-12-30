@@ -7,6 +7,7 @@ import Home from './components/home';
 import AccountDetails from './components/AccountDetails';
 import TermsOfService from './components/TermsOfService';
 import CourseDetails from './components/CourseDetails';
+import AssignmentDetails from './components/AssignmentDetails';
 
 function App() {
   return (
@@ -43,6 +44,14 @@ function App() {
           element={
             <ProtectedRoute>
               <CourseDetails />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/course/:courseId/assignment/:assignmentId" 
+          element={
+            <ProtectedRoute>
+              <AssignmentDetails />
             </ProtectedRoute>
           } 
         />

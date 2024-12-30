@@ -306,6 +306,26 @@ async def get_user_courses(
                                     'lock_at': getattr(assignment, 'lock_at', None),
                                     'course_id': course.id
                                 }
+
+                                # Check for submissions on the assignment 
+                                try:
+                                    if assignment.has_submitted_submissions:
+                                        # Get user's Canvas ID from stored settings
+                                        user_settings = db.collection('users').document(user_id).get().to_dict()
+                                        canvas_user_id = user_settings['canvas_user_id']
+                                        
+                                        # If the submission has been graded add the grade 
+                                        submission = assignment.get_submission(canvas_user_id)
+                                        if submission and submission.score:
+                                            assignment_data['grade'] = submission.score
+                                        else:
+                                            assignment_data['grade'] = 'N/A'
+                                    else:
+                                        assignment_data['grade'] = 'N/A'
+                                except Exception as e:
+                                    logger.error(f"Error fetching submission for assignment {assignment.id}: {str(e)}")
+                                    assignment_data['grade'] = 'N/A'
+
                                 course_data['assignments'].append(assignment_data)
                     except Exception as e:
                         logger.error(f"[Error] Failed to fetch assignments for course {course.id}: {str(e)}")
@@ -333,4 +353,3 @@ async def get_user_courses(
     except Exception as e:
         logger.error(f"[Error] Unhandled exception in get_user_courses: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
-

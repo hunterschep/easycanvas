@@ -13,14 +13,14 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (currentUser) {
+    if (!loading && currentUser) {
       if (hasCanvasToken) {
         navigate('/home');
       } else {
         navigate('/setup');
       }
     }
-  }, [currentUser, hasCanvasToken, navigate]);
+  }, [currentUser, hasCanvasToken, navigate, loading]);
 
   const handleGoogleSignIn = async () => {
     try {
@@ -28,12 +28,11 @@ const Login = () => {
       await signInWithPopup(auth, googleProvider);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
       setIsLoading(false);
     }
   };
 
-  if (isLoading || loading) {
+  if (loading || isLoading) {
     return <Loading message="Setting up your account..." />;
   }
 
