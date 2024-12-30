@@ -1,0 +1,40 @@
+                    GNU AFFERO GENERAL PUBLIC LICENSE
+                       Version 3, 19 November 2007
+
+ Copyright (C) 2024 Hunter Scheppat
+ 
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as published
+ by the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
+
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+                     ADDITIONAL TERMS PER GNU AGPL SECTION 7
+
+1. Required Source Code Disclosure for Network Use: If you modify easyCanvas and 
+   run it to interact with users over a network, you must make your modified 
+   version available under the AGPL to those users.
+
+2. Preservation of Legal Notices: All copyright notices, terms of service, and 
+   privacy statements must remain intact and prominently visible.
+
+3. Canvas LMS API Usage: This license does not grant any rights to the Canvas LMS 
+   API beyond those provided by Instructure, Inc. Users must comply with Canvas 
+   LMS API terms of service independently.
+
+4. Data Privacy Requirements: Any modified version must maintain the same level 
+   of data privacy and security measures, including but not limited to:
+   - Encryption of Canvas API tokens
+   - Anonymization of user data for AI processing
+   - Secure storage of user information
+   - User right to data deletion
+
+For the complete terms of the GNU Affero General Public License, see:
+<https://www.gnu.org/licenses/agpl-3.0.html> 

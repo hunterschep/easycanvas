@@ -140,7 +140,9 @@ easycanvas/
 ---
 
 ## 📝 License
-MIT License - see `LICENSE` file
+GNU Affero General Public License v3.0 - see `LICENSE` file
+
+This strong copyleft license requires anyone who distributes or modifies this code to make their modifications available under the same terms. This includes using the code to provide a web service.
 
 ---
 

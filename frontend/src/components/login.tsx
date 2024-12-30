@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { auth, googleProvider } from '../firebase/config';
 import { signInWithPopup } from 'firebase/auth';
+import { Link } from 'react-router-dom';
 import Loading from './Loading';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -60,7 +61,7 @@ const Login = () => {
 
             <button
               onClick={handleGoogleSignIn}
-              className="group relative w-full bg-white hover:bg-gray-100 text-black rounded-lg p-4 flex items-center justify-center space-x-3 transition-all duration-200 ease-in-out transform hover:scale-[1.02] active:scale-[0.98]"
+              className="group relative w-full bg-white hover:bg-gray-100 text-black rounded-lg p-4 flex items-center justify-center space-x-3 transition-all duration-200 ease-in-out transform hover:scale-[1.02] active:scale-[0.98] mb-8"
             >
               <img
                 src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
@@ -69,6 +70,15 @@ const Login = () => {
               />
               <span className="font-medium">Sign up or Log in with Google</span>
             </button>
+
+            <div className="text-center pt-4 border-t border-gray-800">
+              <p className="text-xs text-gray-500">
+                By continuing, you agree to our{' '}
+                <Link to="/terms" className="text-white hover:text-gray-300 transition-colors">
+                  Terms of Service
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
       </div>

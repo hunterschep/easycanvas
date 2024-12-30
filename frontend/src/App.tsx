@@ -5,6 +5,7 @@ import Login from './components/login';
 import Setup from './components/setup';
 import Home from './components/home';
 import AccountDetails from './components/AccountDetails';
+import TermsOfService from './components/TermsOfService';
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
           } 
         />
         <Route path="/" element={<Navigate to="/home" />} />
+        <Route path="/terms" element={<TermsOfService />} />
       </Routes>
       </AuthProvider>
     </BrowserRouter>
