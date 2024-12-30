@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { getUserCourses } from '../firebase/firestore';
 import Account from './Account';
 import Loading from './Loading';
+import { useNavigate } from 'react-router-dom';
+
 
 interface Assignment {
   id: number;
@@ -22,12 +24,15 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
+
 
   const fetchCourses = async (forceRefresh: boolean = false) => {
     try {
       setRefreshing(forceRefresh);
       const coursesData = await getUserCourses(forceRefresh);
       setCourses(coursesData);
+      localStorage.setItem('coursesData', JSON.stringify(coursesData));
     } catch (err) {
       setError('Failed to load courses');
       console.error(err);
@@ -143,6 +148,7 @@ const Home = () => {
                   {courses.map((course) => (
                     <div
                       key={course.id}
+                      onClick={() => navigate(`/course/${course.id}`)}
                       className="p-4 border border-gray-800 rounded-lg hover:border-gray-600 transition-all duration-200 cursor-pointer"
                     >
                       <h3 className="font-medium">{course.name}</h3>

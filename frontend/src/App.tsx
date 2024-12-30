@@ -6,6 +6,7 @@ import Setup from './components/setup';
 import Home from './components/home';
 import AccountDetails from './components/AccountDetails';
 import TermsOfService from './components/TermsOfService';
+import CourseDetails from './components/CourseDetails';
 
 function App() {
   return (
@@ -34,6 +35,14 @@ function App() {
           element={
             <ProtectedRoute>
               <AccountDetails />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/course/:courseId" 
+          element={
+            <ProtectedRoute>
+              <CourseDetails />
             </ProtectedRoute>
           } 
         />
