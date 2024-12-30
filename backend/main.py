@@ -217,7 +217,10 @@ async def delete_user_settings(
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/api/user/courses")
-async def get_user_courses(user_id: str = Depends(verify_firebase_token)):
+async def get_user_courses(
+    user_id: str = Depends(verify_firebase_token),
+    force: bool = False
+):
     try:
         logger.info(f"[API Call] GET /api/user/courses for user: {user_id}")
         
@@ -225,7 +228,7 @@ async def get_user_courses(user_id: str = Depends(verify_firebase_token)):
         doc_ref = db.collection('userCourses').document(user_id)
         doc = doc_ref.get()
         
-        if doc.exists:
+        if not force and doc.exists:
             logger.info("[Cache Hit] Found courses in Firestore cache")
             courses_data = doc.to_dict()
             last_updated = courses_data.get('lastUpdated', None)

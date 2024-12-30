@@ -116,14 +116,18 @@ export const deleteUserAccount = async (userId: string) => {
   }
 };
 
-export const getUserCourses = async () => {
+export const getUserCourses = async (forceRefresh: boolean = false) => {
   try {
     const idToken = await auth.currentUser?.getIdToken();
     if (!idToken) {
       throw new Error('Not authenticated');
     }
 
-    const response = await fetch('http://localhost:8000/api/user/courses', {
+    const url = forceRefresh 
+      ? 'http://localhost:8000/api/user/courses?force=true'
+      : 'http://localhost:8000/api/user/courses';
+
+    const response = await fetch(url, {
       headers: {
         'Authorization': `Bearer ${idToken}`,
       },

@@ -20,21 +20,24 @@ interface Course {
 const Home = () => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const coursesData = await getUserCourses();
-        setCourses(coursesData);
-      } catch (err) {
-        setError('Failed to load courses');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchCourses = async (forceRefresh: boolean = false) => {
+    try {
+      setRefreshing(forceRefresh);
+      const coursesData = await getUserCourses(forceRefresh);
+      setCourses(coursesData);
+    } catch (err) {
+      setError('Failed to load courses');
+      console.error(err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
+  useEffect(() => {
     fetchCourses();
   }, []);
 
@@ -104,7 +107,38 @@ const Home = () => {
             <div className="relative group">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-lg blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
               <div className="relative bg-black border border-gray-800 rounded-lg p-6">
-                <h2 className="text-xl font-bold mb-4">Your Courses</h2>
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-bold">Your Courses</h2>
+                  <button
+                    onClick={() => fetchCourses(true)}
+                    disabled={refreshing}
+                    className="px-3 py-1 text-sm text-gray-400 hover:text-white border border-gray-800 hover:border-gray-600 rounded-lg transition-all duration-200 flex items-center gap-2"
+                  >
+                    {refreshing ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                        Refreshing...
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          />
+                        </svg>
+                        Refresh
+                      </>
+                    )}
+                  </button>
+                </div>
                 <div className="space-y-3">
                   {courses.map((course) => (
                     <div
