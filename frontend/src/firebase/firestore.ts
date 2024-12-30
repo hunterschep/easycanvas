@@ -115,3 +115,27 @@ export const deleteUserAccount = async (userId: string) => {
     throw error;
   }
 };
+
+export const getUserCourses = async () => {
+  try {
+    const idToken = await auth.currentUser?.getIdToken();
+    if (!idToken) {
+      throw new Error('Not authenticated');
+    }
+
+    const response = await fetch('http://localhost:8000/api/user/courses', {
+      headers: {
+        'Authorization': `Bearer ${idToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch courses');
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error('Error fetching courses:', error);
+    throw error;
+  }
+};

@@ -1,18 +1,58 @@
+import { useState, useEffect } from 'react';
+import { getUserCourses } from '../firebase/firestore';
 import Account from './Account';
+import Loading from './Loading';
+
+interface Assignment {
+  id: number;
+  name: string;
+  due_at: string;
+  points_possible: number;
+}
+
+interface Course {
+  id: number;
+  name: string;
+  code: string;
+  assignments: Assignment[];
+}
 
 const Home = () => {
-  // Placeholder data (replace with actual data from Canvas API)
-  const assignments = [
-    { id: 1, title: 'Final Project', course: 'Web Development', dueDate: '2024-03-20' },
-    { id: 2, title: 'Midterm Essay', course: 'English Literature', dueDate: '2024-03-15' },
-    { id: 3, title: 'Problem Set 3', course: 'Mathematics', dueDate: '2024-03-18' },
-  ];
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const courses = [
-    { id: 1, name: 'Web Development', code: 'CS 401' },
-    { id: 2, name: 'English Literature', code: 'ENG 201' },
-    { id: 3, name: 'Mathematics', code: 'MATH 301' },
-  ];
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const coursesData = await getUserCourses();
+        setCourses(coursesData);
+      } catch (err) {
+        setError('Failed to load courses');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
+  if (loading) {
+    return <Loading message="Loading your courses..." />;
+  }
+
+  // Get upcoming assignments across all courses
+  const upcomingAssignments = courses
+    .flatMap(course => 
+      course.assignments.map(assignment => ({
+        ...assignment,
+        course: course.name
+      }))
+    )
+    .filter(assignment => new Date(assignment.due_at) > new Date())
+    .sort((a, b) => new Date(a.due_at).getTime() - new Date(b.due_at).getTime())
+    .slice(0, 5); // Show only next 5 assignments
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -38,18 +78,18 @@ const Home = () => {
               <div className="relative bg-black border border-gray-800 rounded-lg p-6">
                 <h2 className="text-xl font-bold mb-4">Upcoming Assignments</h2>
                 <div className="space-y-4">
-                  {assignments.map((assignment) => (
+                  {upcomingAssignments.map((assignment) => (
                     <div
                       key={assignment.id}
                       className="p-4 border border-gray-800 rounded-lg hover:border-gray-600 transition-all duration-200"
                     >
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className="font-medium">{assignment.title}</h3>
+                          <h3 className="font-medium">{assignment.name}</h3>
                           <p className="text-sm text-gray-400">{assignment.course}</p>
                         </div>
                         <span className="text-sm text-gray-400">
-                          Due: {new Date(assignment.dueDate).toLocaleDateString()}
+                          Due: {new Date(assignment.due_at).toLocaleDateString()}
                         </span>
                       </div>
                     </div>
@@ -72,7 +112,6 @@ const Home = () => {
                       className="p-4 border border-gray-800 rounded-lg hover:border-gray-600 transition-all duration-200 cursor-pointer"
                     >
                       <h3 className="font-medium">{course.name}</h3>
-                      <p className="text-sm text-gray-400">{course.code}</p>
                     </div>
                   ))}
                 </div>
