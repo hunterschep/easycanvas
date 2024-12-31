@@ -1,14 +1,8 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { auth } from '../config/firebase.config';
-import { getUserSettings } from '../firebase/firestore';
 import { User } from 'firebase/auth';
-
-interface AuthContextType {
-  loading: boolean;
-  hasCanvasToken: boolean;
-  currentUser: User | null;
-  signOut: () => Promise<void>;
-}
+import { auth } from '@/config/firebase.config';
+import { AuthService } from '../services/auth.service';
+import type { AuthContextType } from '../types';
 
 const AuthContext = createContext<AuthContextType>({
   currentUser: null,
@@ -21,10 +15,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasCanvasToken, setHasCanvasToken] = useState(false);
-
-  const handleSignOut = async () => {
-    await auth.signOut();
-  };
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
@@ -39,15 +29,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setCurrentUser(user);
         
         try {
-          await getUserSettings(user.uid);
+          await AuthService.getUserSettings();
           setHasCanvasToken(true);
         } catch (error: any) {
-          if (error.message === 'NEW_USER') {
-            setHasCanvasToken(false);
-          } else {
-            console.error('Error fetching user settings:', error);
-            setHasCanvasToken(false);
-          }
+          console.error('Settings error:', error);
+          setHasCanvasToken(false);
         }
       } catch (error) {
         console.error('Auth error:', error);
@@ -63,14 +49,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     currentUser,
     loading,
     hasCanvasToken,
-    signOut: handleSignOut
+    signOut: AuthService.signOut
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
-  return useContext(AuthContext);
-};
-
-export default AuthContext;
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}; 

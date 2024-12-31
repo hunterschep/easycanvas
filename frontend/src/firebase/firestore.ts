@@ -1,4 +1,4 @@
-import { auth } from './config';
+import { auth } from '../config/firebase.config';
 
 export const saveUserSettings = async (userId: string, canvasUrl: string, apiToken: string) => {
   try {
@@ -123,23 +123,57 @@ export const getUserCourses = async (forceRefresh: boolean = false) => {
       throw new Error('Not authenticated');
     }
 
-    const url = forceRefresh 
-      ? 'http://localhost:8000/api/user/courses?force=true'
-      : 'http://localhost:8000/api/user/courses';
+    // Check cache and timing conditions
+    const lastFetchedTime = localStorage.getItem('coursesLastFetched');
+    const cachedCoursesData = localStorage.getItem('coursesData');
+    const sixHoursInMs = 6 * 60 * 60 * 1000;
+    
+    const shouldRefresh = 
+      forceRefresh || 
+      !cachedCoursesData || 
+      !lastFetchedTime ||
+      (Date.now() - parseInt(lastFetchedTime, 10) > sixHoursInMs);
 
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${idToken}`,
-      },
-    });
+    // Always fetch if no cached data
+    if (shouldRefresh) {
+      const response = await fetch('http://localhost:8000/api/user/courses', {
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'X-Content-Type-Options': 'nosniff',
+          'Referrer-Policy': 'strict-origin-when-cross-origin'
+        },
+        credentials: 'same-origin'
+      });
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch courses');
+      if (!response.ok) {
+        throw new Error('Failed to fetch courses');
+      }
+
+      const data = await response.json();
+      
+      // Only update cache if we got valid data
+      if (data && Array.isArray(data)) {
+        localStorage.setItem('coursesData', JSON.stringify(data));
+        localStorage.setItem('coursesLastFetched', Date.now().toString());
+        return data;
+      }
     }
 
-    return response.json();
+    // Return cached data if available
+    if (cachedCoursesData) {
+      return JSON.parse(cachedCoursesData);
+    }
+
+    throw new Error('No course data available');
   } catch (error) {
     console.error('Error fetching courses:', error);
+    
+    // Last resort: try to use cached data even if fetch failed
+    const cachedCoursesData = localStorage.getItem('coursesData');
+    if (cachedCoursesData) {
+      return JSON.parse(cachedCoursesData);
+    }
+    
     throw error;
   }
 };

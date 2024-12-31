@@ -4,6 +4,14 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg" href="/logo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Security-Policy" content="
+      default-src 'self' https://*.instructure.com;
+      connect-src 'self' http://localhost:8000 https://*.instructure.com https://identitytoolkit.googleapis.com https://*.firebaseio.com https://*.firebase.googleapis.com;
+      script-src 'self' https://apis.google.com https://*.firebaseio.com https://*.firebase.googleapis.com;
+      style-src 'self' 'unsafe-inline';
+      img-src 'self' data: https://*.instructure.com https://www.gstatic.com https://*.googleusercontent.com https://*.bc.edu;
+      frame-src 'self' https://apis.google.com https://*.firebaseapp.com;
+    ">
     <title>easyCanvas</title>
   </head>
   <body>

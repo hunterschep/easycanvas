@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import Account from './Account';
+import { Account } from '@/features/account/components/Account/Account';
 
 const TermsOfService = () => {
   const navigate = useNavigate();
@@ -29,9 +29,10 @@ const TermsOfService = () => {
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="space-y-8">
+          {/* Title and Last Updated */}
           <div className="text-center">
             <h1 className="text-3xl font-black tracking-tighter mb-4">Terms of Service</h1>
-            <p className="text-gray-400">Last updated: March 2024</p>
+            <p className="text-gray-400">Last updated: December 2024</p>
           </div>
 
           <div className="space-y-6">
@@ -47,12 +48,12 @@ const TermsOfService = () => {
             <section className="space-y-4">
               <h2 className="text-xl font-bold">2. Data Collection &amp; Privacy</h2>
               <ul className="text-gray-400 leading-relaxed space-y-2">
-                <li>• We collect basic Canvas information including courses, assignments, and grades.</li>
-                <li>• Your Canvas API key is encrypted and stored securely.</li>
-                <li>• We use read-only API access and cannot modify your Canvas account.</li>
-                <li>• Your name is never associated with grades in AI analysis.</li>
-                <li>• We will never sell your personal information or data.</li>
-                <li>• For more information on how we handle your data, please review our Privacy Policy.</li>
+                <li>• We collect limited Canvas information, such as courses, assignments, and grades, solely to deliver our services.</li>
+                <li>• Your Canvas API key (or token) is encrypted and stored securely; we do not share your API credentials with any third party without your explicit consent.</li>
+                <li>• We use read-only API access and cannot modify your Canvas account in any manner.</li>
+                <li>• Your name, student identifiers, and other personal information are never publicly associated with your grades or AI analysis results.</li>
+                <li>• We will never sell your personal information or data to third parties.</li>
+                <li>• For more details on how we collect, use, and protect your data, please review our Privacy Policy.</li>
               </ul>
             </section>
 
@@ -60,11 +61,11 @@ const TermsOfService = () => {
             <section className="space-y-4">
               <h2 className="text-xl font-bold">3. Security</h2>
               <ul className="text-gray-400 leading-relaxed space-y-2">
-                <li>• Data is stored in secure Firebase databases.</li>
+                <li>• All user data is stored in secure Firebase databases and protected by robust access controls.</li>
                 <li>• API keys are encrypted using industry-standard methods.</li>
-                <li>• All connections are encrypted using HTTPS.</li>
-                <li>• Regular security audits are performed.</li>
-                <li>• You agree to safeguard your account credentials and notify us immediately of any unauthorized use.</li>
+                <li>• All connections to easyCanvas are encrypted using HTTPS.</li>
+                <li>• We conduct regular security audits and reviews to maintain a high level of data protection.</li>
+                <li>• You agree to safeguard your account credentials and notify us immediately of any unauthorized use or suspicious activity.</li>
               </ul>
             </section>
 
@@ -72,10 +73,10 @@ const TermsOfService = () => {
             <section className="space-y-4">
               <h2 className="text-xl font-bold">4. User Rights</h2>
               <ul className="text-gray-400 leading-relaxed space-y-2">
-                <li>• Delete your account and data at any time.</li>
-                <li>• Request a copy of your stored data.</li>
-                <li>• Opt out of AI analysis features.</li>
-                <li>• Update or revoke your API key.</li>
+                <li>• You have the right to delete your account and data at any time through the account settings.</li>
+                <li>• You may request a copy of your stored data in a commonly used electronic format.</li>
+                <li>• You have the option to opt out of AI analysis features without discontinuing other easyCanvas services.</li>
+                <li>• You can update or revoke your API key or token at your discretion.</li>
               </ul>
             </section>
 
@@ -83,7 +84,7 @@ const TermsOfService = () => {
             <section className="space-y-4">
               <h2 className="text-xl font-bold">5. Limitations</h2>
               <p className="text-gray-400 leading-relaxed">
-                easyCanvas is provided “as is” and without warranties of any kind, whether express or implied. We maintain read-only access to protect your Canvas account integrity. We do not guarantee uninterrupted or error-free service, nor do we guarantee the accuracy, reliability, or completeness of any information provided.
+                easyCanvas is provided “as is,” without warranties of any kind, whether express or implied. We maintain read-only access to protect the integrity of your Canvas account. We do not guarantee uninterrupted or error-free service, nor the accuracy, reliability, or completeness of any information presented. 
               </p>
             </section>
 
@@ -91,7 +92,7 @@ const TermsOfService = () => {
             <section className="space-y-4">
               <h2 className="text-xl font-bold">6. Eligibility &amp; Account Responsibility</h2>
               <p className="text-gray-400 leading-relaxed">
-                By using easyCanvas, you represent and warrant that you are at least 13 years of age and have the legal capacity to enter into these Terms of Service. You are responsible for any activity that occurs under your account, including any actions taken by persons to whom you have granted access.
+                By using easyCanvas, you represent and warrant that you are at least 13 years of age and have the legal capacity to enter into these Terms of Service. You are responsible for all activity under your account, including actions taken by others to whom you have granted access. You agree to comply with all applicable local, state, federal, and institutional laws and regulations.
               </p>
             </section>
 
@@ -103,9 +104,10 @@ const TermsOfService = () => {
               </p>
               <ul className="text-gray-400 leading-relaxed space-y-2 list-disc list-inside">
                 <li>• Attempting to gain unauthorized access to any systems or networks connected to easyCanvas.</li>
-                <li>• Violating the security of any computer network or cracking any passwords or security encryption codes.</li>
-                <li>• Interfering with or disrupting the integrity of the easyCanvas platform.</li>
-                <li>• Engaging in activities that infringes on the intellectual property or data privacy rights of any entity.</li>
+                <li>• Violating the security of any computer network or cracking passwords or security encryption codes.</li>
+                <li>• Interfering with or disrupting the integrity or performance of the easyCanvas platform.</li>
+                <li>• Engaging in activities that infringe on the intellectual property or data privacy rights of any party.</li>
+                <li>• Bypassing or attempting to bypass security measures to access restricted areas of the service.</li>
               </ul>
             </section>
 
@@ -113,7 +115,7 @@ const TermsOfService = () => {
             <section className="space-y-4">
               <h2 className="text-xl font-bold">8. Intellectual Property</h2>
               <p className="text-gray-400 leading-relaxed">
-                All content, features, and functionality on the easyCanvas platform, including but not limited to text, graphics, images, logos, and software, are the exclusive property of easyCanvas or its licensors and are protected by intellectual property laws. You agree not to reproduce, distribute, or create derivative works from any part of our service without express written permission.
+                All content, features, and functionality on the easyCanvas platform, including (but not limited to) text, graphics, images, logos, and software, are the exclusive property of easyCanvas or its licensors and are protected by intellectual property laws. You agree not to reproduce, distribute, or create derivative works from any part of our service without express written permission.
               </p>
             </section>
 
@@ -121,7 +123,7 @@ const TermsOfService = () => {
             <section className="space-y-4">
               <h2 className="text-xl font-bold">9. Disclaimers</h2>
               <p className="text-gray-400 leading-relaxed">
-                easyCanvas makes no warranties, expressed or implied, regarding the reliability, accuracy, or completeness of any AI analysis or other features. Any academic or professional decisions you make based on the information provided by easyCanvas are solely your responsibility. We shall not be liable for any errors, mistakes, or inaccuracies of content, or any damage arising from your reliance thereon.
+                easyCanvas makes no warranties, expressed or implied, regarding the reliability, accuracy, or completeness of any AI analysis or other features. Academic and professional decisions you make based on information provided by easyCanvas are solely your responsibility. We shall not be liable for errors, mistakes, or inaccuracies of content, or for any damage arising from your reliance on such content.
               </p>
             </section>
 
@@ -137,7 +139,10 @@ const TermsOfService = () => {
             <section className="space-y-4">
               <h2 className="text-xl font-bold">11. Indemnification</h2>
               <p className="text-gray-400 leading-relaxed">
-                You agree to defend, indemnify, and hold harmless easyCanvas and its affiliates from and against any and all claims, damages, obligations, losses, liabilities, costs, or debt, and expenses (including attorney’s fees) arising from: (a) your use of and access to easyCanvas; (b) your violation of these Terms of Service; (c) your violation of any third party right, including without limitation any intellectual property or privacy right.
+                You agree to defend, indemnify, and hold harmless easyCanvas, its affiliates, and their respective officers, employees, and agents, from and against any and all claims, damages, losses, liabilities, costs, or expenses (including attorney’s fees) arising from: 
+                (a) your use of and access to easyCanvas; 
+                (b) your violation of these Terms of Service; or 
+                (c) your violation of any third-party right, including without limitation any intellectual property or privacy right.
               </p>
             </section>
 
@@ -145,7 +150,7 @@ const TermsOfService = () => {
             <section className="space-y-4">
               <h2 className="text-xl font-bold">12. Modifications to the Service &amp; Terms</h2>
               <p className="text-gray-400 leading-relaxed">
-                We reserve the right to modify or discontinue easyCanvas, or any part thereof, at any time. We may also revise these Terms of Service from time to time in our sole discretion. If we make changes, we will provide notice by updating the “Last updated” date at the top of these Terms and, in some cases, we may provide additional notice. By continuing to use easyCanvas after any updates become effective, you agree to be bound by the revised Terms.
+                We reserve the right to modify or discontinue easyCanvas, or any part thereof, at any time without prior notice. We may also revise these Terms of Service from time to time in our sole discretion. If we make changes, we will update the “Last updated” date at the top of these Terms. In some cases, we may provide additional notice (such as an email or an in-app notification). By continuing to use easyCanvas after any updates become effective, you agree to be bound by the revised Terms.
               </p>
             </section>
 
@@ -153,7 +158,7 @@ const TermsOfService = () => {
             <section className="space-y-4">
               <h2 className="text-xl font-bold">13. Governing Law &amp; Dispute Resolution</h2>
               <p className="text-gray-400 leading-relaxed">
-                These Terms of Service are governed by and construed in accordance with the laws of the jurisdiction in which easyCanvas is operated, without regard to its conflict of law provisions. Any dispute arising out of or in connection with these Terms shall be submitted to the exclusive jurisdiction of the courts of that jurisdiction.
+                These Terms of Service are governed by and construed in accordance with the laws of the jurisdiction in which easyCanvas is operated, without regard to its conflict of law provisions. Any dispute arising out of or in connection with these Terms shall be submitted to the exclusive jurisdiction of the courts of that jurisdiction. You agree to submit to personal jurisdiction in such courts.
               </p>
             </section>
 
