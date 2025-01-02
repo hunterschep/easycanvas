@@ -63,29 +63,26 @@ class CourseService:
             # Fetch courses
             try:
                 all_courses = canvas.get_courses()
-                courses = []
-                logger.debug(f"Retrieved {len(list(all_courses))} courses from Canvas")
+                course_tasks = []
                 
                 for course in all_courses:
-                    logger.debug(f"Processing course: {getattr(course, 'name', 'Unknown')}")
                     is_available = getattr(course, 'workflow_state', None) == 'available'
                     is_current_term = getattr(course, 'enrollment_term_id', None) == CourseService.CURRENT_TERM_ID
-                    has_active_enrollment = False
-                    
-                    enrollments = getattr(course, 'enrollments', [])
-                    for enrollment in enrollments:
-                        if (enrollment.get('enrollment_state') == 'active' and 
-                            enrollment.get('type') in ['student', 'teacher', 'ta']):
-                            has_active_enrollment = True
-                            break
-                    
-                    logger.debug(f"Course status - available: {is_available}, current_term: {is_current_term}, active_enrollment: {has_active_enrollment}")
+                    has_active_enrollment = any(
+                        enrollment.get('enrollment_state') == 'active' and 
+                        enrollment.get('type') in ['student', 'teacher', 'ta']
+                        for enrollment in getattr(course, 'enrollments', [])
+                    )
                     
                     if is_available and has_active_enrollment and is_current_term:
-                        course_data = await CourseService._process_course(course, canvas, user_data['canvas_user_id'])
-                        if course_data:
-                            courses.append(course_data)
-                            logger.info(f"Added course: {course_data['name']}")
+                        # Create task for each eligible course
+                        task = CourseService._process_course(course, canvas, user_data['canvas_user_id'])
+                        course_tasks.append(task)
+                
+                # Process all courses concurrently
+                courses = await asyncio.gather(*course_tasks)
+                # Filter out None values (failed course processing)
+                courses = [course for course in courses if course]
                 
                 if courses:
                     logger.info(f"Successfully processed {len(courses)} courses")
@@ -114,8 +111,19 @@ class CourseService:
             'term': getattr(course, 'enrollment_term_id', None),
             'start_at': getattr(course, 'start_at', None),
             'end_at': getattr(course, 'end_at', None),
-            'time_zone': getattr(course, 'time_zone', 'UTC')
+            'time_zone': getattr(course, 'time_zone', 'UTC'),
+            'homepage': None  # Default to None
         }
+        
+        # Try to fetch the front page
+        try:
+            front_page = course.show_front_page()
+            if front_page:
+                course_data['homepage'] = front_page.body
+                logger.debug(f"Successfully fetched homepage for course {course.name}")
+        except Exception as e:
+            logger.debug(f"No homepage found for course {course.name}: {str(e)}")
+            # It's okay if there's no homepage, we'll keep it as None
         
         try:
             assignments = course.get_assignments()

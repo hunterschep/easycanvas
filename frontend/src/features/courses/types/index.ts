@@ -1,24 +1,20 @@
-export interface Assignment {
-  id: number;
-  name: string;
+import type { CanvasAssignment, CanvasCourse } from '@/types/canvas.types';
+
+export interface Assignment extends CanvasAssignment {
   description: string | null;
-  due_at: string;
-  points_possible: number;
-  grade?: string | null;
   submission_types: string[];
   html_url: string | null;
   lock_at: string | null;
   course_id: number;
+  grade?: string | null;
 }
 
-export interface Course {
-  id: number;
-  name: string;
-  code: string;
+export interface Course extends CanvasCourse {
   assignments: Assignment[];
   start_at: string | null;
   end_at: string | null;
   time_zone: string;
+  homepage?: string | null;
 }
 
 export interface FilterOptions {

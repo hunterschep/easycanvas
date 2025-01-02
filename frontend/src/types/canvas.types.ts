@@ -1,16 +1,17 @@
-export interface Assignment {
+export interface CanvasAssignment {
   id: number;
   name: string;
   due_at: string;
   points_possible: number;
-  grade?: string | number;
+  grade?: string | number | null;
 }
 
-export interface Course {
+export interface CanvasCourse {
   id: number;
   name: string;
   code: string;
-  assignments: Assignment[];
+  assignments: CanvasAssignment[];
+  homepage?: string | null;
 }
 
 export interface UserData {

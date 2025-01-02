@@ -23,3 +23,17 @@ class Course(BaseModel):
     start_at: Optional[datetime] = None
     end_at: Optional[datetime] = None
     time_zone: str = "UTC"
+    homepage: Optional[str] = None  # Will be populated separately from front_page endpoint
+
+def course_to_dict(course: Course) -> dict:
+    return {
+        "id": course.id,
+        "name": course.name,
+        "code": course.code,
+        "assignments": [assignment.dict() for assignment in course.assignments],
+        "term": course.term,
+        "start_at": course.start_at,
+        "end_at": course.end_at,
+        "time_zone": course.time_zone,
+        "homepage": course.homepage
+    }

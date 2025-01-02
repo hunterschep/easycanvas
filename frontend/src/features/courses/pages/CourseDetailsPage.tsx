@@ -9,6 +9,7 @@ import { useGradeSummary } from '../hooks/useGradeSummary';
 import { useCourse } from '../hooks/useCourse';
 import { Loading } from '@/components/common/Loading';
 import type { FilterOptions } from '../types';
+import { CourseHomepage } from '../components/CourseHomepage/CourseHomepage';
 
 export const CourseDetailsPage = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -39,6 +40,9 @@ export const CourseDetailsPage = () => {
     <MainLayout showBackButton onBack={() => navigate('/home')}>
       <div className="space-y-8">
         <CourseHeader course={course} gradeSummary={gradeSummary} />
+        
+        {course.homepage && <CourseHomepage html={course.homepage} />}
+
         <FilterBar filterOptions={filterOptions} onFilterChange={setFilterOptions} />
         <MonthlyAssignments 
           assignments={filteredAssignments} 

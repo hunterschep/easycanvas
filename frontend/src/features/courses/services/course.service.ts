@@ -13,4 +13,5 @@ export class CourseService {
   static async getAssignment(courseId: string, assignmentId: string): Promise<Assignment> {
     return ApiService.get(`/api/user/courses/${courseId}/assignments/${assignmentId}`);
   }
+
 } 
