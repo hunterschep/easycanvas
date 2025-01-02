@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 
 class UserSettings(BaseModel):
     canvasUrl: str
@@ -15,7 +16,8 @@ class UserData(BaseModel):
     email: Optional[str] = None
 
 class UserSettingsUpdate(BaseModel):
-    first_name: Optional[str] = None
-    last_name: Optional[str] = None
     canvasUrl: Optional[str] = None
     apiToken: Optional[str] = None
+    coursesLastUpdated: Optional[dict] = None
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None

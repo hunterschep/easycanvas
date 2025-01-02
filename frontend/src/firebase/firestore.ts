@@ -155,53 +155,31 @@ export const getUserCourses = async (forceRefresh: boolean = false) => {
       throw new Error('Not authenticated');
     }
 
-    // Get last updated timestamp from userCourses collection
-    const lastUpdated = await getCoursesLastUpdated(auth.currentUser?.uid || '');
-    const sixHoursInSeconds = 6 * 60 * 60;
+    // First check localStorage
+    const cachedCoursesData = localStorage.getItem('coursesData');
     
-    const shouldRefresh = 
-      forceRefresh || 
-      !lastUpdated ||
-      (Date.now() / 1000 - lastUpdated > sixHoursInSeconds);
+    if (!forceRefresh && cachedCoursesData) {
+      // If we have local data, check if we need to refresh
+      const lastUpdated = await getCoursesLastUpdated(auth.currentUser?.uid || '');
+      const sixHoursInSeconds = 6 * 60 * 60;
+      
+      const shouldRefresh = 
+        !lastUpdated ||
+        (Date.now() / 1000 - lastUpdated > sixHoursInSeconds);
 
-    console.log('Should refresh courses?', {
-      forceRefresh,
-      lastUpdated,
-      timeSinceUpdate: Date.now() / 1000 - lastUpdated,
-      shouldRefresh
-    });
-
-    // If we shouldn't refresh, try to get from localStorage first
-    if (!shouldRefresh) {
-      const cachedCoursesData = localStorage.getItem('coursesData');
-      if (cachedCoursesData) {
+      if (!shouldRefresh) {
+        console.log('Using localStorage cached data');
         return JSON.parse(cachedCoursesData);
-      }
-
-      // If not in localStorage, get from backend without refreshing Canvas
-      const response = await fetch('http://localhost:8000/api/user/courses?skipRefresh=true', {
-        headers: {
-          'Authorization': `Bearer ${idToken}`
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data && Array.isArray(data)) {
-          localStorage.setItem('coursesData', JSON.stringify(data));
-          return data;
-        }
       }
     }
 
-    // Only reach here if we should refresh or failed to get stored data
+    // If we need fresh data, get it from the backend
     const response = await fetch('http://localhost:8000/api/user/courses', {
       headers: {
         'Authorization': `Bearer ${idToken}`,
-        'X-Content-Type-Options': 'nosniff',
-        'Referrer-Policy': 'strict-origin-when-cross-origin'
+        'Content-Type': 'application/json'
       },
-      credentials: 'same-origin'
+      credentials: 'include'
     });
 
     if (!response.ok) {
@@ -213,7 +191,7 @@ export const getUserCourses = async (forceRefresh: boolean = false) => {
     if (data && Array.isArray(data)) {
       localStorage.setItem('coursesData', JSON.stringify(data));
       
-      // Only update Firebase timestamp if we actually refreshed from Canvas
+      // Update Firebase timestamp
       await updateUserSettings(auth.currentUser?.uid || '', {
         coursesLastUpdated: { seconds: Math.floor(Date.now() / 1000) }
       });
@@ -226,4 +204,4 @@ export const getUserCourses = async (forceRefresh: boolean = false) => {
     console.error('Error fetching courses:', error);
     throw error;
   }
-};
+}

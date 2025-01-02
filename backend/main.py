@@ -15,7 +15,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Setup security middleware
+# Setup security middleware FIRST
 setup_security_middleware(app)
 
 # Include routers

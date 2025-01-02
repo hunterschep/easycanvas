@@ -3,6 +3,7 @@ from src.utils.encryption import encrypt_token, decrypt_token
 from canvasapi import Canvas
 from google.cloud import firestore
 from fastapi import HTTPException
+from src.models.user import UserSettingsUpdate
 
 class UserService:
     @staticmethod
@@ -59,6 +60,49 @@ class UserService:
             }
             
             return response_data
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e))
+
+    @staticmethod
+    async def update_user_settings(user_id: str, settings: UserSettingsUpdate):
+        try:
+            doc_ref = db.collection('users').document(user_id)
+            doc = doc_ref.get()
+            
+            if not doc.exists:
+                raise HTTPException(status_code=404, detail="User not found")
+            
+            # Convert Pydantic model to dict and remove None values
+            update_data = settings.dict(exclude_none=True)
+            
+            # Handle API token encryption if provided
+            if 'apiToken' in update_data:
+                update_data['apiToken'] = encrypt_token(update_data['apiToken'])
+            
+            # Add timestamp
+            update_data['updatedAt'] = firestore.SERVER_TIMESTAMP
+            
+            # Update document
+            doc_ref.update(update_data)
+            
+            # Get updated document
+            updated_doc = doc_ref.get()
+            user_data = updated_doc.to_dict()
+            
+            # Return sanitized response
+            return {
+                'canvasUrl': user_data['canvasUrl'],
+                'canvas_user_id': user_data['canvas_user_id'],
+                'name': user_data['name'],
+                'first_name': user_data['first_name'],
+                'last_name': user_data['last_name'],
+                'avatar_url': user_data['avatar_url'],
+                'email': user_data.get('email'),
+                'coursesLastUpdated': user_data.get('coursesLastUpdated')
+            }
             
         except HTTPException:
             raise

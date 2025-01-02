@@ -3,17 +3,19 @@ import sys
 from functools import wraps
 import time
 
-def setup_logger(name: str) -> logging.Logger:
+def setup_logger(name):
     logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)  # Set to DEBUG level
     
+    # Create console handler with formatting
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('[%(asctime)s] %(levelname)s [%(name)s:%(funcName)s:%(lineno)d] %(message)s')
+    handler.setFormatter(formatter)
+    
+    # Add handler if it doesn't exist
     if not logger.handlers:
-        handler = logging.StreamHandler(sys.stdout)
-        formatter = logging.Formatter(
-            '[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s'
-        )
-        handler.setFormatter(formatter)
         logger.addHandler(handler)
-        logger.setLevel(logging.INFO)
     
     return logger
 
