@@ -4,6 +4,9 @@ from canvasapi import Canvas
 from google.cloud import firestore
 from fastapi import HTTPException
 from src.models.user import UserSettingsUpdate
+import logging
+
+logger = logging.getLogger(__name__)
 
 class UserService:
     @staticmethod
@@ -108,3 +111,18 @@ class UserService:
             raise
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
+
+    @staticmethod
+    async def delete_user_settings(user_id: str):
+        try:
+            # Delete from users collection
+            db.collection('users').document(user_id).delete()
+            
+            # Delete from userCourses collection
+            db.collection('userCourses').document(user_id).delete()
+            
+            logger.info(f"Successfully deleted all data for user {user_id}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to delete user settings: {str(e)}")
+            raise HTTPException(status_code=500, detail="Failed to delete user settings")

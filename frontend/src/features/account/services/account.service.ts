@@ -1,5 +1,6 @@
 import { ApiService } from '@/services/api/api.service';
 import type { UserSettings } from '../types';
+import { auth } from '../../../config/firebase.config';
 
 export class AccountService {
   static async getUserSettings(): Promise<UserSettings> {
@@ -33,6 +34,13 @@ export class AccountService {
   }
 
   static async deleteAccount(): Promise<void> {
-    return ApiService.delete('/api/user/settings');
+    // First delete user data from our backend
+    await ApiService.delete('/api/user');
+    
+    // Then delete Firebase auth account
+    const user = auth.currentUser;
+    if (user) {
+        await user.delete();
+    }
   }
 } 

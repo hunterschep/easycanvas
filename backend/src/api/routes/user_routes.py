@@ -30,3 +30,7 @@ async def delete_user_settings(
     user_id: str = Depends(verify_firebase_token)
 ):
     return await UserService.delete_user_settings(user_id)
+
+@router.delete("/")
+async def delete_user(user_id: str = Depends(verify_firebase_token)):
+    return await UserService.delete_user_settings(user_id)
