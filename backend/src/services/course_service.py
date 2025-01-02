@@ -32,7 +32,6 @@ class CourseService:
                 raise HTTPException(status_code=404, detail="User not found")
 
             user_data = user_doc.to_dict()
-            logger.debug(f"Retrieved user data: {user_data}")
             
             # If force=True, always refresh. Otherwise, check cache
             if not force:
@@ -220,15 +219,16 @@ class CourseService:
             
             data = doc.to_dict()
             timestamp = data.get('lastUpdated')
+            logger.debug(f"Raw Firebase Timestamp: {timestamp}")
             
             if timestamp:
-                if hasattr(timestamp, 'seconds') and hasattr(timestamp, 'nanoseconds'):
-                    return {
-                        "lastUpdated": {
-                            "seconds": timestamp.seconds,
-                            "nanoseconds": timestamp.nanoseconds
-                        }
+                # Convert to epoch seconds
+                return {
+                    "lastUpdated": {
+                        "seconds": int(timestamp.timestamp()),  # Convert to Unix timestamp (seconds)
+                        "nanoseconds": timestamp.nanosecond  # Get nanoseconds
                     }
+                }
             
             return {"lastUpdated": None}
         except Exception as e:

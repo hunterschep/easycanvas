@@ -18,6 +18,5 @@ class UserData(BaseModel):
 class UserSettingsUpdate(BaseModel):
     canvasUrl: Optional[str] = None
     apiToken: Optional[str] = None
-    coursesLastUpdated: Optional[dict] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None

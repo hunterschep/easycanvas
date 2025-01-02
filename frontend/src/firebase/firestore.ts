@@ -163,18 +163,28 @@ export const getUserCourses = async (forceRefresh: boolean = false) => {
       const lastUpdated = await getCoursesLastUpdated(auth.currentUser?.uid || '');
       const sixHoursInSeconds = 6 * 60 * 60;
       
+      const currentUTCSeconds = Math.floor(new Date().getTime() / 1000);
       const shouldRefresh = 
         !lastUpdated ||
-        (Date.now() / 1000 - lastUpdated > sixHoursInSeconds);
+        (currentUTCSeconds - lastUpdated > sixHoursInSeconds);
+
+      console.log('Time check:', {
+        currentUTCTime: new Date().toUTCString(),
+        lastUpdatedTime: new Date(lastUpdated * 1000).toUTCString(),
+        timeDifference: currentUTCSeconds - lastUpdated,
+        shouldRefresh
+      });
 
       if (!shouldRefresh) {
         console.log('Using localStorage cached data');
         return JSON.parse(cachedCoursesData);
       }
+      // If we need to refresh, set forceRefresh to true
+      forceRefresh = true;
     }
 
     // If we need fresh data, get it from the backend
-    const response = await fetch('http://localhost:8000/api/user/courses', {
+    const response = await fetch(`http://localhost:8000/api/user/courses${forceRefresh ? '?force=true' : ''}`, {
       headers: {
         'Authorization': `Bearer ${idToken}`,
         'Content-Type': 'application/json'
@@ -190,11 +200,6 @@ export const getUserCourses = async (forceRefresh: boolean = false) => {
     
     if (data && Array.isArray(data)) {
       localStorage.setItem('coursesData', JSON.stringify(data));
-      
-      // Update Firebase timestamp
-      await updateUserSettings(auth.currentUser?.uid || '', {
-        coursesLastUpdated: { seconds: Math.floor(Date.now() / 1000) }
-      });
       
       return data;
     }
