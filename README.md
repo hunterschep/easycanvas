@@ -1,4 +1,3 @@
-```
 # easyCanvas 🎨
 A streamlined interface for Canvas LMS that simplifies managing your courses and assignments.
 
@@ -123,4 +122,3 @@ This strong copyleft license requires anyone who distributes or modifies this co
 - Built by [Hunter Scheppat](https://linkedin.com/in/hunterscheppat/)  
 - Powered by Canvas LMS API  
 - Built with React, Firebase, and TailwindCSS
-```
