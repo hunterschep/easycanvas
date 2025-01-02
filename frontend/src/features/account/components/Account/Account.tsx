@@ -13,7 +13,6 @@ export const Account = () => {
     queryFn: UserService.getSettings,
     enabled: !!currentUser,
     staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
-    cacheTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
   });
 
   if (!currentUser) return null;

@@ -13,6 +13,10 @@ export interface UserSettings {
   avatar_url: string;
   canvasUrl: string;
   name: string;
+  coursesLastUpdated?: {
+    seconds: number;
+    nanoseconds: number;
+  };
   updatedAt: {
     seconds: number;
     nanoseconds: number;

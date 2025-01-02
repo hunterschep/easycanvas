@@ -387,3 +387,50 @@ async def get_user_courses(
     except Exception as e:
         logger.error(f"[Error] Unhandled exception in get_user_courses: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/user/courses/last-updated")
+async def get_courses_last_updated(user_id: str = Depends(verify_firebase_token)):
+    try:
+        logger.info(f"[API Call] GET /api/user/courses/last-updated for user: {user_id}")
+        
+        doc_ref = db.collection('userCourses').document(user_id)
+        doc = doc_ref.get()
+        
+        if not doc.exists:
+            logger.info("[Response] No lastUpdated timestamp found")
+            return {"lastUpdated": None}
+            
+        data = doc.to_dict()
+        timestamp = data.get('lastUpdated')
+        
+        logger.info(f"[Debug] Raw timestamp from Firestore: {timestamp}")
+        
+        # Handle Firestore timestamp correctly
+        if timestamp:
+            # Check if it's a Firestore Timestamp object
+            if hasattr(timestamp, 'seconds') and hasattr(timestamp, 'nanoseconds'):
+                return {
+                    "lastUpdated": {
+                        "seconds": timestamp.seconds,
+                        "nanoseconds": timestamp.nanoseconds
+                    }
+                }
+            # Check if it's a datetime object
+            elif hasattr(timestamp, 'timestamp'):
+                ts = timestamp.timestamp()
+                return {
+                    "lastUpdated": {
+                        "seconds": int(ts),
+                        "nanoseconds": int((ts % 1) * 1e9)
+                    }
+                }
+            else:
+                logger.error(f"[Error] Unexpected timestamp type: {type(timestamp)}")
+                return {"lastUpdated": None}
+            
+        return {"lastUpdated": None}
+        
+    except Exception as e:
+        logger.error(f"[Error] Failed to get courses last updated: {str(e)}")
+        logger.exception(e)  # Print full stack trace
+        raise HTTPException(status_code=500, detail=str(e))

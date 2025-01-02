@@ -21,6 +21,8 @@ export const useCourses = () => {
   };
 
   useEffect(() => {
+    // On initial mount, we should never force refresh
+    // getUserCourses will handle the 6-hour check internally
     fetchCourses(false);
   }, []);
 

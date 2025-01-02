@@ -10,7 +10,7 @@ export const HomePage = () => {
   const upcomingAssignments = useUpcomingAssignments(courses);
 
   if (loading) {
-    return <Loading message="Loading your courses..." />;
+    return <Loading message="Fetching your courses... This may take a few minutes!" />;
   }
 
   if (error) {

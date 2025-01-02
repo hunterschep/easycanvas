@@ -116,6 +116,38 @@ export const deleteUserAccount = async (userId: string) => {
   }
 };
 
+export const getCoursesLastUpdated = async (userId: string) => {
+  try {
+    const idToken = await auth.currentUser?.getIdToken();
+    if (!idToken) {
+      throw new Error('Not authenticated');
+    }
+
+    const response = await fetch('http://localhost:8000/api/user/courses/last-updated', {
+      headers: {
+        'Authorization': `Bearer ${idToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      console.error('Failed to get last updated timestamp:', response.status);
+      return 0;
+    }
+
+    const data = await response.json();
+    console.log('Last updated data from backend:', data);
+
+    // Firebase Timestamp comes as { seconds: number, nanoseconds: number }
+    const timestamp = data.lastUpdated?.seconds || 0;
+    console.log('Extracted timestamp:', timestamp);
+    
+    return timestamp;
+  } catch (error) {
+    console.error('Error getting courses last updated:', error);
+    return 0;
+  }
+};
+
 export const getUserCourses = async (forceRefresh: boolean = false) => {
   try {
     const idToken = await auth.currentUser?.getIdToken();
@@ -123,57 +155,75 @@ export const getUserCourses = async (forceRefresh: boolean = false) => {
       throw new Error('Not authenticated');
     }
 
-    // Check cache and timing conditions
-    const lastFetchedTime = localStorage.getItem('coursesLastFetched');
-    const cachedCoursesData = localStorage.getItem('coursesData');
-    const sixHoursInMs = 6 * 60 * 60 * 1000;
+    // Get last updated timestamp from userCourses collection
+    const lastUpdated = await getCoursesLastUpdated(auth.currentUser?.uid || '');
+    const sixHoursInSeconds = 6 * 60 * 60;
     
     const shouldRefresh = 
       forceRefresh || 
-      !cachedCoursesData || 
-      !lastFetchedTime ||
-      (Date.now() - parseInt(lastFetchedTime, 10) > sixHoursInMs);
+      !lastUpdated ||
+      (Date.now() / 1000 - lastUpdated > sixHoursInSeconds);
 
-    // Always fetch if no cached data
-    if (shouldRefresh) {
-      const response = await fetch('http://localhost:8000/api/user/courses', {
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'X-Content-Type-Options': 'nosniff',
-          'Referrer-Policy': 'strict-origin-when-cross-origin'
-        },
-        credentials: 'same-origin'
-      });
+    console.log('Should refresh courses?', {
+      forceRefresh,
+      lastUpdated,
+      timeSinceUpdate: Date.now() / 1000 - lastUpdated,
+      shouldRefresh
+    });
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch courses');
+    // If we shouldn't refresh, try to get from localStorage first
+    if (!shouldRefresh) {
+      const cachedCoursesData = localStorage.getItem('coursesData');
+      if (cachedCoursesData) {
+        return JSON.parse(cachedCoursesData);
       }
 
-      const data = await response.json();
-      
-      // Only update cache if we got valid data
-      if (data && Array.isArray(data)) {
-        localStorage.setItem('coursesData', JSON.stringify(data));
-        localStorage.setItem('coursesLastFetched', Date.now().toString());
-        return data;
+      // If not in localStorage, get from backend without refreshing Canvas
+      const response = await fetch('http://localhost:8000/api/user/courses?skipRefresh=true', {
+        headers: {
+          'Authorization': `Bearer ${idToken}`
+        }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data && Array.isArray(data)) {
+          localStorage.setItem('coursesData', JSON.stringify(data));
+          return data;
+        }
       }
     }
 
-    // Return cached data if available
-    if (cachedCoursesData) {
-      return JSON.parse(cachedCoursesData);
+    // Only reach here if we should refresh or failed to get stored data
+    const response = await fetch('http://localhost:8000/api/user/courses', {
+      headers: {
+        'Authorization': `Bearer ${idToken}`,
+        'X-Content-Type-Options': 'nosniff',
+        'Referrer-Policy': 'strict-origin-when-cross-origin'
+      },
+      credentials: 'same-origin'
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch courses');
+    }
+
+    const data = await response.json();
+    
+    if (data && Array.isArray(data)) {
+      localStorage.setItem('coursesData', JSON.stringify(data));
+      
+      // Only update Firebase timestamp if we actually refreshed from Canvas
+      await updateUserSettings(auth.currentUser?.uid || '', {
+        coursesLastUpdated: { seconds: Math.floor(Date.now() / 1000) }
+      });
+      
+      return data;
     }
 
     throw new Error('No course data available');
   } catch (error) {
     console.error('Error fetching courses:', error);
-    
-    // Last resort: try to use cached data even if fetch failed
-    const cachedCoursesData = localStorage.getItem('coursesData');
-    if (cachedCoursesData) {
-      return JSON.parse(cachedCoursesData);
-    }
-    
     throw error;
   }
 };
