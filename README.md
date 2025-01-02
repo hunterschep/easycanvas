@@ -1,4 +1,5 @@
 # easyCanvas 🎨
+
 A streamlined interface for Canvas LMS that simplifies managing your courses and assignments.
 
 ---
@@ -10,9 +11,6 @@ A streamlined interface for Canvas LMS that simplifies managing your courses and
 - ✅ Secure Canvas API token storage and encryption  
 - ✅ Real-time course data synchronization  
 - ✅ Comprehensive assignment tracking  
-- ✅ Grade analytics and summaries  
-- ✅ Responsive UI with modern design  
-- ✅ Course overview dashboard  
 - ✅ Upcoming assignments widget  
 - ✅ Individual assignment details view  
 - ✅ Automatic data refresh system  
@@ -20,12 +18,14 @@ A streamlined interface for Canvas LMS that simplifies managing your courses and
 - ✅ Error boundary implementation  
 - ✅ Protected routing system  
 - ✅ User settings management  
+- ✅ Account deletion 
 
 ### In Progress
 - 🔄 Enhanced error handling for API failures  
 - 🔄 Loading state improvements  
 - 🔄 Assignment submission integration  
 - 🔄 Course announcement integration  
+- 🔄 AI integration and analysis  
 
 ---
 
@@ -54,25 +54,46 @@ A streamlined interface for Canvas LMS that simplifies managing your courses and
 ## 🏗️ Project Structure
 
 ### Frontend
-/src  
-  /features  
-    /auth (Authentication & Authorization)  
-    /courses (Course Management)  
-    /account (User Settings)  
-    /static-pages (Terms & Privacy)  
-  /components (Shared Components)  
-  /services (API Services)  
-  /types (TypeScript Definitions)  
+/frontend
+  /src
+    /features
+      /courses
+        /components
+          CourseHomepage
+          CourseHeader
+          CourseList
+          FilterBar
+          MonthlyAssignments
+          UpcomingAssignments
+        /hooks
+          useCourse.ts
+          useCourses.ts
+          useUpcomingAssignments.ts
+        /pages
+          HomePage.tsx
+          CourseDetailsPage.tsx
+          AssignmentDetailsPage.tsx
+        /services
+          course.service.ts
+        /types
+          index.ts
+    /components
+    /services
+    /types
+    /firebase
+      firestore.ts
 
 ### Backend
-/src  
-  /api  
-    /routes (API Endpoints)  
-    /middleware (Auth & Security)  
-    /services (Business Logic)  
-    /models (Data Models)  
-    /utils (Helper Functions)  
-    /config (Configuration)  
+/backend
+  /src
+    /api
+      /routes
+        course_routes.py
+    /services
+      course_service.py
+      canvas_service.py
+    /models
+      course.py
 
 ---
 
