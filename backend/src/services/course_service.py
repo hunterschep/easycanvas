@@ -4,6 +4,7 @@ from src.utils.encryption import decrypt_token
 from google.cloud import firestore
 import logging
 import asyncio
+from fastapi import HTTPException
 
 logger = logging.getLogger(__name__)
 
@@ -57,3 +58,37 @@ class CourseService:
             'courses': courses,
             'lastUpdated': firestore.SERVER_TIMESTAMP
         })
+
+    @staticmethod
+    async def get_courses_last_updated(user_id: str):
+        try:
+            doc_ref = db.collection('userCourses').document(user_id)
+            doc = doc_ref.get()
+            
+            if not doc.exists:
+                return {"lastUpdated": None}
+            
+            data = doc.to_dict()
+            timestamp = data.get('lastUpdated')
+            
+            if timestamp:
+                if hasattr(timestamp, 'seconds') and hasattr(timestamp, 'nanoseconds'):
+                    return {
+                        "lastUpdated": {
+                            "seconds": timestamp.seconds,
+                            "nanoseconds": timestamp.nanoseconds
+                        }
+                    }
+                elif hasattr(timestamp, 'timestamp'):
+                    ts = timestamp.timestamp()
+                    return {
+                        "lastUpdated": {
+                            "seconds": int(ts),
+                            "nanoseconds": int((ts % 1) * 1e9)
+                        }
+                    }
+            
+            return {"lastUpdated": None}
+        except Exception as e:
+            logger.error(f"Error in get_courses_last_updated: {str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))

@@ -12,12 +12,22 @@ import PrivacyPolicyPage from '@/features/static-pages/pages/PrivacyPolicyPage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+      throwOnError: true
+    },
+    mutations: {
+      throwOnError: true
+    }
+  }
+});
 
 function App() {
   return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <ErrorBoundary>
         <BrowserRouter>
           <AuthProvider>
             <Routes>
@@ -33,8 +43,8 @@ function App() {
             </Routes>
           </AuthProvider>
         </BrowserRouter>
-      </QueryClientProvider>
-    </ErrorBoundary>
+      </ErrorBoundary>
+    </QueryClientProvider>
   );
 }
 

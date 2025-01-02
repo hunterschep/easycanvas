@@ -33,3 +33,34 @@ class UserService:
             
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
+
+    @staticmethod
+    async def get_user_settings(user_id: str):
+        try:
+            doc_ref = db.collection('users').document(user_id)
+            doc = doc_ref.get()
+            
+            if not doc.exists:
+                raise HTTPException(
+                    status_code=404,
+                    detail="NEW_USER"
+                )
+            
+            user_data = doc.to_dict()
+            
+            response_data = {
+                'canvasUrl': user_data['canvasUrl'],
+                'canvas_user_id': user_data['canvas_user_id'],
+                'name': user_data['name'],
+                'first_name': user_data['first_name'],
+                'last_name': user_data['last_name'],
+                'avatar_url': user_data['avatar_url'],
+                'email': user_data.get('email')
+            }
+            
+            return response_data
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e))

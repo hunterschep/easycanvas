@@ -11,9 +11,16 @@ async def verify_firebase_token(authorization: str = Header(...)):
             raise HTTPException(status_code=401, detail="Invalid authorization format")
             
         token = authorization.split("Bearer ")[1]
-        decoded_token = auth.verify_id_token(token)
-        return decoded_token['uid']
+        logger.info("Attempting to verify Firebase token")
         
+        try:
+            decoded_token = auth.verify_id_token(token)
+            logger.info(f"Successfully verified token for user: {decoded_token['uid']}")
+            return decoded_token['uid']
+        except Exception as e:
+            logger.error(f"Firebase token verification failed: {str(e)}")
+            raise HTTPException(status_code=401, detail="Invalid token")
+            
     except Exception as e:
         logger.error(f"Token verification error: {str(e)}")
         raise HTTPException(status_code=401, detail="Invalid authentication")
