@@ -18,7 +18,7 @@ def should_refresh_courses(last_updated) -> bool:
     return True if not last_updated else False
 
 class CourseService:
-    CURRENT_TERM_ID = 7109
+    CURRENT_TERM_ID = 7111
 
     @staticmethod
     async def get_user_courses(user_id: str, force: bool = False) -> List[Dict[str, Any]]:
@@ -123,18 +123,21 @@ class CourseService:
                 logger.debug(f"Successfully fetched homepage for course {course.name}")
         except Exception as e:
             logger.debug(f"No homepage found for course {course.name}: {str(e)}")
-            # It's okay if there's no homepage, we'll keep it as None
         
         try:
             assignments = course.get_assignments()
-            logger.debug(f"Found {len(list(assignments))} assignments for course {course.name}")
+            assignment_tasks = []
             
             for assignment in assignments:
                 if getattr(assignment, 'published', True):
-                    assignment_data = await CourseService._process_assignment(assignment, canvas_user_id)
-                    course_data['assignments'].append(assignment_data)
-                    logger.debug(f"Added assignment: {assignment.name}")
-                    
+                    task = CourseService._process_assignment(assignment, canvas_user_id)
+                    assignment_tasks.append(task)
+            
+            # Process all assignments concurrently
+            processed_assignments = await asyncio.gather(*assignment_tasks)
+            course_data['assignments'] = [a for a in processed_assignments if a]  # Filter out None values
+            logger.debug(f"Successfully processed {len(course_data['assignments'])} assignments for course {course.name}")
+                
         except Exception as e:
             logger.error(f"Error processing assignments for course {course.id}: {str(e)}")
         

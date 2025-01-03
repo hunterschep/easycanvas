@@ -26,7 +26,7 @@ class CanvasService:
             raise HTTPException(status_code=400, detail="Failed to get Canvas user")
 
     @staticmethod
-    async def get_courses(canvas: Canvas, current_term_id: int = 7109):
+    async def get_courses(canvas: Canvas, current_term_id: int = 7111):
         try:
             all_courses = canvas.get_courses()
             filtered_courses = []

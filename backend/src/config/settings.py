@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     FIREBASE_ADMIN_CREDENTIALS: str
     ENCRYPTION_KEY: str
     CANVAS_API_BASE_URL: str
-    CURRENT_TERM_ID: int = 7109
+    CURRENT_TERM_ID: int = 7111
 
     class Config:
         env_file = ".env"
