@@ -18,7 +18,6 @@ def should_refresh_courses(last_updated) -> bool:
     return True if not last_updated else False
 
 class CourseService:
-    CURRENT_TERM_ID = 7111
 
     @staticmethod
     async def get_user_courses(user_id: str, force: bool = False) -> List[Dict[str, Any]]:
@@ -60,6 +59,9 @@ class CourseService:
                 logger.error(f"Canvas initialization failed: {str(e)}")
                 raise HTTPException(status_code=500, detail=f"Failed to connect to Canvas: {str(e)}")
             
+            # Get selected course IDs
+            selected_course_ids = await CourseService.get_selected_courses(user_id)
+            
             # Fetch courses
             try:
                 all_courses = canvas.get_courses()
@@ -67,15 +69,14 @@ class CourseService:
                 
                 for course in all_courses:
                     is_available = getattr(course, 'workflow_state', None) == 'available'
-                    is_current_term = getattr(course, 'enrollment_term_id', None) == CourseService.CURRENT_TERM_ID
+                    is_selected = course.id in selected_course_ids
                     has_active_enrollment = any(
                         enrollment.get('enrollment_state') == 'active' and 
                         enrollment.get('type') in ['student', 'teacher', 'ta']
                         for enrollment in getattr(course, 'enrollments', [])
                     )
                     
-                    if is_available and has_active_enrollment and is_current_term:
-                        # Create task for each eligible course
+                    if is_available and has_active_enrollment and is_selected:
                         task = CourseService._process_course(course, canvas, user_data['canvas_user_id'])
                         course_tasks.append(task)
                 
@@ -244,4 +245,61 @@ class CourseService:
             return {"lastUpdated": None}
         except Exception as e:
             logger.error(f"Error in get_courses_last_updated: {str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+    @staticmethod
+    async def save_selected_courses(user_id: str, course_ids: List[int]):
+        try:
+            # Save selected course IDs to user document
+            doc_ref = db.collection('users').document(user_id)
+            doc_ref.set({
+                'selected_course_ids': course_ids
+            }, merge=True)
+            logger.info(f"Saved selected courses for user {user_id}: {course_ids}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to save selected courses: {str(e)}")
+            raise HTTPException(status_code=500, detail="Failed to save selected courses")
+
+    @staticmethod
+    async def get_selected_courses(user_id: str) -> List[int]:
+        try:
+            doc = db.collection('users').document(user_id).get()
+            if doc.exists:
+                user_data = doc.to_dict()
+                return user_data.get('selected_course_ids', [])
+            return []
+        except Exception as e:
+            logger.error(f"Failed to get selected courses: {str(e)}")
+            return []
+
+    @staticmethod
+    async def get_available_courses(user_id: str) -> List[Dict[str, Any]]:
+        """Get all available courses for selection"""
+        try:
+            user_data = await CourseService._get_user_data(user_id)
+            canvas = await CourseService._get_canvas_instance(user_data)
+            
+            courses = []
+            for course in canvas.get_courses():
+                is_available = getattr(course, 'workflow_state', None) == 'available'
+                has_active_enrollment = any(
+                    enrollment.get('enrollment_state') == 'active' and 
+                    enrollment.get('type') in ['student', 'teacher', 'ta']
+                    for enrollment in getattr(course, 'enrollments', [])
+                )
+                
+                if is_available and has_active_enrollment:
+                    courses.append({
+                        'id': course.id,
+                        'name': course.name,
+                        'code': course.course_code,
+                        'term': getattr(course, 'enrollment_term_id', None),
+                        'start_at': getattr(course, 'start_at', None),
+                        'end_at': getattr(course, 'end_at', None)
+                    })
+            
+            return courses
+        except Exception as e:
+            logger.error(f"Error getting available courses: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))

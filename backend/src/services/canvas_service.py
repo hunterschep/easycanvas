@@ -2,6 +2,7 @@ from canvasapi import Canvas
 from fastapi import HTTPException
 import logging
 from src.utils.encryption import decrypt_token
+from typing import List
 
 logger = logging.getLogger(__name__)
 
@@ -26,17 +27,29 @@ class CanvasService:
             raise HTTPException(status_code=400, detail="Failed to get Canvas user")
 
     @staticmethod
-    async def get_courses(canvas: Canvas, current_term_id: int = 7111):
+    async def get_courses(canvas: Canvas, selected_course_ids: List[int] = None):
+        """
+        Fetch courses from Canvas. If selected_course_ids is provided,
+        only fetch those specific courses.
+        """
         try:
-            all_courses = canvas.get_courses()
-            filtered_courses = []
+            if selected_course_ids is None:
+                # If no selected courses, return all available courses
+                return [course for course in canvas.get_courses() 
+                       if getattr(course, 'workflow_state', None) == 'available']
             
-            for course in all_courses:
-                if (getattr(course, 'workflow_state', None) == 'available' and
-                    getattr(course, 'enrollment_term_id', None) == current_term_id):
-                    filtered_courses.append(course)
+            # Fetch only selected courses
+            courses = []
+            for course_id in selected_course_ids:
+                try:
+                    course = canvas.get_course(course_id)
+                    if getattr(course, 'workflow_state', None) == 'available':
+                        courses.append(course)
+                except Exception as e:
+                    logger.warning(f"Failed to fetch course {course_id}: {str(e)}")
+                    continue
                     
-            return filtered_courses
+            return courses
         except Exception as e:
             logger.error(f"Failed to get courses: {str(e)}")
             raise HTTPException(status_code=400, detail="Failed to fetch Canvas courses")

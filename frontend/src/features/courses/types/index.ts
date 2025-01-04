@@ -17,6 +17,15 @@ export interface Course extends CanvasCourse {
   homepage?: string | null;
 }
 
+export interface CourseBase {
+  id: number;
+  name: string;
+  code: string;
+  term?: number;
+  start_at?: string | null;
+  end_at?: string | null;
+}
+
 export interface FilterOptions {
   showGradedOnly: boolean;
   sortBy: 'due_date' | 'name' | 'grade';

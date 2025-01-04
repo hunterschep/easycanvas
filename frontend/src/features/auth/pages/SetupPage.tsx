@@ -46,7 +46,7 @@ export const SetupPage = () => {
 
     try {
       await AuthService.saveUserSettings(canvasUrl, apiToken);
-      window.location.href = '/home';
+      window.location.href = '/select-courses';
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     }

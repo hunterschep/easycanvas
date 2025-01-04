@@ -14,6 +14,15 @@ class Assignment(BaseModel):
     course_id: int
     grade: Optional[str] = 'N/A'
 
+class CourseBase(BaseModel):
+    """Basic course information for selection"""
+    id: int
+    name: str
+    code: str
+    term: Optional[int] = None
+    start_at: Optional[datetime] = None
+    end_at: Optional[datetime] = None
+
 class Course(BaseModel):
     id: int
     name: str
