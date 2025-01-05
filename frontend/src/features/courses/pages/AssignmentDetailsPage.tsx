@@ -2,24 +2,17 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layouts/MainLayout/MainLayout';
 import { Loading } from '@/components/common/Loading';
 import { useAssignment } from '../hooks/useAssignment';
-import DOMPurify from 'dompurify';
 import { useMemo, useState } from 'react';
 import { Tooltip } from '@/components/common/Tooltip';
-import { Button } from '@/components/common/Button/Button';
+import { AssignmentDescription } from '../components/AssignmentDescription/AssignmentDescription';
+import { aiService } from '@/features/ai/services/ai.service';
 
 export const AssignmentDetailsPage = () => {
   const { courseId, assignmentId } = useParams();
   const navigate = useNavigate();
   const { assignment, loading, error } = useAssignment(courseId, assignmentId);
   const [isSummarizing, setIsSummarizing] = useState(false);
-
-  const sanitizedDescription = useMemo(() => {
-    if (!assignment?.description) return '';
-    return DOMPurify.sanitize(assignment.description, {
-      FORBID_TAGS: ['img', 'iframe', 'video', 'audio'],
-      FORBID_ATTR: ['src', 'srcset']
-    });
-  }, [assignment?.description]);
+  const [summary, setSummary] = useState<string | null>(null);
 
   if (loading) {
     return <Loading message="Loading assignment details..." />;
@@ -59,7 +52,15 @@ export const AssignmentDetailsPage = () => {
                 )}
                 <Tooltip content="Will summarize assignment description with AI">
                   <button
-                    onClick={() => {/* TODO: Add AI summary logic */}}
+                    onClick={async () => {
+                      if (!assignment.description) return;
+                      setIsSummarizing(true);
+                      const result = await aiService.summarizeText(assignment.description);
+                      if (result) {
+                        setSummary(result);
+                      }
+                      setIsSummarizing(false);
+                    }}
                     disabled={!assignment.description || isSummarizing}
                     className={`px-4 py-2 text-sm border rounded-lg transition-all duration-200 flex items-center gap-2
                       ${!assignment.description 
@@ -158,7 +159,15 @@ export const AssignmentDetailsPage = () => {
                     )}
                     <Tooltip content="Will summarize assignment description with AI">
                       <button
-                        onClick={() => {/* TODO: Add AI summary logic */}}
+                        onClick={async () => {
+                          if (!assignment.description) return;
+                          setIsSummarizing(true);
+                          const result = await aiService.summarizeText(assignment.description);
+                          if (result) {
+                            setSummary(result);
+                          }
+                          setIsSummarizing(false);
+                        }}
                         disabled={!assignment.description || isSummarizing}
                         className={`w-full px-4 py-2 text-center border rounded-lg transition-all duration-200 flex items-center justify-center gap-2
                           ${!assignment.description 
@@ -188,22 +197,10 @@ export const AssignmentDetailsPage = () => {
               </div>
 
               {/* Assignment Description */}
-              <div className="pt-4 border-t border-gray-800">
-                <h2 className="text-lg font-semibold text-white mb-4">Description</h2>
-                {assignment.description ? (
-                  <div 
-                    className="prose prose-invert max-w-none text-gray-400"
-                    dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
-                  />
-                ) : (
-                  <div className="flex items-center gap-2 text-gray-400">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>No description provided for this assignment</span>
-                  </div>
-                )}
-              </div>
+              <AssignmentDescription 
+                description={assignment.description} 
+                initialSummary={summary}
+              />
             </div>
           </div>
         </main>
