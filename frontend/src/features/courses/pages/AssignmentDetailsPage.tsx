@@ -2,11 +2,24 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layouts/MainLayout/MainLayout';
 import { Loading } from '@/components/common/Loading';
 import { useAssignment } from '../hooks/useAssignment';
+import DOMPurify from 'dompurify';
+import { useMemo, useState } from 'react';
+import { Tooltip } from '@/components/common/Tooltip';
+import { Button } from '@/components/common/Button/Button';
 
 export const AssignmentDetailsPage = () => {
   const { courseId, assignmentId } = useParams();
   const navigate = useNavigate();
   const { assignment, loading, error } = useAssignment(courseId, assignmentId);
+  const [isSummarizing, setIsSummarizing] = useState(false);
+
+  const sanitizedDescription = useMemo(() => {
+    if (!assignment?.description) return '';
+    return DOMPurify.sanitize(assignment.description, {
+      FORBID_TAGS: ['img', 'iframe', 'video', 'audio'],
+      FORBID_ATTR: ['src', 'srcset']
+    });
+  }, [assignment?.description]);
 
   if (loading) {
     return <Loading message="Loading assignment details..." />;
@@ -23,22 +36,61 @@ export const AssignmentDetailsPage = () => {
   return (
     <MainLayout>
       <div className="min-h-screen bg-black">
-        {/* Header */}
-        <header className="border-b border-gray-800">
+        {/* Header Bar */}
+        <header className="sticky top-0 z-10 bg-black/80 backdrop-blur-sm border-b border-gray-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center justify-between">
               <button
                 onClick={() => navigate(`/course/${courseId}`)}
                 className="px-4 py-2 text-sm text-gray-400 hover:text-white border border-gray-800 hover:border-gray-600 rounded-lg transition-all duration-200"
               >
                 ← Back to Course
               </button>
+              <div className="flex items-center gap-3">
+                {assignment.html_url && (
+                  <a
+                    href={assignment.html_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 text-sm text-gray-400 hover:text-white border border-gray-800 hover:border-gray-600 rounded-lg transition-all duration-200"
+                  >
+                    Open in Canvas →
+                  </a>
+                )}
+                <Tooltip content="Will summarize assignment description with AI">
+                  <button
+                    onClick={() => {/* TODO: Add AI summary logic */}}
+                    disabled={!assignment.description || isSummarizing}
+                    className={`px-4 py-2 text-sm border rounded-lg transition-all duration-200 flex items-center gap-2
+                      ${!assignment.description 
+                        ? 'bg-gray-800/50 text-gray-500 cursor-not-allowed border-gray-800'
+                        : 'text-purple-400 hover:text-purple-300 border-purple-900 hover:border-purple-700'
+                      }
+                    `}
+                  >
+                    <svg 
+                      className="w-4 h-4" 
+                      fill="none" 
+                      viewBox="0 0 24 24" 
+                      stroke="currentColor"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth={2} 
+                        d="M13 10V3L4 14h7v7l9-11h-7z" 
+                      />
+                    </svg>
+                    {isSummarizing ? 'Summarizing...' : 'Summarize with AI'}
+                  </button>
+                </Tooltip>
+              </div>
             </div>
           </div>
         </header>
 
         {/* Main Content */}
-        <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="relative group">
             <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-lg blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
             <div className="relative bg-black border border-gray-800 rounded-lg p-6 space-y-6">
@@ -93,16 +145,45 @@ export const AssignmentDetailsPage = () => {
 
                 <div className="space-y-4">
                   <h2 className="text-lg font-semibold text-white">Actions</h2>
-                  {assignment.html_url && (
-                    <a
-                      href={assignment.html_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block w-full px-4 py-2 text-center text-gray-400 hover:text-white border border-gray-800 hover:border-gray-600 rounded-lg transition-all duration-200"
-                    >
-                      View in Canvas
-                    </a>
-                  )}
+                  <div className="flex flex-col gap-4">
+                    {assignment.html_url && (
+                      <a
+                        href={assignment.html_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full px-4 py-2 text-center text-gray-400 hover:text-white border border-gray-800 hover:border-gray-600 rounded-lg transition-all duration-200"
+                      >
+                        View in Canvas
+                      </a>
+                    )}
+                    <Tooltip content="Will summarize assignment description with AI">
+                      <button
+                        onClick={() => {/* TODO: Add AI summary logic */}}
+                        disabled={!assignment.description || isSummarizing}
+                        className={`w-full px-4 py-2 text-center border rounded-lg transition-all duration-200 flex items-center justify-center gap-2
+                          ${!assignment.description 
+                            ? 'bg-gray-800/50 text-gray-500 cursor-not-allowed border-gray-800'
+                            : 'text-gray-400 hover:text-white border-gray-800 hover:border-gray-600'
+                          }
+                        `}
+                      >
+                        <svg 
+                          className="w-4 h-4" 
+                          fill="none" 
+                          viewBox="0 0 24 24" 
+                          stroke="currentColor"
+                        >
+                          <path 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            strokeWidth={2} 
+                            d="M13 10V3L4 14h7v7l9-11h-7z" 
+                          />
+                        </svg>
+                        {isSummarizing ? 'Summarizing...' : 'Summarize with AI'}
+                      </button>
+                    </Tooltip>
+                  </div>
                 </div>
               </div>
 
@@ -112,7 +193,7 @@ export const AssignmentDetailsPage = () => {
                 {assignment.description ? (
                   <div 
                     className="prose prose-invert max-w-none text-gray-400"
-                    dangerouslySetInnerHTML={{ __html: assignment.description }}
+                    dangerouslySetInnerHTML={{ __html: sanitizedDescription }}
                   />
                 ) : (
                   <div className="flex items-center gap-2 text-gray-400">

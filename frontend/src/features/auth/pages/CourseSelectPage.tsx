@@ -63,49 +63,73 @@ export const CourseSelectPage = () => {
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
-      {/* Background gradient effects */}
-      <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-      <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+      {/* Background effects */}
+      <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob"></div>
+      <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-2000"></div>
 
-      <div className="relative group max-w-2xl w-full">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-lg blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-        <div className="relative bg-black rounded-lg p-8">
+      <div className="relative max-w-3xl w-full">
+        <div className="relative bg-black rounded-xl border border-gray-800 p-8 shadow-2xl">
+          {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tighter mb-2">
+            <h1 className="text-4xl font-black text-white tracking-tight mb-3">
               Select Your Courses
             </h1>
-            <p className="text-sm text-gray-400">Choose the courses you're currently enrolled in</p>
+            <p className="text-gray-400 max-w-lg mx-auto">
+              Choose the courses you want to track. We'll fetch assignments and updates for your selected courses.
+            </p>
           </div>
 
           {error && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 mb-6">
+            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-6">
               <p className="text-sm text-red-400 text-center">{error}</p>
             </div>
           )}
 
-          <div className="space-y-4 max-h-[400px] overflow-y-auto custom-scrollbar">
+          {/* Course Selection */}
+          <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
             {availableCourses.map(course => (
               <div
                 key={course.id}
                 onClick={() => handleCourseToggle(course.id)}
-                className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
+                className={`group relative p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
                   selectedCourseIds.includes(course.id)
-                    ? 'border-white bg-gray-900'
+                    ? 'border-white bg-white/5'
                     : 'border-gray-800 hover:border-gray-600'
                 }`}
               >
-                <h3 className="font-medium text-white">{course.name}</h3>
+                {/* Checkbox indicator */}
+                <div className={`absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 border rounded transition-all duration-200 flex items-center justify-center ${
+                  selectedCourseIds.includes(course.id)
+                    ? 'border-white bg-white'
+                    : 'border-gray-600 group-hover:border-gray-400'
+                }`}>
+                  {selectedCourseIds.includes(course.id) && (
+                    <svg className="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+
+                <h3 className="font-medium text-white text-lg mb-1">{course.name}</h3>
                 <p className="text-sm text-gray-400">{course.code}</p>
               </div>
             ))}
           </div>
 
-          <div className="mt-8">
+          {/* Footer */}
+          <div className="mt-8 space-y-4">
             <button
               onClick={handleSubmit}
-              className="w-full px-4 py-3 bg-white text-black font-medium rounded-lg hover:bg-gray-200 transition-colors duration-200"
+              disabled={selectedCourseIds.length === 0}
+              className={`w-full px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
+                selectedCourseIds.length > 0
+                  ? 'bg-white text-black hover:bg-gray-100'
+                  : 'bg-gray-800 text-gray-400 cursor-not-allowed'
+              }`}
             >
-              Continue to Dashboard
+              {selectedCourseIds.length > 0
+                ? `Continue with ${selectedCourseIds.length} course${selectedCourseIds.length === 1 ? '' : 's'}`
+                : 'Select at least one course to continue'}
             </button>
           </div>
         </div>
