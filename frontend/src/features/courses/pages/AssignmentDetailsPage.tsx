@@ -53,7 +53,7 @@ export const AssignmentDetailsPage = () => {
                     Open in Canvas
                   </a>
                 )}
-                <Tooltip content="Will summarize assignment description with AI">
+                <Tooltip content="Will summarize assignment description and propose next steps with AI">
                   <button
                     onClick={async () => {
                       if (!assignment.description) return;
@@ -75,7 +75,7 @@ export const AssignmentDetailsPage = () => {
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
-                    {isSummarizing ? 'Summarizing...' : 'Summarize with AI'}
+                    {isSummarizing ? 'Working...' : 'Get Help with AI'}
                   </button>
                 </Tooltip>
               </div>
