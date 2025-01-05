@@ -303,3 +303,35 @@ class CourseService:
         except Exception as e:
             logger.error(f"Error getting available courses: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
+
+    @staticmethod
+    async def _get_user_data(user_id: str) -> Dict[str, Any]:
+        """Get user data from Firestore"""
+        doc = db.collection('users').document(str(user_id)).get()
+        if not doc.exists:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        user_data = doc.to_dict()
+        if not user_data.get('canvasUrl') or not user_data.get('apiToken'):
+            raise HTTPException(status_code=400, detail="Canvas integration not configured")
+        
+        return user_data
+
+    @staticmethod
+    async def _get_canvas_instance(user_data: Dict[str, Any]) -> Canvas:
+        """Initialize Canvas instance with decrypted token"""
+        try:
+            canvas_url = user_data.get('canvasUrl')
+            encrypted_token = user_data.get('apiToken')
+            
+            if not canvas_url or not encrypted_token:
+                raise HTTPException(status_code=400, detail="Canvas credentials not found")
+            
+            decrypted_token = decrypt_token(encrypted_token)
+            canvas = Canvas(canvas_url, decrypted_token)
+            # Test connection
+            canvas.get_current_user()
+            return canvas
+        except Exception as e:
+            logger.error(f"Canvas initialization failed: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Failed to connect to Canvas: {str(e)}")

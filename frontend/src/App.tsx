@@ -11,6 +11,7 @@ import { AssignmentDetailsPage } from '@/features/courses/pages/AssignmentDetail
 import PrivacyPolicyPage from '@/features/static-pages/pages/PrivacyPolicyPage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
+import { CourseSelectPage } from '@/features/auth/pages/CourseSelectPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,6 +41,7 @@ function App() {
               <Route path="/" element={<Navigate to="/home" />} />
               <Route path="/terms" element={<TermsOfServicePage />} />
               <Route path="/privacy" element={<PrivacyPolicyPage />} />
+              <Route path="/select-courses" element={<CourseSelectPage />} />
             </Routes>
           </AuthProvider>
         </BrowserRouter>

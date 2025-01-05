@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loading } from '@/components/common/Loading';
 import { CourseService } from '@/features/courses/services/course.service';
+import { useAuth } from '../context/AuthContext';
 import type { CourseBase } from '@/features/courses/types';
 
 export const CourseSelectPage = () => {
@@ -10,20 +11,29 @@ export const CourseSelectPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { currentUser, loading: authLoading } = useAuth();
 
   useEffect(() => {
     const fetchCourses = async () => {
+      if (authLoading) return; // Wait for auth to be ready
+      if (!currentUser) {
+        navigate('/login');
+        return;
+      }
+
       try {
         const courses = await CourseService.getAvailableCourses();
+        console.log('Fetched courses:', courses);
         setAvailableCourses(courses);
       } catch (err) {
+        console.error('Error fetching courses:', err);
         setError('Failed to fetch courses. Please try again.');
       } finally {
         setLoading(false);
       }
     };
     fetchCourses();
-  }, []);
+  }, [authLoading, currentUser, navigate]);
 
   const handleCourseToggle = (courseId: number) => {
     setSelectedCourseIds(prev => 

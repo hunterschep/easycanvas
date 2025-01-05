@@ -1,6 +1,10 @@
 import { ApiService } from '@/services/api/api.service';
 import type { UserSettings } from '../types';
 import { auth } from '../../../config/firebase.config';
+import { 
+  reauthenticateWithPopup, 
+  GoogleAuthProvider 
+} from 'firebase/auth';
 
 export class AccountService {
   static async getUserSettings(): Promise<UserSettings> {
@@ -34,13 +38,31 @@ export class AccountService {
   }
 
   static async deleteAccount(): Promise<void> {
-    // First delete user data from our backend
-    await ApiService.delete('/api/user');
-    
-    // Then delete Firebase auth account
     const user = auth.currentUser;
-    if (user) {
+    if (!user) throw new Error('No user logged in');
+
+    try {
+      // First delete user data from our backend
+      await ApiService.delete('/api/user');
+    } catch (error) {
+      console.error('Backend deletion failed:', error);
+      throw error;
+    }
+    
+    try {
+      // Try to delete Firebase account
+      await user.delete();
+    } catch (error: any) {
+      // If re-authentication is required
+      if (error.code === 'auth/requires-recent-login') {
+        // Re-authenticate with Google
+        const provider = new GoogleAuthProvider();
+        await reauthenticateWithPopup(user, provider);
+        // Try deleting again after re-authentication
         await user.delete();
+      } else {
+        throw error;
+      }
     }
   }
 } 

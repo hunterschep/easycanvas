@@ -82,12 +82,15 @@ export const AccountDetailsPage = () => {
     }
 
     try {
+      setLoading(true);
       await AccountService.deleteAccount();
       await signOut();
       navigate('/login');
     } catch (error) {
       console.error('Error deleting account:', error);
-      setError('Failed to delete account');
+      setError(error instanceof Error ? error.message : 'Failed to delete account. Please try logging out and back in.');
+    } finally {
+      setLoading(false);
     }
   };
 
