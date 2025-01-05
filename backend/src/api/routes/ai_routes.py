@@ -2,9 +2,9 @@ from fastapi import APIRouter, HTTPException
 from anthropic import Anthropic
 from src.config.settings import get_settings
 import json
-import logging
+from src.utils.logging import setup_logger
 
-logger = logging.getLogger(__name__)
+logger = setup_logger(__name__)
 router = APIRouter()
 settings = get_settings()
 
@@ -27,12 +27,16 @@ async def summarize_text(request: dict):
                 "role": "user",
                 "content": [{
                     "type": "text",
-                    "text": f"""Summarize this Canvas assignment description concisely. Focus on key requirements, deadlines, and deliverables. Keep it brief but informative. Include emojis and put it in html format as that is how it will be rendered!:
+                    "text": f"""This canvas assignment description is a bit verbose and confusing! Let's break it down into actionable steps, deliverables, and deadlines. Also hypothesize on how a student could get started on this assignment 
+                    
+                    Return html code that can be rendered in a web browser. Do not include any backticks or any leading text, just the html! 
+
+                    Here is the assignment description:
 
 {text}"""
                 }]
             }],
-            system="You are a helpful teaching assistant that summarizes Canvas assignments clearly and concisely."
+            system="You are a helpful AI adiminstrative assistant that acts as a detailed Project Manager for tasks assigned to you."
         )
         
         logger.info("Successfully received response from Anthropic")
