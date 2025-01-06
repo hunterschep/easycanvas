@@ -9,11 +9,11 @@ export const UpcomingAssignments = ({ assignments }: UpcomingAssignmentsProps) =
   const navigate = useNavigate();
   
   return (
-    <div className="relative group">
+    <div className="relative group flex-1">
       <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-lg blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-      <div className="relative bg-black border border-gray-800 rounded-lg p-6">
+      <div className="relative bg-black border border-gray-800 rounded-lg p-6 h-full flex flex-col">
         <h2 className="text-xl font-bold mb-4">Upcoming Assignments</h2>
-        <div className="space-y-4">
+        <div className="space-y-4 flex-1">
           {assignments.map((assignment) => (
             <div
               key={assignment.id}

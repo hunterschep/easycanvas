@@ -25,19 +25,26 @@ export const HomePage = () => {
     <MainLayout>
       <div className="space-y-8">
         {/* Analytics Dashboard */}
+        <p className="text-2xl font-bold">Analytics</p>
         <div className="mb-8">
           <AnalyticsDashboard assignments={allAssignments} />
         </div>
 
         {/* Existing Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <UpcomingAssignments assignments={upcomingAssignments} />
+        <p className="text-2xl font-bold">Courses & Assignments</p>
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 h-full">
+          <div className="lg:col-span-3 h-full">
+            <div className="h-full flex">
+              <UpcomingAssignments assignments={upcomingAssignments} />
+            </div>
           </div>
-          <div className="lg:col-span-1">
-            <CourseList courses={courses} onRefresh={() => refreshCourses(true)} />
+          <div className="lg:col-span-2 h-full">
+            <div className="h-full flex">
+              <CourseList courses={courses} onRefresh={() => refreshCourses(true)} />
+            </div>
           </div>
         </div>
+        <p className="text-2xl font-bold">Generative AI Hub</p>
       </div>
     </MainLayout>
   );
