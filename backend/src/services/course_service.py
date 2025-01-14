@@ -110,6 +110,7 @@ class CourseService:
             'code': course.course_code,
             'assignments': [],
             'modules': [],
+            'announcements': [],
             'term': getattr(course, 'enrollment_term_id', None),
             'start_at': getattr(course, 'start_at', None),
             'end_at': getattr(course, 'end_at', None),
@@ -139,6 +140,17 @@ class CourseService:
             
             course_data['assignments'] = [a for a in processed_assignments if a]
             course_data['modules'] = [m for m in processed_modules if m]
+            
+            # Process announcements
+            announcements = canvas.get_announcements([course.id])
+            announcement_tasks = []
+            for announcement in announcements:
+                task = CourseService._process_announcement(announcement)
+                announcement_tasks.append(task)
+            
+            # Add announcements to results
+            processed_announcements = await asyncio.gather(*announcement_tasks)
+            course_data['announcements'] = [a for a in processed_announcements if a]
             
             logger.debug(f"Successfully processed {len(course_data['assignments'])} assignments and {len(course_data['modules'])} modules for course {course.name}")
                 
@@ -373,3 +385,24 @@ class CourseService:
         except Exception as e:
             logger.error(f"Error processing module items: {str(e)}")
             raise
+
+    @staticmethod
+    async def _process_announcement(announcement) -> Dict[str, Any]:
+        """Process a single announcement."""
+        logger.debug(f"Processing announcement: {announcement.title} (ID: {announcement.id})")
+        return {
+            'id': announcement.id,
+            'title': announcement.title,
+            'message': announcement.message,
+            'posted_at': getattr(announcement, 'posted_at', None),
+            'delayed_post_at': getattr(announcement, 'delayed_post_at', None),
+            'author': {
+                'id': getattr(announcement.author, 'id', None),
+                'display_name': getattr(announcement.author, 'display_name', None),
+                'avatar_url': getattr(announcement.author, 'avatar_url', None),
+            } if hasattr(announcement, 'author') else None,
+            'read_state': getattr(announcement, 'read_state', None),
+            'unread_count': getattr(announcement, 'unread_count', 0),
+            'discussion_subentry_count': getattr(announcement, 'discussion_subentry_count', 0),
+            'html_url': getattr(announcement, 'html_url', None),
+        }
