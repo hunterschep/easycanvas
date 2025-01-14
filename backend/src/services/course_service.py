@@ -109,38 +109,41 @@ class CourseService:
             'name': course.name,
             'code': course.course_code,
             'assignments': [],
+            'modules': [],
             'term': getattr(course, 'enrollment_term_id', None),
             'start_at': getattr(course, 'start_at', None),
             'end_at': getattr(course, 'end_at', None),
-            'time_zone': getattr(course, 'time_zone', 'UTC'),
-            'homepage': None  # Default to None
+            'time_zone': getattr(course, 'time_zone', 'UTC')
         }
         
-        # Try to fetch the front page
         try:
-            front_page = course.show_front_page()
-            if front_page:
-                course_data['homepage'] = front_page.body
-                logger.debug(f"Successfully fetched homepage for course {course.name}")
-        except Exception as e:
-            logger.debug(f"No homepage found for course {course.name}: {str(e)}")
-        
-        try:
+            # Process assignments
             assignments = course.get_assignments()
             assignment_tasks = []
-            
             for assignment in assignments:
                 if getattr(assignment, 'published', True):
                     task = CourseService._process_assignment(assignment, canvas_user_id)
                     assignment_tasks.append(task)
             
-            # Process all assignments concurrently
+            # Process modules
+            modules = course.get_modules()
+            module_tasks = []
+            for module in modules:
+                if getattr(module, 'workflow_state', 'active') == 'active':
+                    task = CourseService._process_module(module)
+                    module_tasks.append(task)
+            
+            # Process all tasks concurrently
             processed_assignments = await asyncio.gather(*assignment_tasks)
-            course_data['assignments'] = [a for a in processed_assignments if a]  # Filter out None values
-            logger.debug(f"Successfully processed {len(course_data['assignments'])} assignments for course {course.name}")
+            processed_modules = await asyncio.gather(*module_tasks)
+            
+            course_data['assignments'] = [a for a in processed_assignments if a]
+            course_data['modules'] = [m for m in processed_modules if m]
+            
+            logger.debug(f"Successfully processed {len(course_data['assignments'])} assignments and {len(course_data['modules'])} modules for course {course.name}")
                 
         except Exception as e:
-            logger.error(f"Error processing assignments for course {course.id}: {str(e)}")
+            logger.error(f"Error processing course {course.id}: {str(e)}")
         
         return course_data
 
@@ -306,32 +309,67 @@ class CourseService:
 
     @staticmethod
     async def _get_user_data(user_id: str) -> Dict[str, Any]:
-        """Get user data from Firestore"""
-        doc = db.collection('users').document(str(user_id)).get()
-        if not doc.exists:
+        """Get user data from Firestore."""
+        user_doc = db.collection('users').document(str(user_id)).get()
+        if not user_doc.exists:
             raise HTTPException(status_code=404, detail="User not found")
-        
-        user_data = doc.to_dict()
-        if not user_data.get('canvasUrl') or not user_data.get('apiToken'):
-            raise HTTPException(status_code=400, detail="Canvas integration not configured")
-        
-        return user_data
+        return user_doc.to_dict()
 
     @staticmethod
     async def _get_canvas_instance(user_data: Dict[str, Any]) -> Canvas:
-        """Initialize Canvas instance with decrypted token"""
+        """Initialize Canvas instance from user data."""
+        canvas_url = user_data.get('canvasUrl')
+        encrypted_token = user_data.get('apiToken')
+        
+        if not canvas_url or not encrypted_token:
+            raise HTTPException(status_code=400, detail="Canvas credentials not found")
+        
         try:
-            canvas_url = user_data.get('canvasUrl')
-            encrypted_token = user_data.get('apiToken')
-            
-            if not canvas_url or not encrypted_token:
-                raise HTTPException(status_code=400, detail="Canvas credentials not found")
-            
             decrypted_token = decrypt_token(encrypted_token)
             canvas = Canvas(canvas_url, decrypted_token)
-            # Test connection
-            canvas.get_current_user()
             return canvas
         except Exception as e:
-            logger.error(f"Canvas initialization failed: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Failed to connect to Canvas: {str(e)}")
+
+    @staticmethod
+    async def _process_module(module) -> Dict[str, Any]:
+        logger.debug(f"Processing module: {module.name} (ID: {module.id})")
+        return {
+            'id': module.id,
+            'name': module.name,
+            'position': getattr(module, 'position', 0),
+            'unlock_at': getattr(module, 'unlock_at', None),
+            'workflow_state': getattr(module, 'workflow_state', 'active'),
+            'state': getattr(module, 'state', None),
+            'completed_at': getattr(module, 'completed_at', None),
+            'require_sequential_progress': getattr(module, 'require_sequential_progress', False),
+            'published': getattr(module, 'published', True),
+            'items_count': getattr(module, 'items_count', 0),
+            'items_url': getattr(module, 'items_url', None),
+            'prerequisite_module_ids': getattr(module, 'prerequisite_module_ids', [])
+        }
+
+    @staticmethod
+    async def get_module_items(canvas: Canvas, course_id: int, module_id: int) -> List[Dict[str, Any]]:
+        """Fetch and process items for a specific module."""
+        try:
+            course = canvas.get_course(course_id)
+            module = course.get_module(module_id)
+            items = module.get_module_items()
+            
+            processed_items = []
+            for item in items:
+                processed_item = {
+                    'id': item.id,
+                    'title': item.title,
+                    'type': item.type,
+                    'html_url': getattr(item, 'html_url', None),
+                    'content_id': getattr(item, 'content_id', None),
+                    'completion_requirement': getattr(item, 'completion_requirement', None)
+                }
+                processed_items.append(processed_item)
+                
+            return processed_items
+        except Exception as e:
+            logger.error(f"Error processing module items: {str(e)}")
+            raise

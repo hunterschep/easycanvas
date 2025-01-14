@@ -1,8 +1,11 @@
-from fastapi import APIRouter, Depends, Query, Body
+from fastapi import APIRouter, Depends, Query, Body, HTTPException
 from src.models.course import Course, CourseBase
 from src.services.course_service import CourseService
 from src.api.middleware.auth import verify_firebase_token
-from typing import List
+from typing import List, Dict, Any
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -40,3 +43,25 @@ async def get_courses_last_updated(
     user_id: str = Depends(verify_firebase_token)
 ):
     return await CourseService.get_courses_last_updated(user_id)
+
+@router.get("/{course_id}/modules/{module_id}/items")
+async def get_module_items(
+    course_id: int,
+    module_id: int,
+    user_id: str = Depends(verify_firebase_token)
+) -> List[Dict[str, Any]]:
+    """Get items for a specific module in a course."""
+    try:
+        # Get user data and canvas instance
+        user_data = await CourseService._get_user_data(user_id)
+        canvas = await CourseService._get_canvas_instance(user_data)
+        
+        # Get module items
+        items = await CourseService.get_module_items(canvas, course_id, module_id)
+        return items
+    except Exception as e:
+        logger.error(f"Error fetching module items: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to fetch module items: {str(e)}"
+        )

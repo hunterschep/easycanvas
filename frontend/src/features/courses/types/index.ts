@@ -1,4 +1,4 @@
-import type { CanvasAssignment, CanvasCourse } from '@/types/canvas.types';
+import type { CanvasAssignment, CanvasCourse, CanvasModule } from '@/types/canvas.types';
 
 export interface Assignment extends CanvasAssignment {
   description: string | null;
@@ -10,6 +10,7 @@ export interface Assignment extends CanvasAssignment {
 }
 
 export interface Course extends CanvasCourse {
+  modules: CanvasModule[];
   assignments: Assignment[];
   start_at: string | null;
   end_at: string | null;

@@ -24,11 +24,26 @@ class CourseBase(BaseModel):
     start_at: Optional[datetime] = None
     end_at: Optional[datetime] = None
 
+class Module(BaseModel):
+    id: int
+    name: str
+    position: int
+    unlock_at: Optional[datetime] = None
+    workflow_state: str = "active"
+    state: Optional[str] = None
+    completed_at: Optional[datetime] = None
+    require_sequential_progress: bool = False
+    published: bool = True
+    items_count: int = 0
+    items_url: Optional[str] = None
+    prerequisite_module_ids: List[int] = []
+
 class Course(BaseModel):
     id: int
     name: str
     code: str
     assignments: List[Assignment] = []
+    modules: List[Module] = []
     term: Optional[int] = None
     start_at: Optional[datetime] = None
     end_at: Optional[datetime] = None
@@ -41,6 +56,7 @@ def course_to_dict(course: Course) -> dict:
         "name": course.name,
         "code": course.code,
         "assignments": [assignment.dict() for assignment in course.assignments],
+        "modules": [module.dict() for module in course.modules],
         "term": course.term,
         "start_at": course.start_at,
         "end_at": course.end_at,
