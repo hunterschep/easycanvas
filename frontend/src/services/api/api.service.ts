@@ -3,18 +3,23 @@ import { auth } from '@/config/firebase.config';
 export class ApiService {
     private static baseUrl = 'http://localhost:8000';
   
-    static async get<T>(endpoint: string): Promise<T> {
+    private static async getAuthHeaders() {
       const idToken = await auth.currentUser?.getIdToken();
       if (!idToken) {
         throw new Error('Not authenticated');
       }
-  
+      
+      return {
+        'Authorization': `Bearer ${idToken}`,
+        'Content-Type': 'application/json',
+      };
+    }
+
+    static async get<T>(endpoint: string): Promise<T> {
+      const headers = await this.getAuthHeaders();
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json',
-        },
+        headers,
         credentials: 'include',
         mode: 'cors'
       });
@@ -30,7 +35,7 @@ export class ApiService {
   
     static async post<T>(endpoint: string, data: any): Promise<T> {
       const headers = await this.getAuthHeaders();
-      const response = await fetch(`${this.BASE_URL}${endpoint}`, {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
         method: 'POST',
         headers,
         body: JSON.stringify(data),
@@ -46,7 +51,7 @@ export class ApiService {
   
     static async delete<T>(endpoint: string): Promise<T> {
       const headers = await this.getAuthHeaders();
-      const response = await fetch(`${this.BASE_URL}${endpoint}`, {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
         method: 'DELETE',
         headers,
       });
@@ -61,7 +66,7 @@ export class ApiService {
   
     static async patch<T>(endpoint: string, data: any): Promise<T> {
       const headers = await this.getAuthHeaders();
-      const response = await fetch(`${this.BASE_URL}${endpoint}`, {
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
         method: 'PATCH',
         headers,
         body: JSON.stringify(data),

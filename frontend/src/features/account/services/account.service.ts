@@ -43,7 +43,7 @@ export class AccountService {
 
     try {
       // First delete user data from our backend
-      await ApiService.delete('/api/user');
+      await ApiService.delete('/api/user/settings');
     } catch (error) {
       console.error('Backend deletion failed:', error);
       throw error;
