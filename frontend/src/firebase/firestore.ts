@@ -1,4 +1,5 @@
 import { auth } from '../config/firebase.config';
+import { CourseService } from '../features/courses/services/course.service';
 
 export const saveUserSettings = async (userId: string, canvasUrl: string, apiToken: string) => {
   try {
@@ -183,24 +184,11 @@ export const getUserCourses = async (forceRefresh: boolean = false) => {
       forceRefresh = true;
     }
 
-    // If we need fresh data, get it from the backend
-    const response = await fetch(`http://localhost:8000/api/user/courses${forceRefresh ? '?force=true' : ''}`, {
-      headers: {
-        'Authorization': `Bearer ${idToken}`,
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include'
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch courses');
-    }
-
-    const data = await response.json();
+    // Use CourseService instead of direct fetch
+    const data = await CourseService.getCourses(forceRefresh);
     
     if (data && Array.isArray(data)) {
       localStorage.setItem('coursesData', JSON.stringify(data));
-      
       return data;
     }
 

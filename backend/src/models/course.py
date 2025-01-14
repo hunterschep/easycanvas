@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
 
@@ -7,12 +7,13 @@ class Assignment(BaseModel):
     name: str
     description: Optional[str] = None
     due_at: Optional[datetime] = None
-    points_possible: float = 0
-    submission_types: List[str] = []
-    html_url: Optional[str] = None
+    points_possible: Optional[float] = None
+    submission_types: Optional[List[str]] = None
+    html_url: str
     lock_at: Optional[datetime] = None
     course_id: int
-    grade: Optional[str] = 'N/A'
+    grade: Optional[str] = None
+    score: Optional[float] = None
 
 class CourseBase(BaseModel):
     """Basic course information for selection"""

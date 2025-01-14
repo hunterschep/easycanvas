@@ -1,29 +1,28 @@
 import { auth } from '@/config/firebase.config';
 
 export class ApiService {
-    private static readonly BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    private static baseUrl = 'http://localhost:8000';
   
-    static async getAuthHeaders(): Promise<Headers> {
+    static async get<T>(endpoint: string): Promise<T> {
       const idToken = await auth.currentUser?.getIdToken();
       if (!idToken) {
         throw new Error('Not authenticated');
       }
   
-      return new Headers({
-        'Authorization': `Bearer ${idToken}`,
-        'Content-Type': 'application/json',
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        mode: 'cors'
       });
-    }
   
-    static async get<T>(endpoint: string): Promise<T> {
-      const headers = await this.getAuthHeaders();
-      const response = await fetch(`${this.BASE_URL}${endpoint}`, { headers });
-      
       if (!response.ok) {
-        if (response.status === 404) {
-          throw new Error('NEW_USER');
-        }
-        throw new Error(`API Error: ${response.statusText}`);
+        const errorData = await response.text();
+        console.error('API Error:', errorData);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
   
       return response.json();

@@ -32,8 +32,8 @@ export const HomePage = () => {
 
         {/* Existing Grid Layout */}
         <p className="text-2xl font-bold">Courses & Assignments</p>
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 h-full">
-          <div className="lg:col-span-3 h-full">
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-8 h-full">
+          <div className="lg:col-span-4 h-full">
             <div className="h-full flex">
               <UpcomingAssignments assignments={upcomingAssignments} />
             </div>
