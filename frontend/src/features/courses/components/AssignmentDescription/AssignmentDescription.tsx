@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import rehypeHighlight from 'rehype-highlight';
 import 'highlight.js/styles/github-dark.css';
+import { useState } from 'react';
 
 interface AssignmentDescriptionProps {
   description: string | null;
@@ -11,6 +12,7 @@ interface AssignmentDescriptionProps {
 }
 
 export const AssignmentDescription = ({ description, initialSummary }: AssignmentDescriptionProps) => {
+  const [showSummary, setShowSummary] = useState(!!initialSummary);
   const sanitizedDescription = DOMPurify.sanitize(description || '', {
     FORBID_TAGS: ['img', 'iframe', 'video', 'audio'],
     FORBID_ATTR: ['src', 'srcset']
@@ -21,13 +23,26 @@ export const AssignmentDescription = ({ description, initialSummary }: Assignmen
 
   return (
     <div className="pt-4 border-t border-gray-800">
-      <h2 className="text-lg font-semibold text-white mb-4">
-        {initialSummary ? 'AI Summary' : 'Description'}
-      </h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-white">
+          {initialSummary ? (showSummary ? 'AI Summary' : 'Original Description') : 'Description'}
+        </h2>
+        {initialSummary && (
+          <button
+            onClick={() => setShowSummary(!showSummary)}
+            className="flex items-center gap-2 px-3 py-1.5 text-sm text-purple-400 hover:text-purple-300 border border-purple-900 hover:border-purple-700 rounded-lg transition-all duration-200"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+            </svg>
+            Switch to {showSummary ? 'Original' : 'AI Summary'}
+          </button>
+        )}
+      </div>
 
       {description ? (
         <div className="prose prose-invert max-w-none">
-          {initialSummary ? (
+          {initialSummary && showSummary ? (
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeRaw, rehypeHighlight]}
