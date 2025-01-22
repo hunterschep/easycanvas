@@ -5,6 +5,7 @@ import { AnalyticsDashboard } from '../components/AnalyticsDashboard/AnalyticsDa
 import { useUpcomingAssignments } from '../hooks/useUpcomingAssignments';
 import { useCourses } from '../hooks/useCourses';
 import { Loading } from '@/components/common/Loading';
+import { Calendar } from '../components/Calendar/Calendar';
 
 export const HomePage = () => {
   const { courses, loading, error, refreshCourses } = useCourses();
@@ -44,7 +45,10 @@ export const HomePage = () => {
             </div>
           </div>
         </div>
-        <p className="text-2xl font-bold">Generative AI Hub</p>
+        <p className="text-2xl font-bold">Your Calendar</p>
+          <div className="mb-8">
+            <Calendar assignments={allAssignments} courses={courses} />
+          </div>
       </div>
     </MainLayout>
   );
