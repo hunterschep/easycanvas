@@ -34,10 +34,10 @@ export const AssignmentDetailsPage = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
               <button
-                onClick={() => navigate(`/course/${courseId}`)}
+                onClick={() => navigate(-1)}
                 className="px-4 py-2 text-sm text-gray-400 hover:text-white border border-gray-800 hover:border-gray-600 rounded-lg transition-all duration-200"
               >
-                ← Back to Course
+                ← Back
               </button>
               <div className="flex items-center gap-3">
                 {assignment.html_url && (

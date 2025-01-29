@@ -4,6 +4,7 @@ export interface CanvasAssignment {
   due_at: string;
   points_possible: number;
   grade?: string | number | null;
+  has_submitted_submissions: boolean;
 }
 
 export interface CanvasModule {

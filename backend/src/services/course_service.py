@@ -170,6 +170,7 @@ class CourseService:
             'submission_types': getattr(assignment, 'submission_types', []),
             'html_url': getattr(assignment, 'html_url', None),
             'lock_at': getattr(assignment, 'lock_at', None),
+            'has_submitted_submissions': getattr(assignment, 'has_submitted_submissions', False),
             'course_id': assignment.course_id
         }
 

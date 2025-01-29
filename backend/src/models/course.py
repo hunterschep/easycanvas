@@ -14,6 +14,7 @@ class Assignment(BaseModel):
     course_id: int
     grade: Optional[str] = None
     score: Optional[float] = None
+    has_submitted_submissions: bool = False
 
 class CourseBase(BaseModel):
     """Basic course information for selection"""

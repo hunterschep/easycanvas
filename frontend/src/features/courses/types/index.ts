@@ -7,6 +7,7 @@ export interface Assignment extends CanvasAssignment {
   lock_at: string | null;
   course_id: number;
   grade?: string | null;
+  has_submitted_submissions: boolean;
 }
 
 export interface Course extends CanvasCourse {
