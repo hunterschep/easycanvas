@@ -2,6 +2,23 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
 
+class Author(BaseModel):
+    id: Optional[int] = None
+    display_name: Optional[str] = None
+    avatar_url: Optional[str] = None
+
+class Announcement(BaseModel):
+    id: int
+    title: str
+    message: str
+    posted_at: Optional[datetime] = None
+    delayed_post_at: Optional[datetime] = None
+    author: Optional[Author] = None
+    read_state: Optional[str] = None
+    unread_count: int = 0
+    discussion_subentry_count: int = 0
+    html_url: Optional[str] = None
+
 class Assignment(BaseModel):
     id: int
     name: str
@@ -45,6 +62,7 @@ class Course(BaseModel):
     code: str
     assignments: List[Assignment] = []
     modules: List[Module] = []
+    announcements: List[Announcement] = []
     term: Optional[int] = None
     start_at: Optional[datetime] = None
     end_at: Optional[datetime] = None
@@ -58,6 +76,7 @@ def course_to_dict(course: Course) -> dict:
         "code": course.code,
         "assignments": [assignment.dict() for assignment in course.assignments],
         "modules": [module.dict() for module in course.modules],
+        "announcements": [announcement.dict() for announcement in course.announcements],
         "term": course.term,
         "start_at": course.start_at,
         "end_at": course.end_at,

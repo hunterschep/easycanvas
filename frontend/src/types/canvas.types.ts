@@ -38,4 +38,22 @@ export interface UserData {
   last_name: string;
   avatar_url: string;
   email?: string;
-} 
+}
+
+export interface CanvasAnnouncement {
+  id: number;
+  title: string;
+  message: string;
+  posted_at: string;
+  context_code: string;
+  delayed_post_at?: string;
+  author?: {
+    id: number;
+    display_name: string;
+    avatar_url: string;
+  };
+  read_state?: boolean;
+  unread_count: number;
+  discussion_subentry_count: number;
+  html_url?: string;
+}

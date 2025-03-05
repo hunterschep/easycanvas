@@ -2,6 +2,7 @@ import { MainLayout } from '@/components/layouts/MainLayout/MainLayout';
 import { CourseList } from '../components/CourseList/CourseList';
 import { UpcomingAssignments } from '../components/UpcomingAssignments/UpcomingAssignments';
 import { AnalyticsDashboard } from '../components/AnalyticsDashboard/AnalyticsDashboard';
+import { AnnouncementsBoard } from '../components/Announcements/AnnouncementsBoard';
 import { useUpcomingAssignments } from '../hooks/useUpcomingAssignments';
 import { useCourses } from '../hooks/useCourses';
 import { Loading } from '@/components/common/Loading';
@@ -25,6 +26,11 @@ export const HomePage = () => {
   return (
     <MainLayout>
       <div className="space-y-8">
+        {/* Announcements Dashboard */}
+        <p className="text-2xl font-bold">Announcements</p>
+        <div className="mb-8">
+          <AnnouncementsBoard courses={courses} onRefresh={() => refreshCourses(true)} />
+        </div>
         {/* Analytics Dashboard */}
         <p className="text-2xl font-bold">Analytics</p>
         <div className="mb-8">

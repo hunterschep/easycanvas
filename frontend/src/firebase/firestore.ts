@@ -188,6 +188,8 @@ export const getUserCourses = async (forceRefresh: boolean = false) => {
     const data = await CourseService.getCourses(forceRefresh);
     
     if (data && Array.isArray(data)) {
+      // Log the data to verify announcements are present
+      console.log('Course data before caching:', data);
       localStorage.setItem('coursesData', JSON.stringify(data));
       return data;
     }
