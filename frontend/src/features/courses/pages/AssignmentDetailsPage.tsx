@@ -7,6 +7,7 @@ import { Tooltip } from '@/components/common/Tooltip';
 import { AssignmentDescription } from '../components/AssignmentDescription/AssignmentDescription';
 import { aiService } from '@/features/ai/services/ai.service';
 import { logInfo, logError } from '@/utils/debug';
+import { useScrollToTop } from '@/hooks/useScrollToTop';
 
 export const AssignmentDetailsPage = () => {
   const { courseId, assignmentId } = useParams();
@@ -14,6 +15,9 @@ export const AssignmentDetailsPage = () => {
   const { assignment, loading, error } = useAssignmentData(courseId, assignmentId);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
+
+  // Scroll to top when component mounts
+  useScrollToTop();
 
   if (loading) {
     return <Loading message="Loading assignment details..." />;

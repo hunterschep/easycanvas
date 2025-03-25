@@ -11,6 +11,7 @@ import { Loading } from '@/components/common/Loading';
 import type { FilterOptions } from '../types';
 import { CourseModules } from '../components/CourseModules/CourseModules';
 import { logInfo } from '@/utils/debug';
+import { useScrollToTop } from '@/hooks/useScrollToTop';
 
 export const CourseDetailsPage = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -21,6 +22,9 @@ export const CourseDetailsPage = () => {
     sortBy: 'due_date',
     sortDirection: 'desc'
   });
+
+  // Scroll to top when component mounts
+  useScrollToTop();
 
   logInfo(`Rendering CourseDetailsPage with courseId=${courseId}`, { course });
 

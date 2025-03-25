@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider } from '@/features/auth/context/AuthContext';
 import { ProtectedRoute } from '@/features/auth/ProtectedRoute';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
@@ -15,6 +15,19 @@ import { CourseSelectPage } from '@/features/auth/pages/CourseSelectPage';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
+import { useEffect } from 'react';
+import { scrollToTop } from '@/utils/scroll';
+
+// Component that scrolls to top on route changes
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    scrollToTop();
+  }, [pathname]);
+
+  return null;
+}
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -48,6 +61,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ErrorBoundary>
         <BrowserRouter>
+          <ScrollToTop />
           <AuthProvider>
             <Routes>
               <Route path="/login" element={<LoginPage />} />
