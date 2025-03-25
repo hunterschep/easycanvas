@@ -54,10 +54,10 @@ export const AssignmentDescription = ({ description, initialSummary }: Assignmen
                 ul: ({node, ...props}) => <ul className="list-disc pl-5 text-gray-400 mb-4 space-y-1" {...props} />,
                 ol: ({node, ...props}) => <ol className="list-decimal pl-5 text-gray-400 mb-4 space-y-1" {...props} />,
                 li: ({node, ...props}) => <li className="text-gray-400" {...props} />,
-                code: ({node, inline, className, ...props}: {node: any, inline?: boolean, className?: string}) => 
+                code: ({node, inline, className, children, ...props}: any) => 
                   inline ? 
-                    <code className="text-purple-300 bg-gray-800/50 px-1.5 py-0.5 rounded-md" {...props} /> :
-                    <code className="block bg-gray-800/50 border border-gray-700 rounded-lg p-4" {...props} />
+                    <code className="text-purple-300 bg-gray-800/50 px-1.5 py-0.5 rounded-md" {...props}>{children}</code> :
+                    <code className="block bg-gray-800/50 border border-gray-700 rounded-lg p-4" {...props}>{children}</code>
               }}
             >
               {initialSummary}
