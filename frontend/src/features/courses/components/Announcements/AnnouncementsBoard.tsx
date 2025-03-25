@@ -3,6 +3,7 @@ import { Course, EnhancedAnnouncement } from '../../types';
 import { Button } from '@/components/common/Button/Button';
 import { useState } from 'react';
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface AnnouncementsBoardProps {
   courses: Course[];
@@ -12,6 +13,7 @@ interface AnnouncementsBoardProps {
 export const AnnouncementsBoard = ({ courses, onRefresh }: AnnouncementsBoardProps) => {
   const announcements = useAnnouncements(courses);
   const [expandedIds, setExpandedIds] = useState<number[]>([]);
+  const queryClient = useQueryClient();
 
   const toggleAnnouncement = (id: number) => {
     setExpandedIds(prev => 
@@ -20,8 +22,23 @@ export const AnnouncementsBoard = ({ courses, onRefresh }: AnnouncementsBoardPro
   };
 
   const handleClearAnnouncement = async (announcementId: number) => {
-    // TODO: Implement clear announcement functionality
-    console.log('Clear announcement:', announcementId);
+    // Get the current announcements data from the cache
+    const currentAnnouncements = queryClient.getQueryData<EnhancedAnnouncement[]>(
+      ['announcements', courses.map(c => c.id)]
+    );
+    
+    if (currentAnnouncements) {
+      // Filter out the announcement to clear
+      const updatedAnnouncements = currentAnnouncements.filter(
+        announcement => announcement.id !== announcementId
+      );
+      
+      // Update the cache with the filtered announcements
+      queryClient.setQueryData(
+        ['announcements', courses.map(c => c.id)],
+        updatedAnnouncements
+      );
+    }
   };
 
   return (
@@ -58,7 +75,7 @@ export const AnnouncementsBoard = ({ courses, onRefresh }: AnnouncementsBoardPro
                         window.open(announcement.html_url, '_blank');
                       }}
                     >
-                      View in Canvas
+                      View
                     </Button>
                     <Button
                       variant="danger"
@@ -67,7 +84,7 @@ export const AnnouncementsBoard = ({ courses, onRefresh }: AnnouncementsBoardPro
                         handleClearAnnouncement(announcement.id);
                       }}
                     >
-                      Clear
+                      X
                     </Button>
                     {expandedIds.includes(announcement.id) ? (
                       <ChevronUpIcon className="w-5 h-5 text-gray-400" />
