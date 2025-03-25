@@ -18,6 +18,7 @@ export interface Course extends CanvasCourse {
   end_at: string | null;
   time_zone: string;
   homepage?: string | null;
+  colorId: number;
 }
 
 export interface CourseBase {

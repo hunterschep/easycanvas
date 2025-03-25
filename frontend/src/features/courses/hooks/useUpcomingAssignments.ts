@@ -7,7 +7,8 @@ export const useUpcomingAssignments = (courses: Course[], limit: number = 5) => 
       .flatMap(course => 
         course.assignments.map(assignment => ({
           ...assignment,
-          course: course.name
+          course: course.name,
+          courseObj: course
         }))
       )
       .filter(assignment => new Date(assignment.due_at) > new Date())

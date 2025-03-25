@@ -9,6 +9,7 @@ import TermsOfServicePage from '@/features/static-pages/pages/TermsOfServicePage
 import { CourseDetailsPage } from '@/features/courses/pages/CourseDetailsPage';
 import { AssignmentDetailsPage } from '@/features/courses/pages/AssignmentDetailsPage';
 import PrivacyPolicyPage from '@/features/static-pages/pages/PrivacyPolicyPage';
+import { LandingPage } from '@/features/static-pages/pages/LandingPage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { CourseSelectPage } from '@/features/auth/pages/CourseSelectPage';
@@ -70,10 +71,10 @@ function App() {
               <Route path="/account" element={<ProtectedRoute><AccountDetailsPage /></ProtectedRoute>} />
               <Route path="/course/:courseId" element={<ProtectedRoute><CourseDetailsPage /></ProtectedRoute>} />
               <Route path="/course/:courseId/assignment/:assignmentId" element={<ProtectedRoute><AssignmentDetailsPage /></ProtectedRoute>} />
-              <Route path="/" element={<Navigate to="/home" />} />
               <Route path="/terms" element={<TermsOfServicePage />} />
               <Route path="/privacy" element={<PrivacyPolicyPage />} />
               <Route path="/select-courses" element={<CourseSelectPage />} />
+              <Route path="/" element={<LandingPage />} />
             </Routes>
           </AuthProvider>
         </BrowserRouter>

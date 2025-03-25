@@ -104,6 +104,11 @@ class CourseService:
     @staticmethod
     async def _process_course(course, canvas, canvas_user_id: int) -> Dict[str, Any]:
         logger.debug(f"Processing course: {course.name} (ID: {course.id})")
+        
+        # Determine a deterministic color ID (0-5) based on the course ID
+        # This ensures the same course always gets the same color
+        color_id = course.id % 6
+        
         course_data = {
             'id': course.id,
             'name': course.name,
@@ -114,7 +119,8 @@ class CourseService:
             'term': getattr(course, 'enrollment_term_id', None),
             'start_at': getattr(course, 'start_at', None),
             'end_at': getattr(course, 'end_at', None),
-            'time_zone': getattr(course, 'time_zone', 'UTC')
+            'time_zone': getattr(course, 'time_zone', 'UTC'),
+            'colorId': color_id  # Add deterministic color ID
         }
         
         try:

@@ -40,7 +40,7 @@ export const calculateWorkloadDistribution = (assignments: Assignment[]) => {
     return acc;
   }, {} as Record<string, { count: number; points: number }>);
 
-  // Find heaviest day
+  // Find heaviest day and group by day
   const workloadByDay = upcomingAssignments.reduce((acc, assignment) => {
     const dueDate = new Date(assignment.due_at!).toLocaleDateString();
     acc[dueDate] = {
@@ -58,6 +58,7 @@ export const calculateWorkloadDistribution = (assignments: Assignment[]) => {
     upcomingCount: upcomingAssignments.length,
     heaviestDay,
     workloadByCourse,
+    workloadByDay,
     totalUpcomingPoints: upcomingAssignments.reduce((sum, a) => 
       sum + (a.points_possible || 0), 0
     )
