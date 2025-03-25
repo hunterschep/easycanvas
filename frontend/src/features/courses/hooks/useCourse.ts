@@ -1,44 +1,65 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CourseService } from '../services/course.service';
 import type { Course } from '../types';
 
 export const useCourse = (courseId: string | undefined) => {
-  const [course, setCourse] = useState<Course | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  
+  const normalizeId = (id: string | number | undefined): string | undefined => {
+    if (id === undefined) return undefined;
+    return id.toString();
+  };
+  
+  const normalizedCourseId = normalizeId(courseId);
 
-  useEffect(() => {
-    const fetchCourse = async () => {
-      if (!courseId) return;
+  const result = useQuery({
+    queryKey: ['course', normalizedCourseId],
+    queryFn: async () => {
+      if (!normalizedCourseId) throw new Error('Course ID is required');
       
-      try {
-        setLoading(true);
-        
-        // First try to get the course from cached courses
-        const cachedCoursesData = localStorage.getItem('coursesData');
-        if (cachedCoursesData) {
-          const courses = JSON.parse(cachedCoursesData);
-          const cachedCourse = courses.find((c: Course) => c.id.toString() === courseId.toString());
-          if (cachedCourse) {
-            setCourse(cachedCourse);
-            setLoading(false);
-            return;
+      // Try to get from courses cache first
+      const courses = queryClient.getQueryData<Course[]>(['courses']);
+      if (courses) {
+        const course = courses.find(c => normalizeId(c.id) === normalizedCourseId);
+        if (course) {
+          console.log(`Course ${normalizedCourseId} found in courses cache`);
+          
+          // Prefetch assignments as individual queries for later access
+          if (course.assignments) {
+            course.assignments.forEach(assignment => {
+              queryClient.setQueryData(
+                ['assignment', normalizedCourseId, normalizeId(assignment.id)],
+                assignment
+              );
+            });
           }
+          return course;
         }
-
-        // If not in cache, fetch from API
-        const data = await CourseService.getCourseDetails(courseId);
-        setCourse(data);
-      } catch (err) {
-        setError('Failed to load course');
-        console.error(err);
-      } finally {
-        setLoading(false);
       }
-    };
+      
+      // Otherwise fetch from API
+      console.log(`Fetching course ${normalizedCourseId} from API`);
+      const courseDetails = await CourseService.getCourseDetails(normalizedCourseId);
+      
+      // Cache individual assignments for future use
+      if (courseDetails.assignments) {
+        courseDetails.assignments.forEach(assignment => {
+          queryClient.setQueryData(
+            ['assignment', normalizedCourseId, normalizeId(assignment.id)],
+            assignment
+          );
+        });
+      }
+      
+      return courseDetails;
+    },
+    enabled: !!normalizedCourseId,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 
-    fetchCourse();
-  }, [courseId]);
-
-  return { course, loading, error };
+  return {
+    course: result.data,
+    loading: result.isLoading,
+    error: result.error ? 'Failed to load course details' : null,
+  };
 }; 

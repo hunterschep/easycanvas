@@ -1,6 +1,8 @@
 import { useAnnouncements } from '../../hooks/useAnnouncements';
-import { Course } from '../../types';
+import { Course, EnhancedAnnouncement } from '../../types';
 import { Button } from '@/components/common/Button/Button';
+import { useState } from 'react';
+import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/24/outline';
 
 interface AnnouncementsBoardProps {
   courses: Course[];
@@ -9,11 +11,17 @@ interface AnnouncementsBoardProps {
 
 export const AnnouncementsBoard = ({ courses, onRefresh }: AnnouncementsBoardProps) => {
   const announcements = useAnnouncements(courses);
+  const [expandedIds, setExpandedIds] = useState<number[]>([]);
+
+  const toggleAnnouncement = (id: number) => {
+    setExpandedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
 
   const handleClearAnnouncement = async (announcementId: number) => {
     // TODO: Implement clear announcement functionality
     console.log('Clear announcement:', announcementId);
-    onRefresh();
   };
 
   return (
@@ -21,56 +29,62 @@ export const AnnouncementsBoard = ({ courses, onRefresh }: AnnouncementsBoardPro
       <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-lg blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
       <div className="relative bg-black border border-gray-800 rounded-lg p-6">
         <div className="max-h-[400px] overflow-y-auto space-y-4">
-          {announcements.length === 0 ? (
+          {announcements.data?.length === 0 ? (
             <p className="text-gray-400 text-center py-4">No announcements to display</p>
           ) : (
-            announcements.map((announcement) => (
+            announcements.data?.map((announcement: EnhancedAnnouncement) => (
               <div 
                 key={announcement.id} 
-                className="border border-gray-800 rounded-lg p-4 space-y-3 hover:border-gray-600 transition-all duration-200"
+                className="border border-gray-800 rounded-lg hover:border-gray-600 transition-all duration-200"
               >
-                <div className="flex justify-between items-start gap-4">
+                <div 
+                  className="p-4 cursor-pointer flex items-center justify-between"
+                  onClick={() => toggleAnnouncement(announcement.id)}
+                >
                   <div className="space-y-1 flex-grow">
-                    <h3 className="font-medium text-white">{announcement.title}</h3>
-                    <p className="text-sm text-gray-400">{announcement.courseName}</p>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-medium text-white">{announcement.title}</h3>
+                      <span className="text-sm text-gray-400">• {announcement.courseName}</span>
+                    </div>
+                    <p className="text-sm text-gray-400">
+                      Posted: {new Date(announcement.posted_at).toLocaleDateString()}
+                    </p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-4">
                     <Button
                       variant="secondary"
-                      onClick={() => window.open(announcement.html_url, '_blank')}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(announcement.html_url, '_blank');
+                      }}
                     >
                       View in Canvas
                     </Button>
                     <Button
                       variant="danger"
-                      onClick={() => handleClearAnnouncement(announcement.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleClearAnnouncement(announcement.id);
+                      }}
                     >
                       Clear
                     </Button>
-                  </div>
-                </div>
-                
-                <div className="text-sm text-gray-300" 
-                  dangerouslySetInnerHTML={{ __html: announcement.message }} 
-                />
-                
-                <div className="flex items-center justify-between text-xs text-gray-400">
-                  <div className="flex items-center gap-2">
-                    {announcement.author && (
-                      <>
-                        <img 
-                          src={announcement.author.avatar_url} 
-                          alt={announcement.author.display_name}
-                          className="w-5 h-5 rounded-full"
-                        />
-                        <span>{announcement.author.display_name}</span>
-                      </>
+                    {expandedIds.includes(announcement.id) ? (
+                      <ChevronUpIcon className="w-5 h-5 text-gray-400" />
+                    ) : (
+                      <ChevronDownIcon className="w-5 h-5 text-gray-400" />
                     )}
                   </div>
-                  <span>
-                    Posted: {new Date(announcement.posted_at).toLocaleDateString()}
-                  </span>
                 </div>
+                
+                {expandedIds.includes(announcement.id) && (
+                  <div className="px-4 pb-4 pt-2 border-t border-gray-800">
+                    <div 
+                      className="text-sm text-gray-300 prose prose-invert max-w-none" 
+                      dangerouslySetInnerHTML={{ __html: announcement.message }} 
+                    />
+                  </div>
+                )}
               </div>
             ))
           )}

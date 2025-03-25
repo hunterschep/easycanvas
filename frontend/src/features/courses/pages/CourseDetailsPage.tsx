@@ -10,6 +10,7 @@ import { useCourse } from '../hooks/useCourse';
 import { Loading } from '@/components/common/Loading';
 import type { FilterOptions } from '../types';
 import { CourseModules } from '../components/CourseModules/CourseModules';
+import { logInfo } from '@/utils/debug';
 
 export const CourseDetailsPage = () => {
   const { courseId } = useParams<{ courseId: string }>();
@@ -21,6 +22,8 @@ export const CourseDetailsPage = () => {
     sortDirection: 'desc'
   });
 
+  logInfo(`Rendering CourseDetailsPage with courseId=${courseId}`, { course });
+
   const filteredAssignments = useAssignmentFilters(course?.assignments || [], filterOptions);
   const gradeSummary = useGradeSummary(course?.assignments || []);
 
@@ -29,11 +32,31 @@ export const CourseDetailsPage = () => {
   }
 
   if (error) {
-    return <div className="text-red-500">{error}</div>;
+    return (
+      <div className="p-8 text-center">
+        <div className="text-red-500 text-xl mb-4">{error}</div>
+        <button
+          onClick={() => navigate('/home')}
+          className="px-4 py-2 text-sm bg-gray-800 text-white hover:bg-gray-700 rounded-lg transition-all duration-200"
+        >
+          Return to Dashboard
+        </button>
+      </div>
+    );
   }
 
   if (!course) {
-    return null;
+    return (
+      <div className="p-8 text-center">
+        <div className="text-yellow-500 text-xl mb-4">Course not found</div>
+        <button
+          onClick={() => navigate('/home')}
+          className="px-4 py-2 text-sm bg-gray-800 text-white hover:bg-gray-700 rounded-lg transition-all duration-200"
+        >
+          Return to Dashboard
+        </button>
+      </div>
+    );
   }
 
   return (

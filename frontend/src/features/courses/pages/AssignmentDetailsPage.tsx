@@ -1,16 +1,17 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layouts/MainLayout/MainLayout';
 import { Loading } from '@/components/common/Loading';
-import { useAssignment } from '../hooks/useAssignment';
-import { useMemo, useState } from 'react';
+import { useAssignmentData } from '../hooks/useAssignmentData';
+import { useState } from 'react';
 import { Tooltip } from '@/components/common/Tooltip';
 import { AssignmentDescription } from '../components/AssignmentDescription/AssignmentDescription';
 import { aiService } from '@/features/ai/services/ai.service';
+import { logInfo, logError } from '@/utils/debug';
 
 export const AssignmentDetailsPage = () => {
   const { courseId, assignmentId } = useParams();
   const navigate = useNavigate();
-  const { assignment, loading, error } = useAssignment(courseId, assignmentId);
+  const { assignment, loading, error } = useAssignmentData(courseId, assignmentId);
   const [isSummarizing, setIsSummarizing] = useState(false);
   const [summary, setSummary] = useState<string | null>(null);
 
@@ -19,11 +20,31 @@ export const AssignmentDetailsPage = () => {
   }
 
   if (error) {
-    return <div className="text-red-500">{error}</div>;
+    return (
+      <div className="p-8 text-center">
+        <div className="text-red-500 text-xl mb-4">{error}</div>
+        <button
+          onClick={() => navigate(-1)}
+          className="px-4 py-2 text-sm bg-gray-800 text-white hover:bg-gray-700 rounded-lg transition-all duration-200"
+        >
+          Go Back
+        </button>
+      </div>
+    );
   }
 
   if (!assignment) {
-    return null;
+    return (
+      <div className="p-8 text-center">
+        <div className="text-yellow-500 text-xl mb-4">Assignment not found</div>
+        <button
+          onClick={() => navigate(-1)}
+          className="px-4 py-2 text-sm bg-gray-800 text-white hover:bg-gray-700 rounded-lg transition-all duration-200"
+        >
+          Go Back
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -58,11 +79,16 @@ export const AssignmentDetailsPage = () => {
                     onClick={async () => {
                       if (!assignment.description) return;
                       setIsSummarizing(true);
-                      const result = await aiService.summarizeText(assignment.description);
-                      if (result) {
-                        setSummary(result);
+                      try {
+                        const result = await aiService.summarizeText(assignment.description);
+                        if (result) {
+                          setSummary(result);
+                        }
+                      } catch (error) {
+                        logError('Failed to summarize text', error);
+                      } finally {
+                        setIsSummarizing(false);
                       }
-                      setIsSummarizing(false);
                     }}
                     disabled={!assignment.description || isSummarizing}
                     className={`px-4 py-2 text-sm border rounded-lg transition-all duration-200 flex items-center gap-2

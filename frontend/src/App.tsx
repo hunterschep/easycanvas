@@ -12,17 +12,35 @@ import PrivacyPolicyPage from '@/features/static-pages/pages/PrivacyPolicyPage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { CourseSelectPage } from '@/features/auth/pages/CourseSelectPage';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { persistQueryClient } from '@tanstack/react-query-persist-client';
+import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: false,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 60, // 1 hour
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
       throwOnError: true
     },
     mutations: {
       throwOnError: true
     }
   }
+});
+
+// Set up query persistence
+const localStoragePersister = createSyncStoragePersister({
+  storage: window.localStorage,
+});
+
+persistQueryClient({
+  queryClient,
+  persister: localStoragePersister,
+  maxAge: 1000 * 60 * 60 * 24, // 24 hours
 });
 
 function App() {
@@ -46,6 +64,7 @@ function App() {
           </AuthProvider>
         </BrowserRouter>
       </ErrorBoundary>
+      {process.env.NODE_ENV === 'development' && <ReactQueryDevtools />}
     </QueryClientProvider>
   );
 }

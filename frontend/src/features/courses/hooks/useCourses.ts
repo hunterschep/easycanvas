@@ -1,30 +1,32 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { CourseService } from '../services/course.service';
 import type { Course } from '../types';
-import { getUserCourses } from '@/firebase/firestore';
 
 export const useCourses = () => {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  
+  const query = useQuery({
+    queryKey: ['courses'],
+    queryFn: async ({ signal }) => {
+      return CourseService.getCourses(false);
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 
-  const fetchCourses = async (forceRefresh: boolean = false) => {
-    try {
-      setLoading(true);
-      const coursesData = await getUserCourses(forceRefresh);
-      setCourses(coursesData);
-    } catch (err) {
-      setError('Failed to load courses');
-      console.error(err);
-    } finally {
-      setLoading(false);
+  const refreshCourses = async (forceRefresh: boolean = false) => {
+    if (forceRefresh) {
+      // Need to bypass the query to force a refresh
+      const freshData = await CourseService.getCourses(true);
+      queryClient.setQueryData(['courses'], freshData);
+      return freshData;
     }
+    return query.refetch();
   };
 
-  useEffect(() => {
-    // On initial mount, we should never force refresh
-    // getUserCourses will handle the 6-hour check internally
-    fetchCourses(false);
-  }, []);
-
-  return { courses, loading, error, refreshCourses: fetchCourses };
+  return {
+    courses: query.data || [],
+    loading: query.isLoading,
+    error: query.error ? 'Failed to load courses' : null,
+    refreshCourses
+  };
 }; 

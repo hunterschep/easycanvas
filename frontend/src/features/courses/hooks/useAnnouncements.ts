@@ -1,20 +1,11 @@
-import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Course } from '../types';
-import type { EnhancedAnnouncement } from '../types';
+import { CourseService } from '../services/course.service';
 
-export const useAnnouncements = (courses: Course[]): EnhancedAnnouncement[] => {
-  return useMemo(() => {
-    const allAnnouncements = courses.flatMap(course => 
-      course.announcements.map(announcement => ({
-        ...announcement,
-        courseName: course.name,
-        courseId: course.id
-      }))
-    );
-
-    // Sort by posted date, newest first
-    return allAnnouncements.sort((a, b) => 
-      new Date(b.posted_at).getTime() - new Date(a.posted_at).getTime()
-    );
-  }, [courses]);
+export const useAnnouncements = (courses: Course[]) => {
+  return useQuery({
+    queryKey: ['announcements', courses.map(c => c.id)],
+    queryFn: () => CourseService.getAnnouncements(courses),
+    enabled: courses.length > 0,
+  });
 };

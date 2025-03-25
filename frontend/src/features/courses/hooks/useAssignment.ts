@@ -1,49 +1,95 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CourseService } from '../services/course.service';
 import type { Assignment, Course } from '../types';
+import { logCache, logInfo, logError } from '@/utils/debug';
 
 export const useAssignment = (courseId: string | undefined, assignmentId: string | undefined) => {
-  const [assignment, setAssignment] = useState<Assignment | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const fetchAssignment = async () => {
-      if (!courseId || !assignmentId) return;
+  const normalizeId = (id: string | number | undefined): string | undefined => {
+    if (id === undefined) return undefined;
+    return id.toString();
+  };
+
+  const normalizedCourseId = normalizeId(courseId);
+  const normalizedAssignmentId = normalizeId(assignmentId);
+
+  logInfo(`Using assignment hook with courseId=${normalizedCourseId}, assignmentId=${normalizedAssignmentId}`);
+
+  const result = useQuery({
+    queryKey: ['assignment', normalizedCourseId, normalizedAssignmentId],
+    queryFn: async () => {
+      if (!normalizedCourseId || !normalizedAssignmentId) 
+        throw new Error('Course ID and Assignment ID are required');
       
-      try {
-        setLoading(true);
+      // First check courses cache
+      const allCourses = queryClient.getQueryData<Course[]>(['courses']);
+      if (allCourses) {
+        logCache('All courses from cache', allCourses);
+        const course = allCourses.find(c => normalizeId(c.id) === normalizedCourseId);
         
-        // First try to get the assignment from cached courses
-        const cachedCoursesData = localStorage.getItem('coursesData');
-        if (cachedCoursesData) {
-          const courses = JSON.parse(cachedCoursesData);
-          const course = courses.find((c: Course) => c.id.toString() === courseId.toString());
-          if (course && course.assignments) {
-            const cachedAssignment = course.assignments.find(
-              (a: Assignment) => a.id.toString() === assignmentId.toString()
+        if (course?.assignments) {
+          const assignmentFromCourse = course.assignments.find(
+            a => normalizeId(a.id) === normalizedAssignmentId
+          );
+          
+          if (assignmentFromCourse) {
+            logInfo(`Assignment ${normalizedAssignmentId} found in courses cache`);
+            // Store in assignment cache for future use
+            queryClient.setQueryData(
+              ['assignment', normalizedCourseId, normalizedAssignmentId], 
+              assignmentFromCourse
             );
-            if (cachedAssignment) {
-              setAssignment(cachedAssignment);
-              setLoading(false);
-              return;
-            }
+            return assignmentFromCourse;
           }
         }
-
-        // If not in cache, fetch from API
-        const data = await CourseService.getAssignment(courseId, assignmentId);
-        setAssignment(data);
-      } catch (err) {
-        setError('Failed to load assignment');
-        console.error(err);
-      } finally {
-        setLoading(false);
       }
-    };
 
-    fetchAssignment();
-  }, [courseId, assignmentId]);
+      // Next, check single course cache
+      const course = queryClient.getQueryData<Course>(['course', normalizedCourseId]);
+      if (course?.assignments) {
+        logCache(`Course ${normalizedCourseId} from cache`, course);
+        const assignmentFromCourse = course.assignments.find(
+          a => normalizeId(a.id) === normalizedAssignmentId
+        );
+        
+        if (assignmentFromCourse) {
+          logInfo(`Assignment ${normalizedAssignmentId} found in course details cache`);
+          // Store in assignment cache for future use
+          queryClient.setQueryData(
+            ['assignment', normalizedCourseId, normalizedAssignmentId], 
+            assignmentFromCourse
+          );
+          return assignmentFromCourse;
+        }
+      }
 
-  return { assignment, loading, error };
+      // Last, try direct assignment cache
+      const cachedAssignment = queryClient.getQueryData<Assignment>(
+        ['assignment', normalizedCourseId, normalizedAssignmentId]
+      );
+      
+      if (cachedAssignment) {
+        logInfo(`Assignment ${normalizedAssignmentId} found in direct assignment cache`);
+        return cachedAssignment;
+      }
+      
+      // Only if not found in any cache, fetch from API
+      logInfo(`Fetching assignment ${normalizedAssignmentId} for course ${normalizedCourseId} from API`);
+      try {
+        return await CourseService.getAssignment(normalizedCourseId, normalizedAssignmentId);
+      } catch (error) {
+        logError(`Failed to fetch assignment ${normalizedAssignmentId}`, error);
+        throw error;
+      }
+    },
+    enabled: !!normalizedCourseId && !!normalizedAssignmentId,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  return {
+    assignment: result.data,
+    loading: result.isLoading,
+    error: result.error ? 'Failed to load assignment' : null,
+  };
 }; 

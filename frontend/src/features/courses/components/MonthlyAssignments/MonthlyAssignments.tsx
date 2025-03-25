@@ -12,6 +12,9 @@ export const MonthlyAssignments = ({ assignments, courseId, filterOptions }: Mon
   const navigate = useNavigate();
   const groupedAssignments = groupAssignmentsByMonth(assignments, filterOptions);
 
+  // Helper function to normalize IDs (ensure they're strings)
+  const normalizeId = (id: string | number): string => id.toString();
+
   const getStatusColor = (assignment: Assignment) => {
     if (assignment.grade && assignment.grade !== 'N/A') {
       return 'text-purple-500';
@@ -58,7 +61,7 @@ export const MonthlyAssignments = ({ assignments, courseId, filterOptions }: Mon
                 {monthAssignments.map((assignment) => (
                   <div
                     key={assignment.id}
-                    onClick={() => navigate(`/course/${courseId}/assignment/${assignment.id}`)}
+                    onClick={() => navigate(`/course/${normalizeId(courseId)}/assignment/${normalizeId(assignment.id)}`)}
                     className="block p-4 border border-gray-800 rounded-lg hover:border-gray-600 transition-all duration-200 cursor-pointer hover:bg-gray-900"
                   >
                     <div className="space-y-3">

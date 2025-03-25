@@ -67,9 +67,9 @@ export const calculateWorkloadDistribution = (assignments: Assignment[]) => {
 export const calculatePerformanceMetrics = (assignments: Assignment[]) => {
   const gradedAssignments = assignments.filter(a => a.grade && a.grade !== 'N/A');
   const totalPoints = assignments.reduce((sum, a) => sum + (a.points_possible || 0), 0);
-  const earnedPoints = gradedAssignments.reduce((sum, a) => 
+  const earnedPoints = parseFloat(gradedAssignments.reduce((sum, a) => 
     sum + (Number(a.grade) || 0), 0
-  );
+  ).toFixed(2));
 
   return {
     totalPoints,
