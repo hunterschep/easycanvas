@@ -2,6 +2,7 @@ import { auth, googleProvider } from '@/config/firebase.config';
 import { signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth';
 import { ApiService } from '@/services/api/api.service';
 import type { UserSettings } from '../types';
+import { useNavigate } from 'react-router-dom';
 
 export class AuthService {
   static async signInWithGoogle() {
@@ -17,6 +18,7 @@ export class AuthService {
   static async signOut() {
     try {
       await firebaseSignOut(auth);
+      window.location.href = '/'; // Redirect to landing page after sign out
     } catch (error) {
       console.error('Error signing out:', error);
       throw error;

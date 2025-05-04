@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Course } from '../../types';
 import { Button } from '@/components/common/Button/Button';
+import { getCourseColorClass } from '../../utils/courseColors';
 
 interface CourseListProps {
   courses: Course[];
@@ -23,22 +24,22 @@ export const CourseList = ({ courses, onRefresh }: CourseListProps) => {
     }
   };
 
-  // Generate a color based on course name for consistent visual identity
-  const getCourseColor = (name: string) => {
-    const colors = [
-      'from-blue-900/30 to-blue-800/5 border-blue-900/50 hover:border-blue-700',
-      'from-purple-900/30 to-purple-800/5 border-purple-900/50 hover:border-purple-700',
-      'from-green-900/30 to-green-800/5 border-green-900/50 hover:border-green-700',
-      'from-yellow-900/30 to-yellow-800/5 border-yellow-900/50 hover:border-yellow-700',
-      'from-red-900/30 to-red-800/5 border-red-900/50 hover:border-red-700',
-      'from-indigo-900/30 to-indigo-800/5 border-indigo-900/50 hover:border-indigo-700',
-      'from-pink-900/30 to-pink-800/5 border-pink-900/50 hover:border-pink-700',
-    ];
+  // // Generate a color based on course name for consistent visual identity
+  // const getCourseColor = (name: string) => {
+  //   const colors = [
+  //     'from-blue-900/30 to-blue-800/5 border-blue-900/50 hover:border-blue-700',
+  //     'from-purple-900/30 to-purple-800/5 border-purple-900/50 hover:border-purple-700',
+  //     'from-green-900/30 to-green-800/5 border-green-900/50 hover:border-green-700',
+  //     'from-yellow-900/30 to-yellow-800/5 border-yellow-900/50 hover:border-yellow-700',
+  //     'from-red-900/30 to-red-800/5 border-red-900/50 hover:border-red-700',
+  //     'from-indigo-900/30 to-indigo-800/5 border-indigo-900/50 hover:border-indigo-700',
+  //     'from-pink-900/30 to-pink-800/5 border-pink-900/50 hover:border-pink-700',
+  //   ];
     
-    // Use the sum of character codes to pick a consistent color
-    const sum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return colors[sum % colors.length];
-  };
+  //   // Use the sum of character codes to pick a consistent color
+  //   const sum = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  //   return colors[sum % colors.length];
+  // };
 
   return (
     <div className="relative group flex-1">
@@ -77,7 +78,7 @@ export const CourseList = ({ courses, onRefresh }: CourseListProps) => {
             courses.map((course, index) => {
               // Extract course code from name if available (e.g. "CS101: Intro to Programming" -> "CS101")
               const courseCode = course.name.match(/^([A-Z]+[0-9]+):/i)?.[1] || "";
-              const colorClass = getCourseColor(course.name);
+              const colorClass = getCourseColorClass(course, 'cardBg');
               
               return (
                 <div

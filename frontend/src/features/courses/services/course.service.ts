@@ -1,5 +1,5 @@
 import { ApiService } from '@/services/api/api.service';
-import type { Course, Assignment, CourseBase, EnhancedAnnouncement } from '../types';
+import type { Course, Assignment, CourseBase } from '../types';
 
 interface SelectedCoursesResponse {
   selected_course_ids: number[];
@@ -78,22 +78,6 @@ export class CourseService {
       return await ApiService.get(`/api/user/courses/${normalizedCourseId}/modules/${normalizedModuleId}/items`);
     } catch (error) {
       console.error(`Error fetching module items for module ${moduleId}:`, error);
-      throw error;
-    }
-  }
-
-  static async getAnnouncements(courses: Course[]): Promise<EnhancedAnnouncement[]> {
-    try {
-      const announcements = courses.flatMap(course => 
-        course.announcements.map(announcement => ({
-          ...announcement,
-          courseName: course.name,
-          courseId: course.id
-        }))
-      );
-      return announcements;
-    } catch (error) {
-      console.error('Error processing announcements:', error);
       throw error;
     }
   }

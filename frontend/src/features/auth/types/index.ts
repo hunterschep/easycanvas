@@ -4,6 +4,7 @@ export interface AuthContextType {
   loading: boolean;
   hasCanvasToken: boolean;
   currentUser: FirebaseUser | null;
+  initialAuthCheckComplete: boolean;
   signOut: () => Promise<void>;
 }
 

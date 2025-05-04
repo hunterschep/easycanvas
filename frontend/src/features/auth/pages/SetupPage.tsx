@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { AuthService } from '../services/auth.service';
 import { Button } from '@/components/common/Button/Button';
+import { Loading } from '@/components/common/Loading';
 
 interface SetupStep {
   title: string;
@@ -28,19 +29,23 @@ export const SetupPage = () => {
   const [apiToken, setApiToken] = useState('');
   const [canvasUrl, setCanvasUrl] = useState('');
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { currentUser } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setIsSubmitting(true);
 
     if (!canvasUrl.endsWith('.instructure.com')) {
       setError('Please enter a valid Canvas URL (e.g., <yourschool>.instructure.com)');
+      setIsSubmitting(false);
       return;
     }
 
     if (!currentUser) {
       setError('No user is logged in');
+      setIsSubmitting(false);
       return;
     }
 
@@ -49,11 +54,16 @@ export const SetupPage = () => {
       window.location.href = '/select-courses';
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
+      setIsSubmitting(false);
     }
   };
 
   const nextStep = () => setStep((prev) => Math.min(prev + 1, 3));
   const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
+
+  if (isSubmitting) {
+    return <Loading message="Configuring your Canvas access..." />;
+  }
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 relative overflow-hidden">

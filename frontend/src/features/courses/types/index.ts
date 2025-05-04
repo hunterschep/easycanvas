@@ -1,4 +1,4 @@
-import type { CanvasAssignment, CanvasCourse, CanvasModule, CanvasAnnouncement} from '@/types/canvas.types';
+import type { CanvasAssignment, CanvasCourse, CanvasModule } from '@/types/canvas.types';
 
 export interface Assignment extends CanvasAssignment {
   description: string | null;
@@ -13,7 +13,6 @@ export interface Assignment extends CanvasAssignment {
 export interface Course extends CanvasCourse {
   modules: CanvasModule[];
   assignments: Assignment[];
-  announcements: CanvasAnnouncement[];
   start_at: string | null;
   end_at: string | null;
   time_zone: string;
@@ -44,9 +43,4 @@ export interface GradeSummary {
 
 export interface GroupedAssignments {
   [key: string]: Assignment[];
-}
-
-export interface EnhancedAnnouncement extends CanvasAnnouncement {
-  courseName: string;
-  courseId: number;
 } 
