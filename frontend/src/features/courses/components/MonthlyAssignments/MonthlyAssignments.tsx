@@ -61,7 +61,6 @@ export const MonthlyAssignments = ({ assignments, courseId, filterOptions }: Mon
                 {monthAssignments.map((assignment) => (
                   <div
                     key={assignment.id}
-                    onClick={() => navigate(`/course/${normalizeId(courseId)}/assignment/${normalizeId(assignment.id)}`)}
                     className="block p-4 border border-gray-800 rounded-lg hover:border-gray-600 transition-all duration-200 cursor-pointer hover:bg-gray-900"
                   >
                     <div className="space-y-3">

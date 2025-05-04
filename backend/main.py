@@ -1,6 +1,5 @@
 from fastapi import FastAPI
-from src.api.routes import user_router, course_router
-from src.api.routes.ai_routes import router as ai_router
+from src.api.routes import user_routes, course_routes
 from src.api.middleware.security import setup_security_middleware
 from src.utils.logging import setup_logger
 from src.config.settings import get_settings
@@ -20,9 +19,8 @@ app = FastAPI(
 setup_security_middleware(app)
 
 # Include routers
-app.include_router(user_router, prefix="/api/user", tags=["users"])
-app.include_router(course_router, prefix="/api/user/courses", tags=["courses"])
-app.include_router(ai_router, prefix="/api/ai", tags=["ai"])
+app.include_router(user_routes.router, prefix="/api/user", tags=["users"])
+app.include_router(course_routes.router, prefix="/api/user/courses", tags=["courses"])
 
 @app.get("/")
 def read_root():

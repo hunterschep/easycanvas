@@ -1,15 +1,9 @@
 import { MainLayout } from '@/components/layouts/MainLayout/MainLayout';
-import { CourseList } from '../components/CourseList/CourseList';
-import { UpcomingAssignments } from '../components/UpcomingAssignments/UpcomingAssignments';
-import { AnalyticsDashboard } from '../components/AnalyticsDashboard/AnalyticsDashboard';
-import { useUpcomingAssignments } from '../hooks/useUpcomingAssignments';
 import { useCourses } from '../hooks/useCourses';
 import { Loading } from '@/components/common/Loading';
-import { Calendar } from '../components/Calendar/Calendar';
 
 export const HomePage = () => {
-  const { courses, loading, error, refreshCourses } = useCourses();
-  const upcomingAssignments = useUpcomingAssignments(courses);
+  const { courses, loading, error } = useCourses();
 
   // Get all assignments across all courses
   const allAssignments = courses.flatMap(course => course.assignments);
@@ -25,30 +19,13 @@ export const HomePage = () => {
   return (
     <MainLayout>
       <div className="space-y-8">
-        {/* Analytics Dashboard */}
-        <p className="text-2xl font-bold">Analytics</p>
-        <div className="mb-8">
-          <AnalyticsDashboard assignments={allAssignments} />
+        <div className="text-center py-12">
+          <h1 className="text-3xl font-bold mb-4">Welcome to EasyCanvas</h1>
+          <p className="text-gray-400 max-w-2xl mx-auto">
+            Your courses and assignments are successfully loaded.
+            There are {courses.length} courses with a total of {allAssignments.length} assignments.
+          </p>
         </div>
-
-        {/* Existing Grid Layout */}
-        <p className="text-2xl font-bold">Courses & Assignments</p>
-        <div className="grid grid-cols-1 lg:grid-cols-6 gap-8 h-full">
-          <div className="lg:col-span-4 h-full">
-            <div className="h-full flex">
-              <UpcomingAssignments assignments={upcomingAssignments} />
-            </div>
-          </div>
-          <div className="lg:col-span-2 h-full">
-            <div className="h-full flex">
-              <CourseList courses={courses} onRefresh={() => refreshCourses(true)} />
-            </div>
-          </div>
-        </div>
-        <p className="text-2xl font-bold">Your Calendar</p>
-          <div className="mb-8">
-            <Calendar assignments={allAssignments} courses={courses} />
-          </div>
       </div>
     </MainLayout>
   );

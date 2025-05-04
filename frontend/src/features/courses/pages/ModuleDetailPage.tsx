@@ -27,7 +27,7 @@ export const ModuleDetailPage = () => {
   }
 
   return (
-    <MainLayout showBackButton onBack={() => navigate(`/course/${courseId}`)}>
+    <MainLayout showBackButton onBack={() => navigate('/home')}>
       <div className="space-y-8">
         {/* Module Header */}
         <div className="relative group">

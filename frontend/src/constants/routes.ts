@@ -3,6 +3,4 @@ export const ROUTES = {
   LOGIN: '/login',
   SETUP: '/setup',
   ACCOUNT: '/account',
-  COURSE: '/course/:id',
-  ASSIGNMENT: '/assignment/:id',
 } as const; 
