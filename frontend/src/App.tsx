@@ -11,21 +11,8 @@ import { CourseSelectPage } from '@/features/auth/pages/CourseSelectPage';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
-import { useEffect } from 'react';
-import { scrollToTop } from '@/utils/scroll';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { Loading } from '@/components/common/Loading';
-
-// Component that scrolls to top on route changes
-function ScrollToTop() {
-  const { pathname } = useLocation();
-
-  useEffect(() => {
-    scrollToTop();
-  }, [pathname]);
-
-  return null;
-}
 
 // Component to handle routing based on auth state
 function AuthRedirect({ children }: { children: React.ReactNode }) {
@@ -109,7 +96,6 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ErrorBoundary>
         <BrowserRouter>
-          <ScrollToTop />
           <AuthProvider>
             <AuthRedirect>
               <Routes>

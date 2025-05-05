@@ -1,6 +1,6 @@
 import { MainLayout } from '@/components/layouts/MainLayout/MainLayout';
-import { useCourses } from '../hooks/useCourses';
 import { Loading } from '@/components/common/Loading';
+import { useCourses } from '../hooks/useCourses';
 
 export const HomePage = () => {
   const { courses, loading, error } = useCourses();

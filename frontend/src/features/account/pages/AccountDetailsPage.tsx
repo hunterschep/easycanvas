@@ -299,28 +299,6 @@ export const AccountDetailsPage = () => {
           </div>
         </div>
 
-        {/* Legal & Privacy */}
-        <div className="relative group">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-lg blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
-          <div className="relative bg-black border border-gray-800 rounded-lg p-6">
-            <h2 className="text-xl font-bold mb-4">Legal & Privacy</h2>
-            <div className="space-y-4 text-sm text-gray-400">
-              <p>
-                By using easyCanvas, you agree to our{' '}
-                <Link to="/terms" className="text-white hover:text-gray-300 underline">
-                  Terms of Service
-                </Link>
-                {' '}and{' '}
-                <Link to="/privacy" className="text-white hover:text-gray-300 underline">
-                  Privacy Policy
-                </Link>
-              </p>
-              <p>
-                Your Canvas API token is encrypted and stored securely. We maintain read-only access to protect your Canvas account integrity.
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
     </MainLayout>
   );
