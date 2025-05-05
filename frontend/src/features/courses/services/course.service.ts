@@ -1,5 +1,9 @@
 import { ApiService } from '@/services/api/api.service';
-import type { Course, Assignment, CourseBase } from '../types';
+import type { 
+  CanvasCourse as Course, 
+  CanvasAssignment as Assignment,
+  CourseBase
+} from '@/types/canvas.types';
 
 interface SelectedCoursesResponse {
   selected_course_ids: number[];
@@ -13,6 +17,7 @@ export class CourseService {
 
   static async getCourses(forceRefresh: boolean = false): Promise<Course[]> {
     try {
+      console.log(`Getting courses with forceRefresh=${forceRefresh}`);
       const endpoint = forceRefresh ? '/api/user/courses?force=true' : '/api/user/courses';
       return await ApiService.get(endpoint);
     } catch (error) {

@@ -105,24 +105,6 @@ class CourseService:
     async def _process_course(course, canvas, canvas_user_id: int) -> Dict[str, Any]:
         logger.debug(f"Processing course: {course.name} (ID: {course.id})")
         
-        # Use a more robust hash function for color assignment
-        # Combining course name and ID ensures better uniqueness
-        def get_color_id(course_id: int, course_name: str) -> int:
-            # Convert course name to string and ensure it's not empty
-            name_str = str(course_name) if course_name else ""
-            # Create a hash value from name and ID
-            hash_val = 0
-            # Add hash of course name characters
-            for char in name_str:
-                hash_val = ((hash_val * 31) + ord(char)) & 0xFFFFFFFF
-            # Include course ID in the hash
-            hash_val = ((hash_val * 31) + course_id) & 0xFFFFFFFF
-            
-            # Use the palette size from frontend (6 colors)
-            return hash_val % 6
-        
-        color_id = get_color_id(course.id, course.name)
-        
         course_data = {
             'id': course.id,
             'name': course.name,
@@ -133,7 +115,6 @@ class CourseService:
             'start_at': getattr(course, 'start_at', None),
             'end_at': getattr(course, 'end_at', None),
             'time_zone': getattr(course, 'time_zone', 'UTC'),
-            'colorId': color_id  # Add deterministic color ID
         }
         
         try:
@@ -153,6 +134,11 @@ class CourseService:
                     task = CourseService._process_module(module)
                     module_tasks.append(task)
             
+            # Process announcements 
+            announcements = canvas.get_announcements(context_codes=[f"course_{course.id}"])
+            # Process announcements
+            course_data['announcements'] = await CourseService._process_announcements(announcements)
+            logger.debug(f"Successfully processed {len(course_data['announcements'])} announcements for course {course.name}")
             # Process all tasks concurrently
             processed_assignments = await asyncio.gather(*assignment_tasks)
             processed_modules = await asyncio.gather(*module_tasks)
@@ -394,3 +380,22 @@ class CourseService:
         except Exception as e:
             logger.error(f"Error processing module items: {str(e)}")
             raise
+
+    @staticmethod
+    async def _process_announcements(announcements) -> List[Dict[str, Any]]:
+        """Process announcements for a course."""
+        processed_announcements = []
+        try:
+            for announcement in announcements:
+                announcement_data = {
+                    'id': announcement.id,
+                    'title': announcement.title,
+                    'message': getattr(announcement, 'message', None),
+                    'posted_at': getattr(announcement, 'posted_at', None),
+                    'url': getattr(announcement, 'html_url', None),
+                }
+                processed_announcements.append(announcement_data)
+            return processed_announcements
+        except Exception as e:
+            logger.error(f"Error processing announcements: {str(e)}")
+            return []

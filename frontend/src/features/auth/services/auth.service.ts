@@ -4,6 +4,9 @@ import { ApiService } from '@/services/api/api.service';
 import type { UserSettings } from '../types';
 import { useNavigate } from 'react-router-dom';
 
+// Import queryClient
+import { queryClient } from '@/config/query-client';
+
 export class AuthService {
   static async signInWithGoogle() {
     try {
@@ -17,8 +20,18 @@ export class AuthService {
 
   static async signOut() {
     try {
+      // Clear React Query cache
+      queryClient.clear();
+      
+      // Clear localStorage cache
+      localStorage.removeItem('coursesData');
+      localStorage.removeItem('REACT_QUERY_OFFLINE_CACHE');
+      
+      // Sign out from Firebase
       await firebaseSignOut(auth);
-      window.location.href = '/'; // Redirect to landing page after sign out
+      
+      // Force refresh the page to ensure clean state
+      window.location.href = '/'; 
     } catch (error) {
       console.error('Error signing out:', error);
       throw error;

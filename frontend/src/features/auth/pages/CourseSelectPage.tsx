@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Loading } from '@/components/common/Loading';
 import { CourseService } from '@/features/courses/services/course.service';
 import { useAuth } from '../context/AuthContext';
-import type { CourseBase } from '@/features/courses/types';
+import type { CourseBase } from '@/types/canvas.types';
 
 export const CourseSelectPage = () => {
   const [availableCourses, setAvailableCourses] = useState<CourseBase[]>([]);
@@ -50,10 +50,20 @@ export const CourseSelectPage = () => {
     }
 
     try {
+      setLoading(true);
       await CourseService.saveSelectedCourses(selectedCourseIds);
+      
+      // Force a fresh fetch of all course data for the selected courses before
+      // redirecting to ensure data is ready for the home page
+      console.log("Selected courses saved, initiating full data fetch...");
+      await CourseService.getCourses(true);
+      
       navigate('/home');
     } catch (err) {
+      console.error('Error saving courses:', err);
       setError('Failed to save course selection. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 

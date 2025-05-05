@@ -7,6 +7,14 @@ export interface CanvasAssignment {
   has_submitted_submissions: boolean;
 }
 
+export interface CanvasAnnouncement {
+  id: number;
+  title: string;
+  message: string | null;
+  posted_at: string | null;
+  url: string | null;
+}
+
 export interface CanvasModule {
   id: number;
   name: string;
@@ -28,6 +36,7 @@ export interface CanvasCourse {
   code: string;
   assignments: CanvasAssignment[];
   modules: CanvasModule[];
+  announcements: CanvasAnnouncement[];
 }
 
 export interface UserData {
@@ -38,4 +47,13 @@ export interface UserData {
   last_name: string;
   avatar_url: string;
   email?: string;
+}
+
+export interface CourseBase {
+  id: number;
+  name: string;
+  code: string;
+  term?: number;
+  start_at?: string;
+  end_at?: string;
 }

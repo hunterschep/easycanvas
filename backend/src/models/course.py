@@ -16,6 +16,12 @@ class Assignment(BaseModel):
     score: Optional[float] = None
     has_submitted_submissions: bool = False
 
+class Announcement(BaseModel):
+    id: int
+    title: str
+    message: str
+    posted_at: datetime
+
 class CourseBase(BaseModel):
     """Basic course information for selection"""
     id: int
@@ -45,13 +51,14 @@ class Course(BaseModel):
     code: str
     assignments: List[Assignment] = []
     modules: List[Module] = []
+    announcements: List[Announcement] = []
     term: Optional[int] = None
     start_at: Optional[datetime] = None
     end_at: Optional[datetime] = None
     time_zone: str = "UTC"
     homepage: Optional[str] = None  # Will be populated separately from front_page endpoint
     colorId: Optional[int] = None  # For consistent course coloring
-
+    
 def course_to_dict(course: Course) -> dict:
     return {
         "id": course.id,
@@ -59,6 +66,7 @@ def course_to_dict(course: Course) -> dict:
         "code": course.code,
         "assignments": [assignment.dict() for assignment in course.assignments],
         "modules": [module.dict() for module in course.modules],
+        "announcements": [announcement.dict() for announcement in course.announcements],
         "term": course.term,
         "start_at": course.start_at,
         "end_at": course.end_at,
