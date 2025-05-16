@@ -15,6 +15,22 @@ export interface CanvasAnnouncement {
   url: string | null;
 }
 
+export interface CanvasModuleItem {
+  id: number;
+  title: string;
+  position: number;
+  indent: number;
+  type: string | null;
+  module_id: number;
+  html_url: string | null;
+  content_id: number | null;
+  url: string | null;
+  completion_requirement?: {
+    type: string;
+    completed?: boolean;
+  } | null;
+}
+
 export interface CanvasModule {
   id: number;
   name: string;
@@ -26,8 +42,9 @@ export interface CanvasModule {
   require_sequential_progress: boolean;
   published: boolean;
   items_count: number;
-  items_url: string;
+  items_url: string | null;
   prerequisite_module_ids: number[];
+  items: CanvasModuleItem[];
 }
 
 export interface CanvasCourse {

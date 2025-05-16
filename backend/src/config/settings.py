@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     FIREBASE_ADMIN_CREDENTIALS: str
     ENCRYPTION_KEY: str
     CANVAS_API_BASE_URL: str
-    ANTHROPIC_API_KEY: str
+    OPENAI_API_KEY: str
 
     class Config:
         env_file = ".env"

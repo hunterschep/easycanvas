@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Query, Body, HTTPException
-from src.models.course import Course, CourseBase
+from src.models.course import Course, CourseBase, ModuleItem
 from src.services.course_service import CourseService
 from src.api.middleware.auth import verify_firebase_token
 from typing import List, Dict, Any
@@ -44,12 +44,12 @@ async def get_courses_last_updated(
 ):
     return await CourseService.get_courses_last_updated(user_id)
 
-@router.get("/{course_id}/modules/{module_id}/items")
+@router.get("/{course_id}/modules/{module_id}/items", response_model=List[ModuleItem])
 async def get_module_items(
     course_id: int,
     module_id: int,
     user_id: str = Depends(verify_firebase_token)
-) -> List[Dict[str, Any]]:
+) -> List[ModuleItem]:
     """Get items for a specific module in a course."""
     try:
         # Get user data and canvas instance

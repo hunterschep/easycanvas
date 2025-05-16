@@ -2,7 +2,8 @@ import { ApiService } from '@/services/api/api.service';
 import type { 
   CanvasCourse as Course, 
   CanvasAssignment as Assignment,
-  CourseBase
+  CourseBase,
+  CanvasModuleItem
 } from '@/types/canvas.types';
 
 interface SelectedCoursesResponse {
@@ -76,7 +77,7 @@ export class CourseService {
     }
   }
 
-  static async getModuleItems(courseId: string | number, moduleId: string | number): Promise<any[]> {
+  static async getModuleItems(courseId: string | number, moduleId: string | number): Promise<CanvasModuleItem[]> {
     try {
       const normalizedCourseId = this.normalizeId(courseId);
       const normalizedModuleId = this.normalizeId(moduleId);

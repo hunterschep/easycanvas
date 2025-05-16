@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 
 class Assignment(BaseModel):
@@ -21,6 +21,7 @@ class Announcement(BaseModel):
     title: str
     message: str
     posted_at: datetime
+    url: Optional[str] = None
 
 class CourseBase(BaseModel):
     """Basic course information for selection"""
@@ -30,6 +31,18 @@ class CourseBase(BaseModel):
     term: Optional[int] = None
     start_at: Optional[datetime] = None
     end_at: Optional[datetime] = None
+
+class ModuleItem(BaseModel):
+    id: int
+    title: str
+    position: int
+    indent: int = 0
+    type: Optional[str] = None
+    module_id: int
+    html_url: Optional[str] = None
+    content_id: Optional[int] = None
+    url: Optional[str] = None
+    completion_requirement: Optional[Dict[str, Any]] = None
 
 class Module(BaseModel):
     id: int
@@ -44,6 +57,7 @@ class Module(BaseModel):
     items_count: int = 0
     items_url: Optional[str] = None
     prerequisite_module_ids: List[int] = []
+    items: List[ModuleItem] = []
 
 class Course(BaseModel):
     id: int

@@ -5,10 +5,11 @@ from google.cloud import firestore
 import logging
 import asyncio
 from fastapi import HTTPException
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import List, Dict, Any
 from canvasapi import Canvas
 from src.utils.logging import setup_logger
+from src.models.course import ModuleItem
 
 logger = setup_logger(__name__)
 
@@ -126,19 +127,73 @@ class CourseService:
                     task = CourseService._process_assignment(assignment, canvas_user_id)
                     assignment_tasks.append(task)
             
-            # Process modules
-            modules = course.get_modules()
+            # Process modules with items included
+            logger.info(f"Fetching modules with items for course {course.id}")
+            modules_list = []
             module_tasks = []
-            for module in modules:
-                if getattr(module, 'workflow_state', 'active') == 'active':
-                    task = CourseService._process_module(module)
-                    module_tasks.append(task)
             
-            # Process announcements 
-            announcements = canvas.get_announcements(context_codes=[f"course_{course.id}"])
+            try:
+                # Get modules with items included using the include[] parameter
+                modules = course.get_modules(include=['items'])
+                
+                # Convert PaginatedList to a regular list to avoid consuming it twice
+                for module in modules:
+                    modules_list.append(module)
+                
+                logger.info(f"Found {len(modules_list)} modules for course {course.name}")
+                
+                for module in modules_list:
+                    if getattr(module, 'workflow_state', 'active') == 'active':
+                        task = CourseService._process_module_with_items(module)
+                        module_tasks.append(task)
+            except Exception as e:
+                logger.error(f"Error fetching modules with items for course {course.id}: {str(e)}")
+                
+                # Fallback to standard modules
+                modules = course.get_modules()
+                modules_list = []
+                
+                # Clear previous tasks
+                module_tasks = []
+                
+                # Convert PaginatedList to a regular list
+                for module in modules:
+                    modules_list.append(module)
+                
+                logger.info(f"Falling back to standard modules. Found {len(modules_list)} modules for course {course.name}")
+                
+                for module in modules_list:
+                    if getattr(module, 'workflow_state', 'active') == 'active':
+                        task = CourseService._process_module(module)
+                        module_tasks.append(task)
+            
             # Process announcements
-            course_data['announcements'] = await CourseService._process_announcements(announcements)
-            logger.debug(f"Successfully processed {len(course_data['announcements'])} announcements for course {course.name}")
+            logger.info(f"Fetching announcements for course {course.id}")
+            try:
+                # Call get_announcements with explicit pagination parameters and date filtering
+                # The method returns a PaginatedList which we need to iterate to get all items
+                announcements_list = canvas.get_announcements(
+                    context_codes=[f"course_{course.id}"],
+                    per_page=50,  # Get more items per page
+                    # Set a reasonable date range - can be adjusted as needed
+                    start_date=(datetime.now(timezone.utc) - timedelta(days=180)).strftime('%Y-%m-%d'),
+                    end_date=datetime.now(timezone.utc).strftime('%Y-%m-%d'),
+                    active_only=True  # Only get active announcements
+                )
+                
+                # Get all announcements from all pages
+                all_announcements = []
+                for announcement in announcements_list:
+                    all_announcements.append(announcement)
+                    logger.debug(f"Found announcement: {getattr(announcement, 'title', 'No title')}")
+                
+                logger.info(f"Found {len(all_announcements)} announcements for course {course.name}")
+                course_data['announcements'] = await CourseService._process_announcements(all_announcements)
+                logger.info(f"Successfully processed {len(course_data['announcements'])} announcements for course {course.name}")
+            except Exception as e:
+                logger.error(f"Error processing announcements for course {course.id}: {str(e)}")
+                course_data['announcements'] = []
+            
             # Process all tasks concurrently
             processed_assignments = await asyncio.gather(*assignment_tasks)
             processed_modules = await asyncio.gather(*module_tasks)
@@ -341,7 +396,7 @@ class CourseService:
     @staticmethod
     async def _process_module(module) -> Dict[str, Any]:
         logger.debug(f"Processing module: {module.name} (ID: {module.id})")
-        return {
+        module_data = {
             'id': module.id,
             'name': module.name,
             'position': getattr(module, 'position', 0),
@@ -353,11 +408,68 @@ class CourseService:
             'published': getattr(module, 'published', True),
             'items_count': getattr(module, 'items_count', 0),
             'items_url': getattr(module, 'items_url', None),
-            'prerequisite_module_ids': getattr(module, 'prerequisite_module_ids', [])
+            'prerequisite_module_ids': getattr(module, 'prerequisite_module_ids', []),
+            'items': []  # Empty items array for consistency with _process_module_with_items
         }
+        
+        # Also fetch module items separately for consistency
+        try:
+            logger.debug(f"Fetching items separately for module {module.name}")
+            items = module.get_module_items()
+            
+            # Safer way to check if there are items
+            first_item = None
+            try:
+                module_items = list(items)
+                if module_items:
+                    first_item = module_items[0]
+                logger.debug(f"Items type: {type(items)}, first item type: {type(first_item) if first_item else 'No items'}")
+                
+                for item in module_items:
+                    try:
+                        # Check if item is a dict or an object
+                        if isinstance(item, dict):
+                            logger.debug(f"Processing item as dict: {item.get('title', 'No title')}")
+                            item_data = {
+                                'id': item.get('id'),
+                                'title': item.get('title', 'No title'),
+                                'position': item.get('position', 0),
+                                'indent': item.get('indent', 0),
+                                'type': item.get('type'),
+                                'module_id': item.get('module_id', module.id),
+                                'html_url': item.get('html_url'),
+                                'content_id': item.get('content_id'),
+                                'url': item.get('url'),
+                                'completion_requirement': item.get('completion_requirement')
+                            }
+                        else:
+                            logger.debug(f"Processing item as object: {getattr(item, 'title', 'No title')}")
+                            item_data = {
+                                'id': item.id,
+                                'title': getattr(item, 'title', 'No title'),
+                                'position': getattr(item, 'position', 0),
+                                'indent': getattr(item, 'indent', 0),
+                                'type': getattr(item, 'type', None),
+                                'module_id': getattr(item, 'module_id', module.id),
+                                'html_url': getattr(item, 'html_url', None),
+                                'content_id': getattr(item, 'content_id', None),
+                                'url': getattr(item, 'url', None),
+                                'completion_requirement': getattr(item, 'completion_requirement', None)
+                            }
+                        module_data['items'].append(item_data)
+                    except Exception as e:
+                        logger.error(f"Error processing individual item in module {module.id}: {str(e)}")
+            except Exception as e:
+                logger.error(f"Error converting items to list: {str(e)}")
+            
+            logger.debug(f"Fetched {len(module_data['items'])} items separately for module {module.name}")
+        except Exception as e:
+            logger.error(f"Error fetching items separately for module {module.id}: {str(e)}")
+        
+        return module_data
 
     @staticmethod
-    async def get_module_items(canvas: Canvas, course_id: int, module_id: int) -> List[Dict[str, Any]]:
+    async def get_module_items(canvas: Canvas, course_id: int, module_id: int) -> List[ModuleItem]:
         """Fetch and process items for a specific module."""
         try:
             course = canvas.get_course(course_id)
@@ -366,15 +478,23 @@ class CourseService:
             
             processed_items = []
             for item in items:
-                processed_item = {
-                    'id': item.id,
-                    'title': item.title,
-                    'type': item.type,
-                    'html_url': getattr(item, 'html_url', None),
-                    'content_id': getattr(item, 'content_id', None),
-                    'completion_requirement': getattr(item, 'completion_requirement', None)
-                }
-                processed_items.append(processed_item)
+                try:
+                    # Create a ModuleItem with default values where needed
+                    processed_item = ModuleItem(
+                        id=item.id,
+                        title=getattr(item, 'title', 'No title'),
+                        position=getattr(item, 'position', 0),
+                        indent=getattr(item, 'indent', 0),
+                        type=getattr(item, 'type', None),
+                        module_id=module_id,
+                        html_url=getattr(item, 'html_url', None),
+                        content_id=getattr(item, 'content_id', None),
+                        url=getattr(item, 'url', None),
+                        completion_requirement=getattr(item, 'completion_requirement', None)
+                    )
+                    processed_items.append(processed_item)
+                except Exception as e:
+                    logger.error(f"Error processing individual module item: {str(e)}")
                 
             return processed_items
         except Exception as e:
@@ -399,3 +519,146 @@ class CourseService:
         except Exception as e:
             logger.error(f"Error processing announcements: {str(e)}")
             return []
+
+    @staticmethod
+    async def _process_module_with_items(module) -> Dict[str, Any]:
+        logger.debug(f"Processing module with items: {module.name} (ID: {module.id})")
+        module_data = {
+            'id': module.id,
+            'name': module.name,
+            'position': getattr(module, 'position', 0),
+            'unlock_at': getattr(module, 'unlock_at', None),
+            'workflow_state': getattr(module, 'workflow_state', 'active'),
+            'state': getattr(module, 'state', None),
+            'completed_at': getattr(module, 'completed_at', None),
+            'require_sequential_progress': getattr(module, 'require_sequential_progress', False),
+            'published': getattr(module, 'published', True),
+            'items_count': getattr(module, 'items_count', 0),
+            'items_url': getattr(module, 'items_url', None),
+            'prerequisite_module_ids': getattr(module, 'prerequisite_module_ids', []),
+            'items': []
+        }
+        
+        # Process items if they're included with the module
+        if hasattr(module, 'items') and module.items:
+            try:
+                items = module.items
+                
+                # Log the type of items structure
+                first_item = None
+                module_items = []
+                
+                try:
+                    # Handle items whether it's a list, tuple, or other iterable
+                    if isinstance(items, (list, tuple)):
+                        module_items = items
+                    else:
+                        module_items = list(items)
+                    
+                    if module_items:
+                        first_item = module_items[0]
+                    
+                    logger.debug(f"Module items type: {type(items)}, items count: {len(module_items)}, first item type: {type(first_item) if first_item else 'No items'}")
+                    
+                    if first_item:
+                        logger.debug(f"First item structure: {first_item}")
+                except Exception as e:
+                    logger.error(f"Error converting module.items to list: {str(e)}")
+                
+                for item in module_items:
+                    try:
+                        # Check if item is a dict or an object
+                        if isinstance(item, dict):
+                            logger.debug(f"Processing item as dict: {item.get('title', 'No title')}")
+                            item_data = {
+                                'id': item.get('id'),
+                                'title': item.get('title', 'No title'),
+                                'position': item.get('position', 0),
+                                'indent': item.get('indent', 0),
+                                'type': item.get('type'),
+                                'module_id': item.get('module_id', module.id),
+                                'html_url': item.get('html_url'),
+                                'content_id': item.get('content_id'),
+                                'url': item.get('url'),
+                                'completion_requirement': item.get('completion_requirement')
+                            }
+                        else:
+                            logger.debug(f"Processing item as object: {getattr(item, 'title', 'No title')}")
+                            item_data = {
+                                'id': item.id,
+                                'title': getattr(item, 'title', 'No title'),
+                                'position': getattr(item, 'position', 0),
+                                'indent': getattr(item, 'indent', 0),
+                                'type': getattr(item, 'type', None),
+                                'module_id': getattr(item, 'module_id', module.id),
+                                'html_url': getattr(item, 'html_url', None),
+                                'content_id': getattr(item, 'content_id', None),
+                                'url': getattr(item, 'url', None),
+                                'completion_requirement': getattr(item, 'completion_requirement', None)
+                            }
+                        module_data['items'].append(item_data)
+                    except Exception as e:
+                        logger.error(f"Error processing individual item in module {module.id}: {str(e)}")
+                
+                logger.debug(f"Processed {len(module_data['items'])} items for module {module.name}")
+            except Exception as e:
+                logger.error(f"Error processing items for module {module.id}: {str(e)}")
+                # Log the structure of module.items to diagnose the issue
+                try:
+                    if hasattr(module, 'items'):
+                        logger.debug(f"Module.items raw: {module.items}")
+                except Exception as log_err:
+                    logger.error(f"Error logging module.items: {str(log_err)}")
+        else:
+            # If items aren't included, try fetching them separately
+            logger.debug(f"No items included with module {module.name}, fetching separately")
+            try:
+                items = module.get_module_items()
+                
+                # Safely convert to list
+                module_items = []
+                try:
+                    module_items = list(items)
+                except Exception as e:
+                    logger.error(f"Error converting module items to list: {str(e)}")
+                
+                for item in module_items:
+                    try:
+                        # Check if item is a dict or an object
+                        if isinstance(item, dict):
+                            logger.debug(f"Processing item as dict: {item.get('title', 'No title')}")
+                            item_data = {
+                                'id': item.get('id'),
+                                'title': item.get('title', 'No title'),
+                                'position': item.get('position', 0),
+                                'indent': item.get('indent', 0),
+                                'type': item.get('type'),
+                                'module_id': item.get('module_id', module.id),
+                                'html_url': item.get('html_url'),
+                                'content_id': item.get('content_id'),
+                                'url': item.get('url'),
+                                'completion_requirement': item.get('completion_requirement')
+                            }
+                        else:
+                            logger.debug(f"Processing item as object: {getattr(item, 'title', 'No title')}")
+                            item_data = {
+                                'id': item.id,
+                                'title': getattr(item, 'title', 'No title'),
+                                'position': getattr(item, 'position', 0),
+                                'indent': getattr(item, 'indent', 0),
+                                'type': getattr(item, 'type', None),
+                                'module_id': getattr(item, 'module_id', module.id),
+                                'html_url': getattr(item, 'html_url', None),
+                                'content_id': getattr(item, 'content_id', None),
+                                'url': getattr(item, 'url', None),
+                                'completion_requirement': getattr(item, 'completion_requirement', None)
+                            }
+                        module_data['items'].append(item_data)
+                    except Exception as e:
+                        logger.error(f"Error processing individual item in module {module.id}: {str(e)}")
+                
+                logger.debug(f"Fetched {len(module_data['items'])} items separately for module {module.name}")
+            except Exception as e:
+                logger.error(f"Error fetching items separately for module {module.id}: {str(e)}")
+        
+        return module_data
