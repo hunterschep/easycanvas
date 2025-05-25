@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { getAuth } from 'firebase/auth';
-import { ChatMessage, MessageRole, ChatResponse } from '@/types/chat';
+import { ChatMessage, MessageRole, ChatResponse, Chat, ChatListItem } from '@/types/chat';
 
 const API_URL = import.meta.env.VITE_API_URL || '';
 
@@ -24,34 +24,93 @@ const createAuthenticatedRequest = async () => {
   });
 };
 
-export const sendMessage = async (message: string, previousResponseId?: string): Promise<ChatMessage> => {
+export const sendMessage = async (
+  message: string, 
+  chatId?: string, 
+  previousResponseId?: string
+): Promise<ChatMessage> => {
   try {
     const http = await createAuthenticatedRequest();
     
-    const userMessage: ChatMessage = {
-      role: MessageRole.USER,
-      content: message,
-      timestamp: new Date(),
-    };
-    
-    // Include the previous response ID if available
+    // Build request body
     const requestBody: any = { 
-      message: userMessage 
+      message
     };
     
+    // Include optional parameters if available
     if (previousResponseId) {
       requestBody.previous_response_id = previousResponseId;
     }
     
+    if (chatId) {
+      requestBody.chat_id = chatId;
+    }
+    
     const response = await http.post<ChatResponse>('/api/chat', requestBody);
     
-    // Add the response ID to the returned message
+    // Add the response ID and chat ID to the returned message
     return {
       ...response.data.message,
-      responseId: response.data.response_id
+      responseId: response.data.response_id,
+      chatId: response.data.chat_id
     };
   } catch (error) {
     console.error('Error sending message:', error);
     throw error;
+  }
+};
+
+export const getUserChats = async (): Promise<ChatListItem[]> => {
+  try {
+    const http = await createAuthenticatedRequest();
+    const response = await http.get('/api/chats');
+    return response.data.chats || [];
+  } catch (error) {
+    console.error('Error fetching chats:', error);
+    return [];
+  }
+};
+
+export const getChatMessages = async (chatId: string): Promise<ChatMessage[]> => {
+  try {
+    const http = await createAuthenticatedRequest();
+    const response = await http.get(`/api/chats/${chatId}/messages`);
+    return response.data || [];
+  } catch (error) {
+    console.error(`Error fetching messages for chat ${chatId}:`, error);
+    return [];
+  }
+};
+
+export const createChat = async (title: string): Promise<string | null> => {
+  try {
+    const http = await createAuthenticatedRequest();
+    const response = await http.post('/api/chats', { title });
+    return response.data.chat_id;
+  } catch (error) {
+    console.error('Error creating chat:', error);
+    return null;
+  }
+};
+
+export const updateChatTitle = async (chatId: string, title: string): Promise<boolean> => {
+  try {
+    const http = await createAuthenticatedRequest();
+    await http.put(`/api/chats/${chatId}/title`, { title });
+    return true;
+  } catch (error) {
+    console.error(`Error updating chat ${chatId} title:`, error);
+    return false;
+  }
+};
+
+export const deleteChat = async (chatId: string): Promise<boolean> => {
+  try {
+    const http = await createAuthenticatedRequest();
+    await http.delete(`/api/chats/${chatId}`);
+    return true;
+  } catch (error) {
+    console.error(`Error deleting chat ${chatId}:`, error);
+    return false;
   }
 }; 

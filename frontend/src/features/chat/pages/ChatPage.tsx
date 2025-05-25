@@ -1,14 +1,80 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { MainLayout } from '@/components/layouts/MainLayout/MainLayout';
 import ChatWindow from '@/components/chat/ChatWindow';
-import { ChatMessage, MessageRole } from '@/types/chat';
-import { sendMessage } from '@/services/chatService';
+import ChatHistory from '../components/ChatHistory';
+import { ChatMessage, MessageRole, ChatListItem } from '@/types/chat';
+import { sendMessage, getUserChats, getChatMessages, createChat, deleteChat } from '@/services/chatService';
 import { estimateTokenCount, AVAILABLE_INPUT_TOKENS } from '@/utils/tokenCounter';
 
 export const ChatPage = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [lastResponseId, setLastResponseId] = useState<string | undefined>(undefined);
+  const [currentChatId, setCurrentChatId] = useState<string | undefined>(() => searchParams.get('id') || undefined);
+  const [chats, setChats] = useState<ChatListItem[]>([]);
+  const [isFetchingChats, setIsFetchingChats] = useState(false);
+  const [isFetchingMessages, setIsFetchingMessages] = useState(false);
+
+  // Fetch user's chat history on component mount
+  useEffect(() => {
+    const fetchChats = async () => {
+      setIsFetchingChats(true);
+      try {
+        const userChats = await getUserChats();
+        setChats(userChats);
+      } catch (error) {
+        console.error('Error fetching chat history:', error);
+      } finally {
+        setIsFetchingChats(false);
+      }
+    };
+
+    fetchChats();
+  }, []);
+
+  // Load messages when chat ID changes
+  useEffect(() => {
+    if (currentChatId) {
+      setSearchParams({ id: currentChatId });
+      loadChatMessages(currentChatId);
+    } else {
+      // Clear messages if no chat is selected
+      setMessages([]);
+      setLastResponseId(undefined);
+      setSearchParams({});
+    }
+  }, [currentChatId, setSearchParams]);
+
+  const loadChatMessages = async (chatId: string) => {
+    setIsFetchingMessages(true);
+    try {
+      const chatMessages = await getChatMessages(chatId);
+      
+      // Sort messages by timestamp
+      const sortedMessages = [...chatMessages].sort((a, b) => {
+        const dateA = new Date(a.timestamp);
+        const dateB = new Date(b.timestamp);
+        return dateA.getTime() - dateB.getTime();
+      });
+      
+      setMessages(sortedMessages);
+      
+      // Set the last response ID to the last assistant message
+      const lastAssistantMessage = [...sortedMessages]
+        .reverse()
+        .find(msg => msg.role === MessageRole.ASSISTANT);
+        
+      if (lastAssistantMessage?.responseId) {
+        setLastResponseId(lastAssistantMessage.responseId);
+      }
+    } catch (error) {
+      console.error(`Error loading messages for chat ${chatId}:`, error);
+    } finally {
+      setIsFetchingMessages(false);
+    }
+  };
 
   const handleSendMessage = async (content: string) => {
     if (!content.trim() || isLoading) return;
@@ -17,15 +83,25 @@ export const ChatPage = () => {
     const userMessage: ChatMessage = {
       role: MessageRole.USER,
       content,
-      timestamp: new Date()
+      timestamp: new Date(),
+      chatId: currentChatId
     };
     
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
 
     try {
-      // Send to API and get response, including the last response ID for context
-      const assistantMessage = await sendMessage(content, lastResponseId);
+      // Send to API and get response
+      const assistantMessage = await sendMessage(content, currentChatId, lastResponseId);
+      
+      // Update the chat ID if this is a new chat
+      if (assistantMessage.chatId && !currentChatId) {
+        setCurrentChatId(assistantMessage.chatId);
+        
+        // Refresh chat list to include the new chat
+        const userChats = await getUserChats();
+        setChats(userChats);
+      }
       
       // Update the last response ID for the next message
       if (assistantMessage.responseId) {
@@ -39,13 +115,41 @@ export const ChatPage = () => {
       const errorMessage: ChatMessage = {
         role: MessageRole.ASSISTANT,
         content: "Sorry, I encountered an error. Please try again.",
-        timestamp: new Date()
+        timestamp: new Date(),
+        chatId: currentChatId
       };
       
       setMessages(prev => [...prev, errorMessage]);
       console.error('Error in chat exchange:', error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSelectChat = (chatId: string) => {
+    setCurrentChatId(chatId);
+  };
+
+  const handleNewChat = () => {
+    // Clear current chat state
+    setCurrentChatId(undefined);
+    setMessages([]);
+    setLastResponseId(undefined);
+  };
+
+  const handleDeleteChat = async (chatId: string) => {
+    try {
+      await deleteChat(chatId);
+      
+      // Remove from local state
+      setChats(prev => prev.filter(chat => chat.chat_id !== chatId));
+      
+      // If this was the current chat, clear it
+      if (chatId === currentChatId) {
+        handleNewChat();
+      }
+    } catch (error) {
+      console.error(`Error deleting chat ${chatId}:`, error);
     }
   };
 
@@ -74,13 +178,38 @@ export const ChatPage = () => {
 
   return (
     <MainLayout>
-      <div className="flex flex-col items-center justify-center w-full max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">AI Assistant</h1>
-        <ChatWindow
-          messages={messages}
-          onSendMessage={handleSendMessage}
-          isLoading={isLoading}
-        />
+      <div className="flex h-full w-full">
+        {/* Chat History Sidebar */}
+        <div className="w-64 border-r border-gray-200 p-4 overflow-y-auto">
+          <ChatHistory 
+            chats={chats}
+            currentChatId={currentChatId}
+            isLoading={isFetchingChats}
+            onSelectChat={handleSelectChat}
+            onNewChat={handleNewChat}
+            onDeleteChat={handleDeleteChat}
+          />
+        </div>
+        
+        {/* Chat Area */}
+        <div className="flex-1 flex flex-col">
+          <div className="flex-1 p-4 overflow-y-auto">
+            <h1 className="text-2xl font-bold mb-6 text-center">
+              {currentChatId ? 'Continue Your Conversation' : 'Start a New Chat'}
+            </h1>
+            {isFetchingMessages ? (
+              <div className="flex justify-center items-center h-64">
+                <p>Loading messages...</p>
+              </div>
+            ) : (
+              <ChatWindow
+                messages={messages}
+                onSendMessage={handleSendMessage}
+                isLoading={isLoading}
+              />
+            )}
+          </div>
+        </div>
       </div>
     </MainLayout>
   );
