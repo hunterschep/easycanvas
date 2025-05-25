@@ -21,6 +21,7 @@ class ChatRequest(BaseModel):
     message: str
     previous_response_id: Optional[str] = None
     chat_id: Optional[str] = None  # ID of the chat this message belongs to
+    previous_messages: Optional[List[ChatMessage]] = None  # Previous messages when resuming a chat
 
 
 class ChatResponse(BaseModel):

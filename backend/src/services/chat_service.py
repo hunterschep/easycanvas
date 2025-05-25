@@ -19,7 +19,8 @@ class ChatService:
         message_content: str, 
         user_id: str,
         chat_id: Optional[str] = None, 
-        previous_response_id: Optional[str] = None
+        previous_response_id: Optional[str] = None,
+        previous_messages: Optional[List[ChatMessage]] = None
     ) -> Tuple[ChatMessage, str, str]:
         """
         Generate a response using OpenAI API and save to Firestore
@@ -29,6 +30,7 @@ class ChatService:
             user_id: The user's ID
             chat_id: Optional chat ID for existing chats
             previous_response_id: Optional ID of the previous response to maintain conversation context
+            previous_messages: Optional list of previous messages for context
             
         Returns:
             A tuple containing (ChatMessage response, response_id, chat_id)
@@ -60,12 +62,35 @@ class ChatService:
                 "store": True,  # Store the conversation for 30 days
             }
             
-            # If there's a previous response ID, use it to maintain conversation context
-            if previous_response_id:
+            # If there are previous messages, use them for context
+            if previous_messages and len(previous_messages) > 0:
+                # Format messages for OpenAI
+                formatted_messages = []
+                for msg in previous_messages:
+                    # Ensure we only include the necessary fields for OpenAI
+                    formatted_messages.append({
+                        "role": msg.role,
+                        "content": msg.content
+                    })
+                
+                # Add the current user message
+                formatted_messages.append({
+                    "role": "user",
+                    "content": message_content
+                })
+                
+                # Use the formatted messages for context
+                print(f"Using {len(formatted_messages)} previous messages for context")
+                kwargs["input"] = formatted_messages
+                
+            # If no previous messages but we have a response ID, use that for context
+            elif previous_response_id:
+                print(f"Using previous response ID for context: {previous_response_id}")
                 kwargs["previous_response_id"] = previous_response_id
                 kwargs["input"] = [{"role": "user", "content": message_content}]
             else:
                 # For a new conversation, just use the message content
+                print("Starting new conversation")
                 kwargs["input"] = message_content
             
             response = await loop.run_in_executor(

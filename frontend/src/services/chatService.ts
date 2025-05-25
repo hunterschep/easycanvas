@@ -24,10 +24,22 @@ const createAuthenticatedRequest = async () => {
   });
 };
 
+// Helper to prepare message for sending to the API
+const prepareMessageForApi = (message: ChatMessage) => {
+  // Convert Date objects to ISO strings to ensure proper serialization
+  return {
+    ...message,
+    timestamp: message.timestamp instanceof Date 
+      ? message.timestamp.toISOString() 
+      : message.timestamp,
+  };
+};
+
 export const sendMessage = async (
   message: string, 
   chatId?: string, 
-  previousResponseId?: string
+  previousResponseId?: string,
+  previousMessages?: ChatMessage[]
 ): Promise<ChatMessage> => {
   try {
     const http = await createAuthenticatedRequest();
@@ -44,6 +56,16 @@ export const sendMessage = async (
     
     if (chatId) {
       requestBody.chat_id = chatId;
+    }
+    
+    // Include previous messages if available (for resuming conversations)
+    if (previousMessages && previousMessages.length > 0) {
+      // Only include up to the last 10 messages to keep request size reasonable
+      const recentMessages = previousMessages.slice(-10);
+      console.log(`Sending ${recentMessages.length} previous messages for context`);
+      
+      // Prepare messages for API - ensure dates are serialized correctly
+      requestBody.previous_messages = recentMessages.map(prepareMessageForApi);
     }
     
     const response = await http.post<ChatResponse>('/api/chat', requestBody);

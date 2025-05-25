@@ -7,6 +7,9 @@ import { ChatMessage, MessageRole, ChatListItem } from '@/types/chat';
 import { sendMessage, getUserChats, getChatMessages, createChat, deleteChat } from '@/services/chatService';
 import { estimateTokenCount, AVAILABLE_INPUT_TOKENS } from '@/utils/tokenCounter';
 
+// Maximum number of messages to send for context
+const MAX_CONTEXT_MESSAGES = 10;
+
 export const ChatPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -16,6 +19,7 @@ export const ChatPage = () => {
   const [chats, setChats] = useState<ChatListItem[]>([]);
   const [isFetchingChats, setIsFetchingChats] = useState(false);
   const [isFetchingMessages, setIsFetchingMessages] = useState(false);
+  const [isResumingChat, setIsResumingChat] = useState(false);
 
   // Fetch user's chat history on component mount
   useEffect(() => {
@@ -49,6 +53,7 @@ export const ChatPage = () => {
 
   const loadChatMessages = async (chatId: string) => {
     setIsFetchingMessages(true);
+    setIsResumingChat(true); // Mark that we're resuming a chat
     try {
       const chatMessages = await getChatMessages(chatId);
       
@@ -61,13 +66,14 @@ export const ChatPage = () => {
       
       setMessages(sortedMessages);
       
-      // Set the last response ID to the last assistant message
-      const lastAssistantMessage = [...sortedMessages]
-        .reverse()
-        .find(msg => msg.role === MessageRole.ASSISTANT);
-        
-      if (lastAssistantMessage?.responseId) {
-        setLastResponseId(lastAssistantMessage.responseId);
+      // Set the last response ID to the last assistant message to maintain context when resuming a chat
+      const assistantMessages = sortedMessages.filter(msg => msg.role === MessageRole.ASSISTANT);
+      if (assistantMessages.length > 0) {
+        const lastAssistantMessage = assistantMessages[assistantMessages.length - 1];
+        if (lastAssistantMessage?.responseId) {
+          setLastResponseId(lastAssistantMessage.responseId);
+          console.log('Resuming chat with last response ID:', lastAssistantMessage.responseId);
+        }
       }
     } catch (error) {
       console.error(`Error loading messages for chat ${chatId}:`, error);
@@ -91,8 +97,25 @@ export const ChatPage = () => {
     setIsLoading(true);
 
     try {
+      console.log('Sending message with previous response ID:', lastResponseId);
+      
+      // If we're resuming a chat after logout, send previous messages for context
+      let previousMessagesToSend: ChatMessage[] | undefined;
+      if (isResumingChat && messages.length > 0) {
+        // Send up to MAX_CONTEXT_MESSAGES previous messages to maintain context
+        previousMessagesToSend = messages.slice(-MAX_CONTEXT_MESSAGES);
+        console.log(`Sending ${previousMessagesToSend.length} previous messages for context on chat resume`);
+        // Reset resuming flag after first message
+        setIsResumingChat(false);
+      }
+      
       // Send to API and get response
-      const assistantMessage = await sendMessage(content, currentChatId, lastResponseId);
+      const assistantMessage = await sendMessage(
+        content, 
+        currentChatId, 
+        lastResponseId,
+        previousMessagesToSend
+      );
       
       // Update the chat ID if this is a new chat
       if (assistantMessage.chatId && !currentChatId) {
@@ -106,6 +129,7 @@ export const ChatPage = () => {
       // Update the last response ID for the next message
       if (assistantMessage.responseId) {
         setLastResponseId(assistantMessage.responseId);
+        console.log('Updated last response ID:', assistantMessage.responseId);
       }
       
       // Add assistant response to state
@@ -135,6 +159,7 @@ export const ChatPage = () => {
     setCurrentChatId(undefined);
     setMessages([]);
     setLastResponseId(undefined);
+    setIsResumingChat(false);
   };
 
   const handleDeleteChat = async (chatId: string) => {

@@ -19,6 +19,7 @@ async def chat(
     Otherwise creates a new chat
     
     Optional previous_response_id can be provided to maintain conversation context
+    Optional previous_messages can be provided for resuming conversations after logout
     """
     try:
         # Generate response from OpenAI
@@ -26,7 +27,8 @@ async def chat(
             message_content=request.message, 
             user_id=user_id,
             chat_id=request.chat_id,
-            previous_response_id=request.previous_response_id
+            previous_response_id=request.previous_response_id,
+            previous_messages=request.previous_messages
         )
         
         # Return the response with chat_id
