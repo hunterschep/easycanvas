@@ -58,6 +58,7 @@ class ChatService:
             
             # Create base kwargs for the API call
             kwargs = {
+                # O4 model has a large context window (up to 128k tokens)
                 "model": "o4-mini-2025-04-16",
                 "store": True,  # Store the conversation for 30 days
             }
@@ -66,6 +67,8 @@ class ChatService:
             if previous_messages and len(previous_messages) > 0:
                 # Format messages for OpenAI
                 formatted_messages = []
+                message_count = len(previous_messages)
+                
                 for msg in previous_messages:
                     # Ensure we only include the necessary fields for OpenAI
                     formatted_messages.append({
@@ -80,7 +83,7 @@ class ChatService:
                 })
                 
                 # Use the formatted messages for context
-                print(f"Using {len(formatted_messages)} previous messages for context")
+                print(f"Using {message_count} previous messages for context in a continuous conversation")
                 kwargs["input"] = formatted_messages
                 
             # If no previous messages but we have a response ID, use that for context

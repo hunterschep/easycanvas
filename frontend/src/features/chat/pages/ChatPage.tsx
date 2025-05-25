@@ -7,8 +7,10 @@ import { ChatMessage, MessageRole, ChatListItem } from '@/types/chat';
 import { sendMessage, getUserChats, getChatMessages, createChat, deleteChat } from '@/services/chatService';
 import { estimateTokenCount, AVAILABLE_INPUT_TOKENS } from '@/utils/tokenCounter';
 
-// Maximum number of messages to send for context
-const MAX_CONTEXT_MESSAGES = 10;
+// A more appropriate number for O4 models with 128k context window
+// This will typically allow for 50-100 messages depending on length
+// We're still being somewhat conservative to avoid potential issues
+const MAX_CONTEXT_MESSAGES = 50;
 
 export const ChatPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -102,9 +104,31 @@ export const ChatPage = () => {
       // If we're resuming a chat after logout, send previous messages for context
       let previousMessagesToSend: ChatMessage[] | undefined;
       if (isResumingChat && messages.length > 0) {
-        // Send up to MAX_CONTEXT_MESSAGES previous messages to maintain context
-        previousMessagesToSend = messages.slice(-MAX_CONTEXT_MESSAGES);
-        console.log(`Sending ${previousMessagesToSend.length} previous messages for context on chat resume`);
+        // Calculate estimated token count of messages to ensure we don't exceed limits
+        let tokenCount = 0;
+        let messagesToInclude = [];
+        
+        // Start from the most recent messages and work backwards
+        for (let i = messages.length - 1; i >= 0; i--) {
+          const msg = messages[i];
+          const msgTokens = estimateTokenCount(msg.content);
+          
+          // If adding this message would exceed our token budget, stop
+          if (tokenCount + msgTokens > AVAILABLE_INPUT_TOKENS * 0.8) {
+            break;
+          }
+          
+          // Otherwise, include this message
+          messagesToInclude.unshift(msg);
+          tokenCount += msgTokens;
+        }
+        
+        // If we have messages to include, send them
+        if (messagesToInclude.length > 0) {
+          previousMessagesToSend = messagesToInclude;
+          console.log(`Sending ${previousMessagesToSend.length} previous messages (approx. ${tokenCount} tokens) for context on chat resume`);
+        }
+        
         // Reset resuming flag after first message
         setIsResumingChat(false);
       }

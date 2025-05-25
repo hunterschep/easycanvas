@@ -60,12 +60,11 @@ export const sendMessage = async (
     
     // Include previous messages if available (for resuming conversations)
     if (previousMessages && previousMessages.length > 0) {
-      // Only include up to the last 10 messages to keep request size reasonable
-      const recentMessages = previousMessages.slice(-10);
-      console.log(`Sending ${recentMessages.length} previous messages for context`);
+      // The messages have already been filtered by token count in the ChatPage component
+      console.log(`Sending ${previousMessages.length} previous messages for context`);
       
       // Prepare messages for API - ensure dates are serialized correctly
-      requestBody.previous_messages = recentMessages.map(prepareMessageForApi);
+      requestBody.previous_messages = previousMessages.map(prepareMessageForApi);
     }
     
     const response = await http.post<ChatResponse>('/api/chat', requestBody);
