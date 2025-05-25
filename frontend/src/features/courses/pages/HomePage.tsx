@@ -1,6 +1,7 @@
 import { MainLayout } from '@/components/layouts/MainLayout/MainLayout';
 import { Loading } from '@/components/common/Loading';
 import { useCourses } from '../hooks/useCourses';
+import { Link } from 'react-router-dom';
 
 export const HomePage = () => {
   const { courses, loading, error } = useCourses();
@@ -11,7 +12,9 @@ export const HomePage = () => {
   const allAnnouncements = courses.flatMap(course => course.announcements);
   // Get all modules and module items 
   const allModules = courses.flatMap(course => course.modules);
-  const allModuleItems = courses.flatMap(course => course.modules.flatMap(module => module.items_count));
+  const totalModuleItems = courses.flatMap(course => 
+    course.modules.flatMap(module => module.items)
+  ).length;
 
   if (loading) {
     return <Loading message="Fetching your courses... This may take a few minutes!" />;
@@ -26,11 +29,18 @@ export const HomePage = () => {
       <div className="space-y-8">
         <div className="text-center py-12">
           <h1 className="text-3xl font-bold mb-4">Welcome to EasyCanvas</h1>
-          <p className="text-gray-400 max-w-2xl mx-auto">
+          <p className="text-gray-400 max-w-2xl mx-auto mb-8">
             Your courses and assignments are successfully loaded.
             There are {courses.length} courses with a total of {allAssignments.length} assignments and {allAnnouncements.length} announcements. 
-            There are {allModules.length} modules with a total of {allModuleItems.length} module items.
+            There are {allModules.length} modules with a total of {totalModuleItems} module items.
           </p>
+          
+          <Link 
+            to="/chat" 
+            className="inline-block px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition-colors"
+          >
+            Open AI Chat Assistant
+          </Link>
         </div>
       </div>
     </MainLayout>

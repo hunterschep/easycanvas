@@ -202,24 +202,6 @@ export const AccountDetailsPage = () => {
                     className="w-full px-4 py-3 bg-transparent border border-gray-800 rounded-lg focus:border-white focus:ring-1 focus:ring-white text-white placeholder-gray-600 transition-all disabled:opacity-50"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Canvas Institution URL</label>
-                  <input
-                    type="text"
-                    value={settings?.canvasUrl || ''}
-                    disabled
-                    className="w-full px-4 py-3 bg-transparent border border-gray-800 rounded-lg text-white opacity-50"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">API Token</label>
-                  <input
-                    type="password"
-                    value={settings?.apiToken ? '••••••••••••••••' : 'No token set'}
-                    disabled
-                    className="w-full px-4 py-3 bg-transparent border border-gray-800 rounded-lg text-white opacity-50"
-                  />
-                </div>
               </div>
 
               {/* Action Buttons */}
