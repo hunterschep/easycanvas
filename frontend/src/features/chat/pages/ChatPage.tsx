@@ -16,7 +16,6 @@ export const ChatPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [lastResponseId, setLastResponseId] = useState<string | undefined>(undefined);
   const [currentChatId, setCurrentChatId] = useState<string | undefined>(() => searchParams.get('id') || undefined);
   const [chats, setChats] = useState<ChatListItem[]>([]);
   const [isFetchingChats, setIsFetchingChats] = useState(false);
@@ -48,7 +47,6 @@ export const ChatPage = () => {
     } else {
       // Clear messages if no chat is selected
       setMessages([]);
-      setLastResponseId(undefined);
       setSearchParams({});
     }
   }, [currentChatId, setSearchParams]);
@@ -67,16 +65,6 @@ export const ChatPage = () => {
       });
       
       setMessages(sortedMessages);
-      
-      // Set the last response ID to the last assistant message to maintain context when resuming a chat
-      const assistantMessages = sortedMessages.filter(msg => msg.role === MessageRole.ASSISTANT);
-      if (assistantMessages.length > 0) {
-        const lastAssistantMessage = assistantMessages[assistantMessages.length - 1];
-        if (lastAssistantMessage?.responseId) {
-          setLastResponseId(lastAssistantMessage.responseId);
-          console.log('Resuming chat with last response ID:', lastAssistantMessage.responseId);
-        }
-      }
     } catch (error) {
       console.error(`Error loading messages for chat ${chatId}:`, error);
     } finally {
@@ -99,11 +87,9 @@ export const ChatPage = () => {
     setIsLoading(true);
 
     try {
-      console.log('Sending message with previous response ID:', lastResponseId);
-      
-      // If we're resuming a chat after logout, send previous messages for context
+      // Always send previous messages for context (not just when resuming)
       let previousMessagesToSend: ChatMessage[] | undefined;
-      if (isResumingChat && messages.length > 0) {
+      if (messages.length > 0) {
         // Calculate estimated token count of messages to ensure we don't exceed limits
         let tokenCount = 0;
         let messagesToInclude = [];
@@ -126,18 +112,15 @@ export const ChatPage = () => {
         // If we have messages to include, send them
         if (messagesToInclude.length > 0) {
           previousMessagesToSend = messagesToInclude;
-          console.log(`Sending ${previousMessagesToSend.length} previous messages (approx. ${tokenCount} tokens) for context on chat resume`);
+          console.log(`Sending ${previousMessagesToSend.length} previous messages (approx. ${tokenCount} tokens) for context`);
         }
-        
-        // Reset resuming flag after first message
-        setIsResumingChat(false);
       }
       
-      // Send to API and get response
+      // Send to API and get response (no longer using lastResponseId)
       const assistantMessage = await sendMessage(
         content, 
         currentChatId, 
-        lastResponseId,
+        undefined, // No longer using previous_response_id
         previousMessagesToSend
       );
       
@@ -148,12 +131,6 @@ export const ChatPage = () => {
         // Refresh chat list to include the new chat
         const userChats = await getUserChats();
         setChats(userChats);
-      }
-      
-      // Update the last response ID for the next message
-      if (assistantMessage.responseId) {
-        setLastResponseId(assistantMessage.responseId);
-        console.log('Updated last response ID:', assistantMessage.responseId);
       }
       
       // Add assistant response to state
@@ -182,7 +159,6 @@ export const ChatPage = () => {
     // Clear current chat state
     setCurrentChatId(undefined);
     setMessages([]);
-    setLastResponseId(undefined);
     setIsResumingChat(false);
   };
 

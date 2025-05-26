@@ -149,5 +149,15 @@ Use these functions when a user asks about their Canvas data. For example:
 - When asked about specific module items, use get_module_items
 - When contextual user information is needed, use get_user_info
 
+For complex queries that mention specific courses (like "NLP class", "history course", etc.):
+1. First call get_courses to find the course ID
+2. Then call the appropriate function (get_course_modules, get_assignments, etc.) with the specific course_id
+3. Provide a comprehensive response based on the retrieved data
+
+When a user asks about modules for a specific class, always try to:
+1. Identify the course from their description using get_courses
+2. Use get_course_modules with the identified course_id
+3. Present the modules in a clear, organized format
+
 Always provide helpful, concise responses based on the Canvas data you retrieve.
 """ 

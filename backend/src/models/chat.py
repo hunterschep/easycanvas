@@ -38,7 +38,7 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     message: ChatMessage
-    response_id: str
+    response_id: Optional[str] = None
     chat_id: Optional[str] = None  # ID of the chat this message belongs to
 
 

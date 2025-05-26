@@ -19,6 +19,57 @@ settings = get_settings()
 client = OpenAI(api_key=settings.OPENAI_API_KEY)
 executor = ThreadPoolExecutor()
 
+# Token counting constants
+MAX_CONTEXT_TOKENS = 16000  # Conservative limit for o4-mini
+RESPONSE_TOKEN_BUFFER = int(MAX_CONTEXT_TOKENS * 0.25)  # Reserve 25% for response
+AVAILABLE_INPUT_TOKENS = MAX_CONTEXT_TOKENS - RESPONSE_TOKEN_BUFFER
+
+def estimate_token_count(text: str) -> int:
+    """
+    Estimate the number of tokens in a string.
+    This is a rough approximation - about 4 characters per token for English text.
+    """
+    return max(1, len(text) // 4)
+
+def truncate_conversation_by_tokens(messages: list, max_tokens: int) -> list:
+    """
+    Truncate conversation messages to fit within token limit.
+    Always keeps the system message (first message) and truncates from the beginning.
+    """
+    if not messages:
+        return messages
+    
+    logger.info(f"Truncating conversation: input has {len(messages)} messages, max_tokens={max_tokens}")
+    
+    # Always keep the system message
+    system_message = messages[0]
+    other_messages = messages[1:]
+    
+    # Calculate tokens for system message
+    system_tokens = estimate_token_count(system_message.get('content', ''))
+    available_tokens = max_tokens - system_tokens
+    
+    logger.info(f"System message uses {system_tokens} tokens, {available_tokens} tokens available for other messages")
+    
+    # Work backwards from the most recent messages
+    selected_messages = []
+    current_tokens = 0
+    
+    for i, message in enumerate(reversed(other_messages)):
+        message_tokens = estimate_token_count(message.get('content', ''))
+        logger.info(f"Message {len(other_messages) - i - 1}: {message_tokens} tokens, role={message.get('role', 'unknown')}")
+        
+        if current_tokens + message_tokens <= available_tokens:
+            selected_messages.insert(0, message)
+            current_tokens += message_tokens
+            logger.info(f"  -> Included (total: {current_tokens} tokens)")
+        else:
+            logger.info(f"  -> Excluded (would exceed limit: {current_tokens + message_tokens} > {available_tokens})")
+            break
+    
+    result = [system_message] + selected_messages
+    logger.info(f"Truncated conversation from {len(messages)} to {len(result)} messages ({current_tokens + system_tokens} estimated tokens)")
+    return result
 
 class ChatService:
     @staticmethod
@@ -63,173 +114,237 @@ class ChatService:
             # Run the synchronous OpenAI API call in a separate thread to avoid blocking
             loop = asyncio.get_event_loop()
             
-            # Create base kwargs for the API call
-            kwargs = {
-                # O4 model has a large context window (up to 128k tokens)
-                "model": "o4-mini-2025-04-16",
-                "store": True,  # Store the conversation for 30 days
-                "tools": CANVAS_TOOLS,  # Add function definitions
-                "reasoning": {  # Required for o4-mini with function calling
-                    "effort": "medium"
-                },
-            }
+            # Build the conversation input array
+            # Always start with the system message
+            conversation_input = [{
+                "role": "system",
+                "content": SYSTEM_MESSAGE_WITH_TOOLS
+            }]
             
-            # If there are previous messages, use them for context
+            # If there are previous messages, add them to build the full conversation
             if previous_messages and len(previous_messages) > 0:
-                # Format messages for OpenAI
-                formatted_messages = [{
-                    "role": "system",
-                    "content": SYSTEM_MESSAGE_WITH_TOOLS
-                }]
+                logger.info(f"Adding {len(previous_messages)} previous messages to conversation")
                 
-                for msg in previous_messages:
-                    # Handle regular messages
-                    if not hasattr(msg, 'type') or msg.type is None:
-                        formatted_messages.append({
+                added_count = 0
+                for i, msg in enumerate(previous_messages):
+                    # Log each message for debugging
+                    msg_type = getattr(msg, 'type', None)
+                    logger.info(f"Processing previous message {i}: role={msg.role}, type={msg_type}, content_length={len(msg.content)}")
+                    
+                    # Handle regular text messages (skip function call messages)
+                    if not hasattr(msg, 'type') or msg.type is None or msg.type == "text":
+                        conversation_input.append({
                             "role": msg.role,
                             "content": msg.content
                         })
+                        added_count += 1
+                        logger.info(f"Added message {i} to conversation")
+                    else:
+                        logger.info(f"Skipped message {i} with type {msg_type}")
                 
-                # Add the current user message
-                formatted_messages.append({
-                    "role": "user",
-                    "content": message_content
-                })
-                
-                # Use the formatted messages for context
-                logger.info(f"Using {len(previous_messages)} previous messages for context in a continuous conversation")
-                kwargs["input"] = formatted_messages
-                
-            # If no previous messages but we have a response ID, use that for context
-            elif previous_response_id:
-                # Check if the previous_response_id is in a valid format (starts with 'resp_')
-                if previous_response_id and previous_response_id.startswith('resp_'):
-                    logger.info(f"Using previous response ID for context: {previous_response_id}")
-                    kwargs["previous_response_id"] = previous_response_id
-                    kwargs["input"] = [
-                        {"role": "system", "content": SYSTEM_MESSAGE_WITH_TOOLS},
-                        {"role": "user", "content": message_content}
-                    ]
-                else:
-                    # Invalid response ID format, just use the input without previous_response_id
-                    logger.warning(f"Invalid previous_response_id format: {previous_response_id}, ignoring it")
-                    kwargs["input"] = [
-                        {"role": "system", "content": SYSTEM_MESSAGE_WITH_TOOLS},
-                        {"role": "user", "content": message_content}
-                    ]
-            else:
-                # For a new conversation, just use the message content with system message
-                logger.info("Starting new conversation")
-                kwargs["input"] = [
-                    {"role": "system", "content": SYSTEM_MESSAGE_WITH_TOOLS},
-                    {"role": "user", "content": message_content}
-                ]
+                logger.info(f"Successfully added {added_count} out of {len(previous_messages)} previous messages to conversation")
+            
+            # If no previous messages but we have a chat_id, try to load recent messages from the database
+            elif chat_id:
+                logger.info(f"No previous messages provided, attempting to load recent messages from chat {chat_id}")
+                try:
+                    # Load recent messages from the database
+                    recent_messages = await FirestoreService.get_chat_messages(chat_id)
+                    
+                    # Sort by timestamp and take the most recent ones
+                    if recent_messages:
+                        sorted_messages = sorted(recent_messages, key=lambda x: x.get('timestamp', datetime.min))
+                        
+                        # Add recent messages to conversation (limit to avoid token overflow)
+                        for msg_data in sorted_messages[-20:]:  # Take last 20 messages
+                            if msg_data.get('role') in ['user', 'assistant']:
+                                conversation_input.append({
+                                    "role": msg_data['role'],
+                                    "content": msg_data['content']
+                                })
+                        
+                        logger.info(f"Added {len(sorted_messages[-20:])} recent messages from database")
+                except Exception as e:
+                    logger.warning(f"Could not load recent messages from database: {e}")
+            
+            # Add the current user message
+            conversation_input.append({
+                "role": "user",
+                "content": message_content
+            })
+            
+            # Log conversation before truncation
+            logger.info(f"Conversation before truncation has {len(conversation_input)} messages:")
+            for i, msg in enumerate(conversation_input):
+                role = msg.get('role', 'unknown')
+                content_length = len(msg.get('content', ''))
+                logger.info(f"  Message {i}: role={role}, content_length={content_length}")
+            
+            # Truncate conversation based on token limits
+            conversation_input = truncate_conversation_by_tokens(conversation_input, AVAILABLE_INPUT_TOKENS)
+            
+            logger.info(f"Built conversation with {len(conversation_input)} messages")
+            
+            # Set up the API call parameters
+            kwargs = {
+                "model": "o4-mini-2025-04-16",
+                "store": True,
+                "tools": CANVAS_TOOLS,
+                "reasoning": {"effort": "medium"},
+                "input": conversation_input
+            }
             
             # First call to get potential function calls
             logger.info("Making initial API call to OpenAI")
-            response = await loop.run_in_executor(
-                executor,
-                partial(client.responses.create, **kwargs)
-            )
-            
-            # Log the response structure
-            logger.info(f"OpenAI response received, response ID: {response.id}")
-            logger.info(f"Response has output: {response.output is not None}")
-            if response.output:
-                logger.info(f"Response output types: {[item.type for item in response.output]}")
-            
-            # Check if the model wants to call functions
-            if response.output and any(item.type == "function_call" for item in response.output):
-                logger.info("Function calls detected in response")
-                # Process function calls
-                input_messages = kwargs["input"].copy()
-                
-                # First, add all items from the response output to preserve reasoning items
-                for item in response.output:
-                    logger.info(f"Adding output item of type {item.type} to messages")
-                    input_messages.append(item)
-                
-                # Then process function calls and add results
-                for item in response.output:
-                    if item.type != "function_call":
-                        continue
-                    
-                    logger.info(f"Processing function call: {item.name}")
-                    # Parse arguments
-                    name = item.name
-                    arguments = json.loads(item.arguments)
-                    logger.info(f"Function arguments: {arguments}")
-                    
-                    # Execute the function
-                    logger.info(f"Executing function {name} with user_id {user_id}")
-                    result = await ChatService._execute_function(name, arguments, user_id)
-                    logger.info(f"Function execution complete. Result length: {len(result)}")
-                    
-                    # Add the function result to the messages
-                    logger.info(f"Adding function result for call_id: {item.call_id}")
-                    input_messages.append({
-                        "type": "function_call_output",
-                        "call_id": item.call_id,
-                        "output": result
-                    })
-                
-                # Make a second call with the function results
-                logger.info("Making second API call with function results")
-                kwargs["input"] = input_messages
-                response_2 = await loop.run_in_executor(
+            try:
+                response = await loop.run_in_executor(
                     executor,
                     partial(client.responses.create, **kwargs)
                 )
                 
-                # Use the new response with function results
-                logger.info(f"Second response received, ID: {response_2.id}")
-                assistant_message = response_2.output_text
-                logger.info(f"Response message length: {len(assistant_message) if assistant_message else 0}")
+                # Log the response structure
+                logger.info(f"OpenAI response received, response ID: {response.id}")
+                logger.info(f"Response has output: {response.output is not None}")
+                if response.output:
+                    logger.info(f"Response output types: {[item.type for item in response.output]}")
                 
-                # Check if we got an empty response and provide a fallback
-                if not assistant_message:
-                    logger.warning("Received empty message from OpenAI, using fallback response")
+                # Check if the model wants to call functions
+                if response.output and any(item.type == "function_call" for item in response.output):
+                    logger.info("Function calls detected in response")
+                    # Process function calls
+                    input_messages = kwargs["input"].copy()
                     
-                    # Extract the function call information for a better fallback message
-                    function_data = {}
+                    # First, add all items from the response output to preserve reasoning items
                     for item in response.output:
-                        if item.type == "function_call":
-                            function_data = {
-                                "name": item.name,
-                                "arguments": json.loads(item.arguments) if hasattr(item, "arguments") else {}
-                            }
+                        logger.info(f"Adding output item of type {item.type} to messages")
+                        input_messages.append(item)
                     
-                    # Parse the result from the function call if available
-                    result_data = None
-                    for msg in input_messages:
-                        if isinstance(msg, dict) and msg.get("type") == "function_call_output":
-                            try:
-                                result_data = json.loads(msg.get("output", "{}"))
-                            except:
-                                pass
+                    # Then process function calls and add results
+                    for item in response.output:
+                        if item.type != "function_call":
+                            continue
+                        
+                        logger.info(f"Processing function call: {item.name}")
+                        # Parse arguments
+                        name = item.name
+                        arguments = json.loads(item.arguments)
+                        logger.info(f"Function arguments: {arguments}")
+                        
+                        # Execute the function
+                        logger.info(f"Executing function {name} with user_id {user_id}")
+                        result = await ChatService._execute_function(name, arguments, user_id)
+                        logger.info(f"Function execution complete. Result length: {len(result)}")
+                        
+                        # Add the function result to the messages
+                        logger.info(f"Adding function result for call_id: {item.call_id}")
+                        input_messages.append({
+                            "type": "function_call_output",
+                            "call_id": item.call_id,
+                            "output": result
+                        })
                     
-                    # Create a fallback message based on function and result
-                    if "error" in str(result_data):
-                        assistant_message = f"I'm sorry, I tried to get information about your Canvas data, but encountered an error. The specific error was: {result_data.get('error', 'Unknown error')}"
-                    elif function_data.get("name") == "get_upcoming_due_dates":
-                        if isinstance(result_data, list) and len(result_data) > 0:
-                            assistant_message = f"I found {len(result_data)} upcoming assignments due in the next {function_data.get('arguments', {}).get('days', 7)} days."
+                    # Make a second call with the function results
+                    logger.info("Making second API call with function results")
+                    kwargs["input"] = input_messages
+                    
+                    # Log the input messages for debugging
+                    logger.info(f"Second call input message count: {len(input_messages)}")
+                    for i, msg in enumerate(input_messages):
+                        if isinstance(msg, dict):
+                            logger.info(f"Message {i}: type={msg.get('type', 'unknown')}, role={msg.get('role', 'unknown')}")
                         else:
-                            assistant_message = f"Good news! You don't have any assignments due in the next {function_data.get('arguments', {}).get('days', 7)} days."
-                    elif function_data.get("name") == "get_courses":
-                        if isinstance(result_data, list):
-                            assistant_message = f"I found {len(result_data)} courses in your Canvas account."
+                            logger.info(f"Message {i}: type={getattr(msg, 'type', 'unknown')}")
+                    
+                    try:
+                        response_2 = await loop.run_in_executor(
+                            executor,
+                            partial(client.responses.create, **kwargs)
+                        )
+                        
+                        # Use the new response with function results
+                        logger.info(f"Second response received, ID: {response_2.id}")
+                        assistant_message = response_2.output_text
+                        logger.info(f"Response message length: {len(assistant_message) if assistant_message else 0}")
+                        
+                        # Log more details about the second response
+                        if response_2.output:
+                            logger.info(f"Second response output types: {[item.type for item in response_2.output]}")
+                            for item in response_2.output:
+                                if hasattr(item, 'content'):
+                                    logger.info(f"Output item content length: {len(item.content) if item.content else 0}")
                         else:
-                            assistant_message = "I couldn't find any courses in your Canvas account."
-                    else:
-                        assistant_message = "I tried to fetch information from your Canvas account, but couldn't generate a proper response. Please try asking in a different way."
-                
-                response_id = response_2.id
-            else:
-                # No function calls, use the original response
-                logger.info("No function calls detected, using original response")
-                assistant_message = response.output_text
-                response_id = response.id
+                            logger.warning("Second response has no output")
+                        
+                        # Check if we got an empty response and provide a fallback
+                        if not assistant_message:
+                            logger.warning("Received empty message from OpenAI, using fallback response")
+                            
+                            # Extract the function call information for a better fallback message
+                            function_data = {}
+                            for item in response.output:
+                                if item.type == "function_call":
+                                    function_data = {
+                                        "name": item.name,
+                                        "arguments": json.loads(item.arguments) if hasattr(item, "arguments") else {}
+                                    }
+                            
+                            # Parse the result from the function call if available
+                            result_data = None
+                            for msg in input_messages:
+                                if isinstance(msg, dict) and msg.get("type") == "function_call_output":
+                                    try:
+                                        result_data = json.loads(msg.get("output", "{}"))
+                                    except:
+                                        pass
+                            
+                            # Create a more intelligent fallback message based on function, result, and original user message
+                            original_message = message_content.lower()
+                            
+                            if "error" in str(result_data):
+                                assistant_message = f"I'm sorry, I tried to get information about your Canvas data, but encountered an error. The specific error was: {result_data.get('error', 'Unknown error')}"
+                            elif function_data.get("name") == "get_courses":
+                                if isinstance(result_data, list):
+                                    # Check if user was asking about modules, assignments, etc.
+                                    if "module" in original_message:
+                                        # Try to find a course that matches their query
+                                        nlp_courses = [course for course in result_data if 'nlp' in course.get('name', '').lower() or 'natural language' in course.get('name', '').lower()]
+                                        if nlp_courses:
+                                            course_names = [course.get('name', 'Unknown') for course in nlp_courses]
+                                            assistant_message = f"I found your NLP course(s): {', '.join(course_names)}. However, I encountered an issue retrieving the modules. Please try asking again or be more specific about which course you'd like to see modules for."
+                                        else:
+                                            course_names = [course.get('name', 'Unknown') for course in result_data]
+                                            assistant_message = f"I couldn't find a course with 'NLP' in the name. Your courses are: {', '.join(course_names)}. Could you specify which course you'd like to see modules for?"
+                                    elif "assignment" in original_message or "homework" in original_message or "due" in original_message:
+                                        assistant_message = f"I found your {len(result_data)} courses, but encountered an issue retrieving assignment information. Please try asking again."
+                                    elif "announcement" in original_message:
+                                        assistant_message = f"I found your {len(result_data)} courses, but encountered an issue retrieving announcements. Please try asking again."
+                                    else:
+                                        assistant_message = f"You are enrolled in {len(result_data)} courses: {', '.join([course.get('name', 'Unknown') for course in result_data[:3]])}{'...' if len(result_data) > 3 else ''}."
+                                else:
+                                    assistant_message = "I couldn't find any courses in your Canvas account."
+                            elif function_data.get("name") == "get_upcoming_due_dates":
+                                if isinstance(result_data, list) and len(result_data) > 0:
+                                    assistant_message = f"I found {len(result_data)} upcoming assignments due in the next {function_data.get('arguments', {}).get('days', 7)} days."
+                                else:
+                                    assistant_message = f"Good news! You don't have any assignments due in the next {function_data.get('arguments', {}).get('days', 7)} days."
+                            else:
+                                assistant_message = "I tried to fetch information from your Canvas account, but couldn't generate a proper response. Please try asking in a different way."
+                        
+                        response_id = response_2.id
+                    except Exception as func_error:
+                        logger.error(f"Error in second API call: {str(func_error)}", exc_info=True)
+                        # Fallback to original response if second call fails
+                        assistant_message = "I tried to access your Canvas data but encountered an error. Please try asking your question differently."
+                        response_id = response.id if hasattr(response, 'id') else None
+                else:
+                    # No function calls, use the original response
+                    logger.info("No function calls detected, using original response")
+                    assistant_message = response.output_text
+                    response_id = response.id
+            except Exception as api_error:
+                logger.error(f"Error in OpenAI API call: {str(api_error)}", exc_info=True)
+                assistant_message = "I'm sorry, I'm having trouble understanding your request right now. Please try again or rephrase your question."
+                response_id = None
             
             # Create assistant message object
             assistant_chat_message = ChatMessage(

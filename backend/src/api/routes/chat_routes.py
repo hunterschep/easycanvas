@@ -35,18 +35,10 @@ async def chat(
             previous_messages=request.previous_messages
         )
         
-        # Make sure we have a valid response_id or null - never "unknown"
-        valid_response_id = None
-        if response_id and response_id.startswith('resp_'):
-            valid_response_id = response_id
-            logger.info(f"Using valid response ID: {valid_response_id}")
-        else:
-            logger.warning(f"Invalid response ID format: {response_id}, setting to null")
-        
         # Return the response with chat_id
         return ChatResponse(
             message=response_message, 
-            response_id=valid_response_id,  # Use None if format is invalid
+            response_id=response_id,
             chat_id=chat_id
         )
     except Exception as e:
