@@ -4,7 +4,6 @@ import { ProtectedRoute } from '@/features/auth/ProtectedRoute';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { SetupPage } from '@/features/auth/pages/SetupPage';
 import { HomePage } from '@/features/courses/pages/HomePage';
-import { ChatPage } from '@/features/chat/pages/ChatPage';
 import { AccountDetailsPage } from '@/features/account/pages/AccountDetailsPage';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
@@ -56,12 +55,12 @@ function AuthRedirect({ children }: { children: React.ReactNode }) {
   // For login page, redirect authenticated users appropriately
   if (location.pathname === '/login' && currentUser) {
     console.log('Auth redirect from login:', { hasCanvasToken, currentUser: !!currentUser });
-    return hasCanvasToken ? <Navigate to="/chat" replace /> : <Navigate to="/setup" replace />;
+    return hasCanvasToken ? <Navigate to="/home" replace /> : <Navigate to="/setup" replace />;
   }
 
   // Handle setup page - redirect to home if user already has token
   if (location.pathname === '/setup' && currentUser && hasCanvasToken) {
-    return <Navigate to="/chat" replace />;
+    return <Navigate to="/home" replace />;
   }
 
   // Handle protected routes - redirect to login if no user
@@ -118,11 +117,13 @@ function App() {
                 
                 {/* Protected routes */}
                 <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
-                <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
                 <Route path="/account" element={<ProtectedRoute><AccountDetailsPage /></ProtectedRoute>} />
                 
                 {/* Public routes */}
                 <Route path="/select-courses" element={<CourseSelectPage />} />
+                
+                {/* Redirect /chat to /home since chat is now embedded in home */}
+                <Route path="/chat" element={<Navigate to="/home" replace />} />
                 
                 {/* Catch all for non-existent routes */}
                 <Route path="*" element={<Navigate to="/login" replace />} />
