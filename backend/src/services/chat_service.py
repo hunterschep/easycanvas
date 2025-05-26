@@ -20,7 +20,7 @@ client = OpenAI(api_key=settings.OPENAI_API_KEY)
 executor = ThreadPoolExecutor()
 
 # Token counting constants
-MAX_CONTEXT_TOKENS = 16000  # Conservative limit for o4-mini
+MAX_CONTEXT_TOKENS = 8000  # 8k token limit for conversation history
 RESPONSE_TOKEN_BUFFER = int(MAX_CONTEXT_TOKENS * 0.25)  # Reserve 25% for response
 AVAILABLE_INPUT_TOKENS = MAX_CONTEXT_TOKENS - RESPONSE_TOKEN_BUFFER
 
@@ -156,14 +156,14 @@ class ChatService:
                         sorted_messages = sorted(recent_messages, key=lambda x: x.get('timestamp', datetime.min))
                         
                         # Add recent messages to conversation (limit to avoid token overflow)
-                        for msg_data in sorted_messages[-20:]:  # Take last 20 messages
+                        for msg_data in sorted_messages[-40:]:  # Take last 40 messages
                             if msg_data.get('role') in ['user', 'assistant']:
                                 conversation_input.append({
                                     "role": msg_data['role'],
                                     "content": msg_data['content']
                                 })
                         
-                        logger.info(f"Added {len(sorted_messages[-20:])} recent messages from database")
+                        logger.info(f"Added {len(sorted_messages[-40:])} recent messages from database")
                 except Exception as e:
                     logger.warning(f"Could not load recent messages from database: {e}")
             
@@ -181,9 +181,10 @@ class ChatService:
                 logger.info(f"  Message {i}: role={role}, content_length={content_length}")
             
             # Truncate conversation based on token limits
+            logger.info(f"About to truncate conversation with {len(conversation_input)} messages using {AVAILABLE_INPUT_TOKENS} available tokens")
             conversation_input = truncate_conversation_by_tokens(conversation_input, AVAILABLE_INPUT_TOKENS)
             
-            logger.info(f"Built conversation with {len(conversation_input)} messages")
+            logger.info(f"Built final conversation with {len(conversation_input)} messages")
             
             # Set up the API call parameters
             kwargs = {
@@ -399,6 +400,7 @@ class ChatService:
             function_map = {
                 "get_courses": CanvasTools.get_courses,
                 "get_assignments": CanvasTools.get_assignments,
+                "get_assignment": CanvasTools.get_assignment,
                 "get_upcoming_due_dates": CanvasTools.get_upcoming_due_dates,
                 "get_announcements": CanvasTools.get_announcements,
                 "get_course_modules": CanvasTools.get_course_modules,

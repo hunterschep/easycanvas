@@ -16,10 +16,9 @@ export const estimateTokenCount = (text: string): number => {
 
 /**
  * The maximum context window size for the model (in tokens)
- * GPT-4 models typically have 8k-128k token context windows
- * We're keeping a conservative limit of 16k
+ * We're using an 8k token limit for conversation history
  */
-export const MAX_CONTEXT_TOKENS = 16000;
+export const MAX_CONTEXT_TOKENS = 8000;
 
 /**
  * Calculate how many tokens to reserve for the response

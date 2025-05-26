@@ -56,10 +56,20 @@ class CanvasTools:
                     continue
                 
                 for assignment in course["assignments"]:
-                    # Add course information to each assignment
-                    assignment_with_course = assignment.copy()
-                    assignment_with_course["course_name"] = course["name"]
-                    assignment_with_course["course_code"] = course["code"]
+                    # Create a minimal assignment object with only essential fields
+                    assignment_summary = {
+                        "id": assignment.get("id"),
+                        "name": assignment.get("name"),
+                        "due_at": assignment.get("due_at"),
+                        "points_possible": assignment.get("points_possible"),
+                        "course_id": assignment.get("course_id"),
+                        "course_name": course["name"],
+                        "course_code": course["code"],
+                        "published": assignment.get("published"),
+                        "submission_types": assignment.get("submission_types"),
+                        "html_url": assignment.get("html_url"),
+                        "has_submitted_submissions": assignment.get("has_submitted_submissions")
+                    }
                     
                     # Filter by due date if days_due is provided
                     if days_due is not None and assignment.get("due_at"):
@@ -86,7 +96,7 @@ class CanvasTools:
                             logger.error(f"Error parsing due date '{assignment.get('due_at')}': {str(e)}")
                             # Include the assignment anyway if we can't parse the date
                     
-                    assignments_list.append(assignment_with_course)
+                    assignments_list.append(assignment_summary)
             
             # Sort assignments by due date
             try:
@@ -96,6 +106,7 @@ class CanvasTools:
                         else a.get("due_at", "9999-12-31T23:59:59+00:00")
                     ) if a.get("due_at") else datetime.max.replace(tzinfo=timezone.utc)
                 )
+                
             except Exception as e:
                 logger.error(f"Error sorting assignments: {str(e)}")
                 # If sorting fails, return unsorted list
@@ -171,6 +182,41 @@ class CanvasTools:
         except Exception as e:
             logger.error(f"Error in get_announcements: {str(e)}", exc_info=True)
             return json.dumps({"error": f"Failed to retrieve announcements: {str(e)}"})
+
+    @staticmethod
+    async def get_assignment(user_id: str, assignment_id: int, course_id: Optional[int] = None) -> str:
+        """
+        Get detailed information for a specific assignment
+        
+        Args:
+            user_id: User ID
+            assignment_id: Assignment ID
+            course_id: Optional course ID to narrow the search
+        """
+        try:
+            # Get courses from Firebase
+            courses = await CourseService._get_cached_courses(user_id)
+            
+            # Search for the assignment
+            for course in courses:
+                # Filter by course_id if provided
+                if course_id is not None and course["id"] != course_id:
+                    continue
+                
+                for assignment in course["assignments"]:
+                    if assignment.get("id") == assignment_id:
+                        # Add course information to the assignment
+                        assignment_with_course = assignment.copy()
+                        assignment_with_course["course_name"] = course["name"]
+                        assignment_with_course["course_code"] = course["code"]
+                        
+                        return json.dumps(assignment_with_course)
+            
+            # Assignment not found
+            return json.dumps({"error": f"Assignment with ID {assignment_id} not found"})
+        except Exception as e:
+            logger.error(f"Error in get_assignment: {str(e)}", exc_info=True)
+            return json.dumps({"error": f"Failed to retrieve assignment: {str(e)}"})
 
     @staticmethod
     async def get_course_modules(user_id: str, course_id: int) -> str:

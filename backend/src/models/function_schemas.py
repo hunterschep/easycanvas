@@ -17,7 +17,7 @@ CANVAS_TOOLS = [
     {
         "type": "function",
         "name": "get_assignments",
-        "description": "Get assignments for a specific course or all courses",
+        "description": "Get a summary list of assignments for a specific course or all courses. Returns only essential fields like name, due date, points, etc. Use get_assignment for detailed information about a specific assignment.",
         "parameters": {
             "type": "object",
             "properties": {
@@ -31,6 +31,27 @@ CANVAS_TOOLS = [
                 }
             },
             "required": ["course_id", "days_due"],
+            "additionalProperties": False
+        },
+        "strict": True
+    },
+    {
+        "type": "function",
+        "name": "get_assignment",
+        "description": "Get detailed information for a specific assignment including description, submission requirements, and all other fields.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "assignment_id": {
+                    "type": "integer",
+                    "description": "The ID of the assignment to get detailed information for"
+                },
+                "course_id": {
+                    "type": ["integer", "null"],
+                    "description": "Optional course ID to narrow the search"
+                }
+            },
+            "required": ["assignment_id", "course_id"],
             "additionalProperties": False
         },
         "strict": True
@@ -133,7 +154,8 @@ You are an AI assistant for Canvas, a learning management system. You can help w
 
 You have access to the following functions to retrieve Canvas data:
 - get_courses: Get a list of the user's courses
-- get_assignments: Get assignments for a specific course or all courses
+- get_assignments: Get a summary list of assignments (name, due date, points, etc.) - use this for browsing assignments
+- get_assignment: Get detailed information for a specific assignment (description, requirements, etc.) - use this when user asks about a specific assignment
 - get_upcoming_due_dates: Get assignments due in the next X days
 - get_announcements: Get recent announcements from courses
 - get_course_modules: Get modules for a specific course
@@ -157,12 +179,15 @@ You can make multiple function calls in a single response when needed. Always us
 
 Use these functions when a user asks about their Canvas data:
 - When asked about courses, use get_courses
-- When asked about assignments or homework, use get_assignments (with course_id if specific course mentioned)
+- When asked about assignments or homework (general browsing), use get_assignments (with course_id if specific course mentioned)
+- When asked about a specific assignment's details, description, or requirements, use get_assignment with the assignment_id
 - When asked about due dates or what's coming up, use get_upcoming_due_dates
 - When asked about announcements or updates, use get_announcements (with course_id if specific course mentioned)
 - When asked about course content or modules, use get_course_modules (with course_id)
 - When asked about specific module items, use get_module_items (with course_id and module_id)
 - When contextual user information is needed, use get_user_info
+
+IMPORTANT: Use get_assignments for browsing/listing assignments, but use get_assignment when the user wants detailed information about a specific assignment.
 
 Always provide helpful, concise responses based on the Canvas data you retrieve.
 """ 

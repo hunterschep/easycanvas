@@ -7,10 +7,9 @@ import { ChatMessage, MessageRole, ChatListItem } from '@/types/chat';
 import { sendMessage, getUserChats, getChatMessages, createChat, deleteChat } from '@/services/chatService';
 import { estimateTokenCount, AVAILABLE_INPUT_TOKENS } from '@/utils/tokenCounter';
 
-// A more appropriate number for O4 models with 128k context window
-// This will typically allow for 50-100 messages depending on length
-// We're still being somewhat conservative to avoid potential issues
-const MAX_CONTEXT_MESSAGES = 50;
+// With 8k token limit, this allows for roughly 40 messages
+// Assuming average message length of ~200 tokens
+const MAX_CONTEXT_MESSAGES = 40;
 
 export const ChatPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
