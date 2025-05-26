@@ -211,131 +211,133 @@ class ChatService:
                 # Check if the model wants to call functions
                 if response.output and any(item.type == "function_call" for item in response.output):
                     logger.info("Function calls detected in response")
-                    # Process function calls
+                    
+                    # Handle multiple rounds of function calls
+                    current_response = response
                     input_messages = kwargs["input"].copy()
+                    max_rounds = 3  # Prevent infinite loops
+                    round_count = 0
                     
-                    # First, add all items from the response output to preserve reasoning items
-                    for item in response.output:
-                        logger.info(f"Adding output item of type {item.type} to messages")
-                        input_messages.append(item)
-                    
-                    # Then process function calls and add results
-                    for item in response.output:
-                        if item.type != "function_call":
-                            continue
+                    while (current_response.output and 
+                           any(item.type == "function_call" for item in current_response.output) and 
+                           round_count < max_rounds):
                         
-                        logger.info(f"Processing function call: {item.name}")
-                        # Parse arguments
-                        name = item.name
-                        arguments = json.loads(item.arguments)
-                        logger.info(f"Function arguments: {arguments}")
+                        round_count += 1
+                        logger.info(f"Processing function call round {round_count}")
                         
-                        # Execute the function
-                        logger.info(f"Executing function {name} with user_id {user_id}")
-                        result = await ChatService._execute_function(name, arguments, user_id)
-                        logger.info(f"Function execution complete. Result length: {len(result)}")
+                        # Add all items from the current response output
+                        for item in current_response.output:
+                            logger.info(f"Adding output item of type {item.type} to messages")
+                            input_messages.append(item)
                         
-                        # Add the function result to the messages
-                        logger.info(f"Adding function result for call_id: {item.call_id}")
-                        input_messages.append({
-                            "type": "function_call_output",
-                            "call_id": item.call_id,
-                            "output": result
-                        })
-                    
-                    # Make a second call with the function results
-                    logger.info("Making second API call with function results")
-                    kwargs["input"] = input_messages
-                    
-                    # Log the input messages for debugging
-                    logger.info(f"Second call input message count: {len(input_messages)}")
-                    for i, msg in enumerate(input_messages):
-                        if isinstance(msg, dict):
-                            logger.info(f"Message {i}: type={msg.get('type', 'unknown')}, role={msg.get('role', 'unknown')}")
-                        else:
-                            logger.info(f"Message {i}: type={getattr(msg, 'type', 'unknown')}")
-                    
-                    try:
-                        response_2 = await loop.run_in_executor(
-                            executor,
-                            partial(client.responses.create, **kwargs)
-                        )
-                        
-                        # Use the new response with function results
-                        logger.info(f"Second response received, ID: {response_2.id}")
-                        assistant_message = response_2.output_text
-                        logger.info(f"Response message length: {len(assistant_message) if assistant_message else 0}")
-                        
-                        # Log more details about the second response
-                        if response_2.output:
-                            logger.info(f"Second response output types: {[item.type for item in response_2.output]}")
-                            for item in response_2.output:
-                                if hasattr(item, 'content'):
-                                    logger.info(f"Output item content length: {len(item.content) if item.content else 0}")
-                        else:
-                            logger.warning("Second response has no output")
-                        
-                        # Check if we got an empty response and provide a fallback
-                        if not assistant_message:
-                            logger.warning("Received empty message from OpenAI, using fallback response")
+                        # Process function calls and add results
+                        for item in current_response.output:
+                            if item.type != "function_call":
+                                continue
                             
-                            # Extract the function call information for a better fallback message
-                            function_data = {}
-                            for item in response.output:
-                                if item.type == "function_call":
-                                    function_data = {
-                                        "name": item.name,
-                                        "arguments": json.loads(item.arguments) if hasattr(item, "arguments") else {}
-                                    }
+                            logger.info(f"Processing function call: {item.name}")
+                            # Parse arguments
+                            name = item.name
+                            arguments = json.loads(item.arguments)
+                            logger.info(f"Function arguments: {arguments}")
                             
-                            # Parse the result from the function call if available
-                            result_data = None
-                            for msg in input_messages:
-                                if isinstance(msg, dict) and msg.get("type") == "function_call_output":
-                                    try:
-                                        result_data = json.loads(msg.get("output", "{}"))
-                                    except:
-                                        pass
+                            # Execute the function
+                            logger.info(f"Executing function {name} with user_id {user_id}")
+                            result = await ChatService._execute_function(name, arguments, user_id)
+                            logger.info(f"Function execution complete. Result length: {len(result)}")
                             
-                            # Create a more intelligent fallback message based on function, result, and original user message
-                            original_message = message_content.lower()
+                            # Add the function result to the messages
+                            logger.info(f"Adding function result for call_id: {item.call_id}")
+                            input_messages.append({
+                                "type": "function_call_output",
+                                "call_id": item.call_id,
+                                "output": result
+                            })
+                        
+                        # Make another call with the function results
+                        logger.info(f"Making API call round {round_count + 1} with function results")
+                        kwargs["input"] = input_messages
+                        
+                        # Log the input messages for debugging
+                        logger.info(f"Round {round_count + 1} call input message count: {len(input_messages)}")
+                        
+                        try:
+                            current_response = await loop.run_in_executor(
+                                executor,
+                                partial(client.responses.create, **kwargs)
+                            )
                             
-                            if "error" in str(result_data):
-                                assistant_message = f"I'm sorry, I tried to get information about your Canvas data, but encountered an error. The specific error was: {result_data.get('error', 'Unknown error')}"
-                            elif function_data.get("name") == "get_courses":
-                                if isinstance(result_data, list):
-                                    # Check if user was asking about modules, assignments, etc.
-                                    if "module" in original_message:
-                                        # Try to find a course that matches their query
-                                        nlp_courses = [course for course in result_data if 'nlp' in course.get('name', '').lower() or 'natural language' in course.get('name', '').lower()]
-                                        if nlp_courses:
-                                            course_names = [course.get('name', 'Unknown') for course in nlp_courses]
-                                            assistant_message = f"I found your NLP course(s): {', '.join(course_names)}. However, I encountered an issue retrieving the modules. Please try asking again or be more specific about which course you'd like to see modules for."
-                                        else:
-                                            course_names = [course.get('name', 'Unknown') for course in result_data]
-                                            assistant_message = f"I couldn't find a course with 'NLP' in the name. Your courses are: {', '.join(course_names)}. Could you specify which course you'd like to see modules for?"
-                                    elif "assignment" in original_message or "homework" in original_message or "due" in original_message:
-                                        assistant_message = f"I found your {len(result_data)} courses, but encountered an issue retrieving assignment information. Please try asking again."
-                                    elif "announcement" in original_message:
-                                        assistant_message = f"I found your {len(result_data)} courses, but encountered an issue retrieving announcements. Please try asking again."
-                                    else:
-                                        assistant_message = f"You are enrolled in {len(result_data)} courses: {', '.join([course.get('name', 'Unknown') for course in result_data[:3]])}{'...' if len(result_data) > 3 else ''}."
-                                else:
-                                    assistant_message = "I couldn't find any courses in your Canvas account."
-                            elif function_data.get("name") == "get_upcoming_due_dates":
-                                if isinstance(result_data, list) and len(result_data) > 0:
-                                    assistant_message = f"I found {len(result_data)} upcoming assignments due in the next {function_data.get('arguments', {}).get('days', 7)} days."
-                                else:
-                                    assistant_message = f"Good news! You don't have any assignments due in the next {function_data.get('arguments', {}).get('days', 7)} days."
+                            logger.info(f"Round {round_count + 1} response received, ID: {current_response.id}")
+                            if current_response.output:
+                                logger.info(f"Round {round_count + 1} response output types: {[item.type for item in current_response.output]}")
                             else:
-                                assistant_message = "I tried to fetch information from your Canvas account, but couldn't generate a proper response. Please try asking in a different way."
+                                logger.warning(f"Round {round_count + 1} response has no output")
+                                break
+                                
+                        except Exception as func_error:
+                            logger.error(f"Error in round {round_count + 1} API call: {str(func_error)}", exc_info=True)
+                            break
+                    
+                    # Get the final response text
+                    assistant_message = current_response.output_text
+                    logger.info(f"Final response message length: {len(assistant_message) if assistant_message else 0}")
+                    
+                    # Check if we got an empty response and provide a fallback
+                    if not assistant_message:
+                        logger.warning("Received empty message from OpenAI, using fallback response")
                         
-                        response_id = response_2.id
-                    except Exception as func_error:
-                        logger.error(f"Error in second API call: {str(func_error)}", exc_info=True)
-                        # Fallback to original response if second call fails
-                        assistant_message = "I tried to access your Canvas data but encountered an error. Please try asking your question differently."
-                        response_id = response.id if hasattr(response, 'id') else None
+                        # Extract the function call information for a better fallback message
+                        function_data = {}
+                        for item in response.output:
+                            if item.type == "function_call":
+                                function_data = {
+                                    "name": item.name,
+                                    "arguments": json.loads(item.arguments) if hasattr(item, "arguments") else {}
+                                }
+                        
+                        # Parse the result from the function call if available
+                        result_data = None
+                        for msg in input_messages:
+                            if isinstance(msg, dict) and msg.get("type") == "function_call_output":
+                                try:
+                                    result_data = json.loads(msg.get("output", "{}"))
+                                except:
+                                    pass
+                        
+                        # Create a more intelligent fallback message based on function, result, and original user message
+                        original_message = message_content.lower()
+                        
+                        if "error" in str(result_data):
+                            assistant_message = f"I'm sorry, I tried to get information about your Canvas data, but encountered an error. The specific error was: {result_data.get('error', 'Unknown error')}"
+                        elif function_data.get("name") == "get_courses":
+                            if isinstance(result_data, list):
+                                # Check if user was asking about modules, assignments, etc.
+                                if "module" in original_message:
+                                    # Try to find a course that matches their query
+                                    nlp_courses = [course for course in result_data if 'nlp' in course.get('name', '').lower() or 'natural language' in course.get('name', '').lower()]
+                                    if nlp_courses:
+                                        course_names = [course.get('name', 'Unknown') for course in nlp_courses]
+                                        assistant_message = f"I found your NLP course(s): {', '.join(course_names)}. However, I encountered an issue retrieving the modules. Please try asking again or be more specific about which course you'd like to see modules for."
+                                    else:
+                                        course_names = [course.get('name', 'Unknown') for course in result_data]
+                                        assistant_message = f"I couldn't find a course with 'NLP' in the name. Your courses are: {', '.join(course_names)}. Could you specify which course you'd like to see modules for?"
+                                elif "assignment" in original_message or "homework" in original_message or "due" in original_message:
+                                    assistant_message = f"I found your {len(result_data)} courses, but encountered an issue retrieving assignment information. Please try asking again."
+                                elif "announcement" in original_message:
+                                    assistant_message = f"I found your {len(result_data)} courses, but encountered an issue retrieving announcements. Please try asking again."
+                                else:
+                                    assistant_message = f"You are enrolled in {len(result_data)} courses: {', '.join([course.get('name', 'Unknown') for course in result_data[:3]])}{'...' if len(result_data) > 3 else ''}."
+                            else:
+                                assistant_message = "I couldn't find any courses in your Canvas account."
+                        elif function_data.get("name") == "get_upcoming_due_dates":
+                            if isinstance(result_data, list) and len(result_data) > 0:
+                                assistant_message = f"I found {len(result_data)} upcoming assignments due in the next {function_data.get('arguments', {}).get('days', 7)} days."
+                            else:
+                                assistant_message = f"Good news! You don't have any assignments due in the next {function_data.get('arguments', {}).get('days', 7)} days."
+                        else:
+                            assistant_message = "I tried to fetch information from your Canvas account, but couldn't generate a proper response. Please try asking in a different way."
+                    
+                    response_id = current_response.id
                 else:
                     # No function calls, use the original response
                     logger.info("No function calls detected, using original response")
