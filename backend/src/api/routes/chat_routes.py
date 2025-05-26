@@ -3,6 +3,10 @@ from src.models.chat import ChatRequest, ChatResponse, ChatMessage, ChatList, Ch
 from src.services.chat_service import ChatService
 from src.api.middleware.auth import verify_firebase_token
 from typing import List
+import logging
+
+# Get logger
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -31,15 +35,23 @@ async def chat(
             previous_messages=request.previous_messages
         )
         
+        # Make sure we have a valid response_id or null - never "unknown"
+        valid_response_id = None
+        if response_id and response_id.startswith('resp_'):
+            valid_response_id = response_id
+            logger.info(f"Using valid response ID: {valid_response_id}")
+        else:
+            logger.warning(f"Invalid response ID format: {response_id}, setting to null")
+        
         # Return the response with chat_id
         return ChatResponse(
             message=response_message, 
-            response_id=response_id or "unknown",  # Provide a default if None
+            response_id=valid_response_id,  # Use None if format is invalid
             chat_id=chat_id
         )
     except Exception as e:
         # Log the error
-        print(f"Error processing chat request: {str(e)}")
+        logger.error(f"Error processing chat request: {str(e)}", exc_info=True)
         # Create a fallback response
         error_message = ChatMessage(
             role="assistant",
@@ -48,7 +60,7 @@ async def chat(
         )
         return ChatResponse(
             message=error_message,
-            response_id="error",
+            response_id=None,  # Always null for errors
             chat_id=request.chat_id or "error"
         )
 

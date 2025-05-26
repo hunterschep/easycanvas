@@ -5,7 +5,7 @@ import uuid
 from typing import List, Dict, Any, Optional
 import json
 
-from src.models.chat import Chat, ChatMessage, ChatListItem
+from src.models.chat import Chat, ChatMessage, ChatListItem, MessageType
 from src.utils.logging import setup_logger
 
 logger = setup_logger(__name__)
@@ -73,16 +73,30 @@ class FirestoreService:
         message_dict['message_id'] = message_id
         message_dict['timestamp'] = message.timestamp.isoformat() if message.timestamp else datetime.utcnow().isoformat()
         
+        # Handle function call type messages
+        if message.type == MessageType.FUNCTION_CALL:
+            # Ensure function call fields are saved
+            if not message_dict.get('name') or not message_dict.get('arguments'):
+                logger.warning("Incomplete function call message being saved")
+        
+        elif message.type == MessageType.FUNCTION_CALL_OUTPUT:
+            # Ensure function call output fields are saved
+            if not message_dict.get('call_id') or not message_dict.get('output'):
+                logger.warning("Incomplete function call output message being saved")
+        
         # Add message to chat
         message_ref = db.collection('chats').document(chat_id).collection('messages').document(message_id)
         message_ref.set(message_dict)  # Removed await
         
         # Update chat's updated_at timestamp
+        # Only update last_message for user/assistant text messages (not function calls)
         chat_ref = db.collection('chats').document(chat_id)
-        chat_ref.update({  # Removed await
-            'updated_at': firestore.SERVER_TIMESTAMP,
-            'last_message': message.content[:100]  # Store truncated message for preview
-        })
+        update_data = {'updated_at': firestore.SERVER_TIMESTAMP}
+        
+        if message.type == MessageType.TEXT:
+            update_data['last_message'] = message.content[:100]  # Store truncated message for preview
+        
+        chat_ref.update(update_data)  # Removed await
         
         return message_id
     
@@ -98,7 +112,13 @@ class FirestoreService:
         messages_docs = messages_query.get()  # Removed await
         
         for doc in messages_docs:
-            messages.append(doc.to_dict())
+            message_data = doc.to_dict()
+            
+            # Ensure the type field exists and is properly converted
+            if 'type' not in message_data:
+                message_data['type'] = MessageType.TEXT.value
+                
+            messages.append(message_data)
             
         return messages
     

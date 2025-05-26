@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from enum import Enum
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Union
 from datetime import datetime
 
 
@@ -10,11 +10,23 @@ class MessageRole(str, Enum):
     SYSTEM = "system"
 
 
+class MessageType(str, Enum):
+    TEXT = "text"
+    FUNCTION_CALL = "function_call"
+    FUNCTION_CALL_OUTPUT = "function_call_output"
+
+
 class ChatMessage(BaseModel):
     role: MessageRole
     content: str
     timestamp: Optional[datetime] = Field(default_factory=datetime.utcnow)
     message_id: Optional[str] = None
+    type: Optional[MessageType] = MessageType.TEXT
+    # Function call fields
+    name: Optional[str] = None  # For function calls
+    arguments: Optional[str] = None  # JSON-encoded arguments
+    call_id: Optional[str] = None  # For linking function calls and results
+    output: Optional[str] = None  # For function call results
 
 
 class ChatRequest(BaseModel):
