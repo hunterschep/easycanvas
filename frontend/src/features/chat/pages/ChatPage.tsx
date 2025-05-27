@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layouts/MainLayout/MainLayout';
 import { Button } from '@/components/common/Button/Button';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import ChatWindow from '@/components/chat/ChatWindow';
 import ChatHistory from '../components/ChatHistory';
 import { ChatMessage, MessageRole, ChatListItem } from '@/types/chat';
@@ -23,6 +23,7 @@ export const ChatPage = () => {
   const [isFetchingChats, setIsFetchingChats] = useState(false);
   const [isFetchingMessages, setIsFetchingMessages] = useState(false);
   const [isResumingChat, setIsResumingChat] = useState(false);
+  const [showMobileHistory, setShowMobileHistory] = useState(false);
 
   // Fetch user's chat history on component mount
   useEffect(() => {
@@ -218,11 +219,48 @@ export const ChatPage = () => {
   }, [messages]);
 
   return (
-    <MainLayout>
+    <MainLayout showBackButton onBack={() => navigate('/home')}>
       <div className="flex h-screen max-h-screen overflow-hidden bg-black">
-        {/* Chat History Sidebar */}
-        <div className="w-80 flex-shrink-0 border-r border-gray-800 bg-black overflow-hidden flex flex-col">
-          <div className="p-6 flex-1 overflow-y-auto">
+        {/* Mobile Chat History Overlay */}
+        <div className={`fixed inset-0 z-50 bg-black transform transition-transform duration-300 ease-in-out lg:hidden ${
+          showMobileHistory ? 'translate-x-0' : '-translate-x-full'
+        }`}>
+          <div className="flex flex-col h-full">
+            {/* Mobile Header */}
+            <div className="p-4 border-b border-gray-800 flex items-center justify-between">
+              <h2 className="text-xl font-black tracking-tighter text-white">Your Chats</h2>
+              <Button
+                variant="secondary"
+                onClick={() => setShowMobileHistory(false)}
+                className="h-12 w-12 !p-0 flex items-center justify-center"
+              >
+                <XMarkIcon className="w-6 h-6" />
+              </Button>
+            </div>
+            
+            {/* Mobile Chat History */}
+            <div className="flex-1 p-4 overflow-y-auto">
+              <ChatHistory 
+                chats={chats}
+                currentChatId={currentChatId}
+                isLoading={isFetchingChats}
+                onSelectChat={(chatId) => {
+                  handleSelectChat(chatId);
+                  setShowMobileHistory(false);
+                }}
+                onNewChat={() => {
+                  handleNewChat();
+                  setShowMobileHistory(false);
+                }}
+                onDeleteChat={handleDeleteChat}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop Chat History Sidebar */}
+        <div className="hidden lg:flex w-80 xl:w-96 flex-shrink-0 border-r border-gray-800 bg-black overflow-hidden flex-col">
+          <div className="p-4 xl:p-6 flex-1 overflow-y-auto">
             <ChatHistory 
               chats={chats}
               currentChatId={currentChatId}
@@ -236,25 +274,32 @@ export const ChatPage = () => {
         
         {/* Chat Area */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-black">
-          <div className="p-6 border-b border-gray-800 bg-black flex-shrink-0">
+          {/* Header */}
+          <div className="p-4 lg:p-6 border-b border-gray-800 bg-black flex-shrink-0">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 lg:gap-4 min-w-0">
+                {/* Mobile Menu Button */}
                 <Button
                   variant="secondary"
-                  onClick={() => navigate('/home')}
-                  className="flex-shrink-0 h-10"
+                  onClick={() => setShowMobileHistory(true)}
+                  className="lg:hidden h-12 w-12 !p-0 flex items-center justify-center flex-shrink-0"
+                  title="Open Chat History"
                 >
-                  <ArrowLeftIcon className="w-4 h-4" />
-                  Back to Home
+                  <Bars3Icon className="w-6 h-6" />
                 </Button>
-                <h1 className="text-2xl font-black tracking-tighter text-white">
+                
+
+                
+                {/* Title */}
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-black tracking-tighter text-white truncate">
                   {currentChatId ? 'Continue Your Conversation' : 'Start a New Chat'}
                 </h1>
               </div>
             </div>
           </div>
           
-          <div className="flex-1 p-6 overflow-hidden">
+          {/* Chat Content */}
+          <div className="flex-1 p-2 sm:p-4 lg:p-6 overflow-hidden">
             {isFetchingMessages ? (
               <div className="flex justify-center items-center h-full">
                 <div className="text-center">

@@ -16,7 +16,7 @@ const MessageList = ({ messages }: MessageListProps) => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 lg:space-y-6">
       {messages.map((message, index) => (
         <div 
           key={index} 
@@ -24,39 +24,39 @@ const MessageList = ({ messages }: MessageListProps) => {
         >
           {message.role === MessageRole.USER ? (
             // User message
-            <div className="max-w-[80%]">
-              <div className="bg-black border border-blue-500/30 rounded-lg p-4">
-                <div className="whitespace-pre-wrap text-white leading-relaxed">
+            <div className="max-w-[85%] sm:max-w-[80%] lg:max-w-[75%]">
+              <div className="bg-black border border-blue-500/30 rounded-lg p-3 sm:p-4">
+                <div className="whitespace-pre-wrap text-white leading-relaxed text-sm sm:text-base">
                   {message.content}
                 </div>
               </div>
             </div>
           ) : (
             // Assistant message
-            <div className="max-w-[85%]">
-              <div className="bg-black border border-gray-800 rounded-lg p-4">
+            <div className="max-w-[90%] sm:max-w-[85%] lg:max-w-[80%]">
+              <div className="bg-black border border-gray-800 rounded-lg p-3 sm:p-4">
                 <ReactMarkdown 
                   remarkPlugins={[remarkGfm]}
                   components={{
                     // Paragraphs
                     p: ({ children }) => (
-                      <p className="mb-3 last:mb-0 text-white leading-relaxed">
+                      <p className="mb-2 sm:mb-3 last:mb-0 text-white leading-relaxed text-sm sm:text-base">
                         {children}
                       </p>
                     ),
                     // Headings
                     h1: ({ children }) => (
-                      <h1 className="text-xl font-bold mb-3 text-white">
+                      <h1 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3 text-white">
                         {children}
                       </h1>
                     ),
                     h2: ({ children }) => (
-                      <h2 className="text-lg font-bold mb-3 text-white">
+                      <h2 className="text-base sm:text-lg font-bold mb-2 sm:mb-3 text-white">
                         {children}
                       </h2>
                     ),
                     h3: ({ children }) => (
-                      <h3 className="text-base font-bold mb-2 text-white">
+                      <h3 className="text-sm sm:text-base font-bold mb-1 sm:mb-2 text-white">
                         {children}
                       </h3>
                     ),
@@ -74,12 +74,12 @@ const MessageList = ({ messages }: MessageListProps) => {
                     ),
                     // Lists
                     ul: ({ children }) => (
-                      <ul className="list-disc list-inside mb-3 space-y-1 text-white ml-4">
+                      <ul className="list-disc list-inside mb-2 sm:mb-3 space-y-1 text-white ml-2 sm:ml-4 text-sm sm:text-base">
                         {children}
                       </ul>
                     ),
                     ol: ({ children }) => (
-                      <ol className="list-decimal list-inside mb-3 space-y-1 text-white ml-4">
+                      <ol className="list-decimal list-inside mb-2 sm:mb-3 space-y-1 text-white ml-2 sm:ml-4 text-sm sm:text-base">
                         {children}
                       </ol>
                     ),
@@ -91,12 +91,12 @@ const MessageList = ({ messages }: MessageListProps) => {
                     // Code
                     code: ({ node, inline, children, ...props }) => {
                       return inline ? (
-                        <code className="bg-gray-800 px-2 py-1 rounded text-sm font-mono text-gray-300 border border-gray-700" {...props}>
+                        <code className="bg-gray-800 px-1 sm:px-2 py-0.5 sm:py-1 rounded text-xs sm:text-sm font-mono text-gray-300 border border-gray-700" {...props}>
                           {children}
                         </code>
                       ) : (
-                        <pre className="bg-gray-900 border border-gray-700 rounded-md p-4 overflow-x-auto mb-3">
-                          <code className="text-sm text-gray-300 font-mono" {...props}>
+                        <pre className="bg-gray-900 border border-gray-700 rounded-md p-2 sm:p-3 lg:p-4 overflow-x-auto mb-2 sm:mb-3">
+                          <code className="text-xs sm:text-sm text-gray-300 font-mono" {...props}>
                             {children}
                           </code>
                         </pre>
@@ -108,36 +108,36 @@ const MessageList = ({ messages }: MessageListProps) => {
                         href={href} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="text-blue-400 hover:text-blue-300 underline transition-colors"
+                        className="text-blue-400 hover:text-blue-300 underline transition-colors break-words"
                       >
                         {children}
                       </a>
                     ),
                     // Blockquotes
                     blockquote: ({ children }) => (
-                      <blockquote className="border-l-4 border-blue-500 pl-4 italic text-gray-300 mb-3 bg-gray-900 py-2 rounded-r border border-gray-800">
+                      <blockquote className="border-l-4 border-blue-500 pl-3 sm:pl-4 italic text-gray-300 mb-2 sm:mb-3 bg-gray-900 py-2 rounded-r border border-gray-800">
                         {children}
                       </blockquote>
                     ),
                     // Horizontal rule
                     hr: () => (
-                      <hr className="border-gray-700 my-4" />
+                      <hr className="border-gray-700 my-3 sm:my-4" />
                     ),
                     // Tables
                     table: ({ children }) => (
-                      <div className="overflow-x-auto mb-3">
-                        <table className="min-w-full border-collapse border border-gray-700 rounded">
+                      <div className="overflow-x-auto mb-2 sm:mb-3">
+                        <table className="min-w-full border-collapse border border-gray-700 rounded text-sm">
                           {children}
                         </table>
                       </div>
                     ),
                     th: ({ children }) => (
-                      <th className="border border-gray-700 px-3 py-2 bg-gray-800 font-semibold text-left text-white">
+                      <th className="border border-gray-700 px-2 sm:px-3 py-1 sm:py-2 bg-gray-800 font-semibold text-left text-white text-xs sm:text-sm">
                         {children}
                       </th>
                     ),
                     td: ({ children }) => (
-                      <td className="border border-gray-700 px-3 py-2 text-gray-300">
+                      <td className="border border-gray-700 px-2 sm:px-3 py-1 sm:py-2 text-gray-300 text-xs sm:text-sm">
                         {children}
                       </td>
                     ),
