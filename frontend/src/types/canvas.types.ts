@@ -5,6 +5,7 @@ export interface CanvasAssignment {
   points_possible: number;
   grade?: string | number | null;
   has_submitted_submissions: boolean;
+  html_url?: string | null;
 }
 
 export interface CanvasAnnouncement {

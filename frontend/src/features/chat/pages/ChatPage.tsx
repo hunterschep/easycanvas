@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layouts/MainLayout/MainLayout';
 import { Button } from '@/components/common/Button/Button';
@@ -24,6 +24,32 @@ export const ChatPage = () => {
   const [isFetchingMessages, setIsFetchingMessages] = useState(false);
   const [isResumingChat, setIsResumingChat] = useState(false);
   const [showMobileHistory, setShowMobileHistory] = useState(false);
+  const processedParamsRef = useRef(false);
+
+  // Handle URL parameters for new chat and auto-submit message
+  useEffect(() => {
+    if (!processedParamsRef.current) {
+      const newChatParam = searchParams.get('newChat');
+      const messageParam = searchParams.get('message');
+      
+      if (newChatParam === 'true' && messageParam) {
+        // Start a new chat
+        setCurrentChatId(undefined);
+        setMessages([]);
+        setIsResumingChat(false);
+        
+        // Clear URL parameters
+        setSearchParams({});
+        
+        // Auto-submit the message after a brief delay to ensure state is updated
+        setTimeout(() => {
+          handleSendMessage(decodeURIComponent(messageParam));
+        }, 100);
+        
+        processedParamsRef.current = true;
+      }
+    }
+  }, [searchParams, setSearchParams]);
 
   // Fetch user's chat history on component mount
   useEffect(() => {
