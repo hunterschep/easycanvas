@@ -129,21 +129,21 @@ export const UpcomingAssignments = ({ courses }: UpcomingAssignmentsProps) => {
 
   return (
     <div className="relative group">
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-lg blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
-      <div className="relative bg-black border border-gray-800 rounded-lg p-4 sm:p-6 lg:p-8">
-        <div className="space-y-4 sm:space-y-6">
+      <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
+      <div className="relative bg-black border border-gray-800 rounded-xl p-6 sm:p-8 lg:p-10">
+        <div className="space-y-6 sm:space-y-8">
           {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <ClockIcon className="w-6 h-6 text-blue-400 flex-shrink-0" />
-              <div>
-                <h2 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tighter text-white">
-                  Upcoming Assignments
-                </h2>
-                <p className="text-gray-400 text-sm sm:text-base">
-                  {upcomingAssignments.length} assignment{upcomingAssignments.length === 1 ? '' : 's'} due in the next 30 days
-                </p>
-              </div>
+          <div className="flex items-center gap-4">
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-full p-3">
+              <ClockIcon className="w-8 h-8 text-blue-400 flex-shrink-0" />
+            </div>
+            <div>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tighter text-white">
+                Upcoming Assignments
+              </h2>
+              <p className="text-gray-400 text-base sm:text-lg">
+                {upcomingAssignments.length} assignment{upcomingAssignments.length === 1 ? '' : 's'} due in the next 30 days
+              </p>
             </div>
           </div>
 

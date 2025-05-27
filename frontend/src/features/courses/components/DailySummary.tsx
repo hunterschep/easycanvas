@@ -66,8 +66,8 @@ export const DailySummary = ({ courses }: DailySummaryProps) => {
   if (loading) {
     return (
       <div className="relative group">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-lg blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
-        <div className="relative bg-black border border-gray-800 rounded-lg p-6">
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
+        <div className="relative bg-black border border-gray-800 rounded-xl p-6 sm:p-8 lg:p-10">
           <div className="animate-pulse">
             <div className="h-8 bg-gray-800 rounded w-1/3 mb-4"></div>
             <div className="h-4 bg-gray-800 rounded w-2/3 mb-2"></div>
@@ -80,20 +80,29 @@ export const DailySummary = ({ courses }: DailySummaryProps) => {
 
   return (
     <div className="relative group">
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-lg blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
-      <div className="relative bg-black border border-gray-800 rounded-lg p-4 sm:p-6 lg:p-8">
-        <div className="space-y-4 sm:space-y-6">
+      <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
+      <div className="relative bg-black border border-gray-800 rounded-xl p-6 sm:p-8 lg:p-10">
+        <div className="space-y-6 sm:space-y-8">
+          {/* Header */}
+          <div className="flex items-center gap-4">
+            <div className="bg-gray-500/10 border border-gray-500/20 rounded-full p-3">
+              <CalendarIcon className="w-8 h-8 text-gray-400 flex-shrink-0" />
+            </div>
+            <div>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tighter text-white">
+                Daily Summary
+              </h2>
+              <p className="text-gray-400 text-base sm:text-lg">
+                {dayOfWeek}, {month} {dayOfMonth}, {year}
+              </p>
+            </div>
+          </div>
+
           {/* Greeting */}
           <div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tighter text-white mb-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-white mb-2">
               Hey there, <span className="text-gray-400">{userSettings?.first_name || 'Student'}</span>!
             </h1>
-            <div className="flex items-center gap-2 text-gray-400 text-sm sm:text-base">
-              <CalendarIcon className="w-5 h-5 flex-shrink-0" />
-              <span>
-                {dayOfWeek}, {month} {dayOfMonth}, {year}
-              </span>
-            </div>
           </div>
 
           {/* Today's Summary */}
