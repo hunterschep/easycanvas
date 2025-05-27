@@ -121,6 +121,11 @@ class UserService:
             # Delete from userCourses collection
             db.collection('userCourses').document(user_id).delete()
             
+            # Delete from chat collection any document with user_id = user_id
+            docs = db.collection('chat').where('user_id', '==', user_id).get()
+            for doc in docs:
+                doc.reference.delete()
+            
             logger.info(f"Successfully deleted all data for user {user_id}")
             return True
         except Exception as e:
