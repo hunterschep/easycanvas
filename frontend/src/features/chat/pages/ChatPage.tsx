@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layouts/MainLayout/MainLayout';
+import { Button } from '@/components/common/Button/Button';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import ChatWindow from '@/components/chat/ChatWindow';
 import ChatHistory from '../components/ChatHistory';
 import { ChatMessage, MessageRole, ChatListItem } from '@/types/chat';
@@ -13,6 +15,7 @@ const MAX_CONTEXT_MESSAGES = 40;
 
 export const ChatPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentChatId, setCurrentChatId] = useState<string | undefined>(() => searchParams.get('id') || undefined);
@@ -64,6 +67,15 @@ export const ChatPage = () => {
       });
       
       setMessages(sortedMessages);
+      
+      // Set the last response ID to the last assistant message to maintain context when resuming a chat
+      const assistantMessages = sortedMessages.filter(msg => msg.role === MessageRole.ASSISTANT);
+      if (assistantMessages.length > 0) {
+        const lastAssistantMessage = assistantMessages[assistantMessages.length - 1];
+        if (lastAssistantMessage?.responseId) {
+          console.log('Chat has previous response ID:', lastAssistantMessage.responseId);
+        }
+      }
     } catch (error) {
       console.error(`Error loading messages for chat ${chatId}:`, error);
     } finally {
@@ -86,6 +98,8 @@ export const ChatPage = () => {
     setIsLoading(true);
 
     try {
+      console.log('Sending message with context from previous messages');
+      
       // Always send previous messages for context (not just when resuming)
       let previousMessagesToSend: ChatMessage[] | undefined;
       if (messages.length > 0) {
@@ -113,9 +127,12 @@ export const ChatPage = () => {
           previousMessagesToSend = messagesToInclude;
           console.log(`Sending ${previousMessagesToSend.length} previous messages (approx. ${tokenCount} tokens) for context`);
         }
+        
+        // Reset resuming flag after first message
+        setIsResumingChat(false);
       }
       
-      // Send to API and get response (no longer using lastResponseId)
+      // Send to API and get response
       const assistantMessage = await sendMessage(
         content, 
         currentChatId, 
@@ -202,28 +219,48 @@ export const ChatPage = () => {
 
   return (
     <MainLayout>
-      <div className="flex h-full w-full">
+      <div className="flex h-screen max-h-screen overflow-hidden bg-black">
         {/* Chat History Sidebar */}
-        <div className="w-64 border-r border-gray-200 p-4 overflow-y-auto">
-          <ChatHistory 
-            chats={chats}
-            currentChatId={currentChatId}
-            isLoading={isFetchingChats}
-            onSelectChat={handleSelectChat}
-            onNewChat={handleNewChat}
-            onDeleteChat={handleDeleteChat}
-          />
+        <div className="w-80 flex-shrink-0 border-r border-gray-800 bg-black overflow-hidden flex flex-col">
+          <div className="p-6 flex-1 overflow-y-auto">
+            <ChatHistory 
+              chats={chats}
+              currentChatId={currentChatId}
+              isLoading={isFetchingChats}
+              onSelectChat={handleSelectChat}
+              onNewChat={handleNewChat}
+              onDeleteChat={handleDeleteChat}
+            />
+          </div>
         </div>
         
         {/* Chat Area */}
-        <div className="flex-1 flex flex-col">
-          <div className="flex-1 p-4 overflow-y-auto">
-            <h1 className="text-2xl font-bold mb-6 text-center">
-              {currentChatId ? 'Continue Your Conversation' : 'Start a New Chat'}
-            </h1>
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-black">
+          <div className="p-6 border-b border-gray-800 bg-black flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <Button
+                  variant="secondary"
+                  onClick={() => navigate('/home')}
+                  className="flex-shrink-0 h-10"
+                >
+                  <ArrowLeftIcon className="w-4 h-4" />
+                  Back to Home
+                </Button>
+                <h1 className="text-2xl font-black tracking-tighter text-white">
+                  {currentChatId ? 'Continue Your Conversation' : 'Start a New Chat'}
+                </h1>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex-1 p-6 overflow-hidden">
             {isFetchingMessages ? (
-              <div className="flex justify-center items-center h-64">
-                <p>Loading messages...</p>
+              <div className="flex justify-center items-center h-full">
+                <div className="text-center">
+                  <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-gray-400">Loading messages...</p>
+                </div>
               </div>
             ) : (
               <ChatWindow

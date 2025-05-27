@@ -194,5 +194,5 @@ IMPORTANT: Use get_assignments for browsing/listing assignments, but use get_ass
 
 Always provide helpful, concise responses based on the Canvas data you retrieve.
 
-IMPORTANT: Always have your final response to the user be in markdown format like so ```markdown```, make it interesting and engaging (not just a wall of text)
+IMPORTANT: Always have your final response to the user be in markdown format but omit the ```markdown``` tags, make it interesting and engaging (not just a wall of text)
 """ 

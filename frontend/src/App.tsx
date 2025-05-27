@@ -4,6 +4,7 @@ import { ProtectedRoute } from '@/features/auth/ProtectedRoute';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { SetupPage } from '@/features/auth/pages/SetupPage';
 import { HomePage } from '@/features/courses/pages/HomePage';
+import { ChatPage } from '@/features/chat/pages/ChatPage';
 import { AccountDetailsPage } from '@/features/account/pages/AccountDetailsPage';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
@@ -117,13 +118,11 @@ function App() {
                 
                 {/* Protected routes */}
                 <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+                <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
                 <Route path="/account" element={<ProtectedRoute><AccountDetailsPage /></ProtectedRoute>} />
                 
                 {/* Public routes */}
                 <Route path="/select-courses" element={<CourseSelectPage />} />
-                
-                {/* Redirect /chat to /home since chat is now embedded in home */}
-                <Route path="/chat" element={<Navigate to="/home" replace />} />
                 
                 {/* Catch all for non-existent routes */}
                 <Route path="*" element={<Navigate to="/login" replace />} />
