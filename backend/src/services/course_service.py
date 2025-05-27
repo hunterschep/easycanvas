@@ -109,7 +109,10 @@ class CourseService:
         course_data = {
             'id': course.id,
             'name': course.name,
+            'original_name': getattr(course, 'original_name', None),
             'code': course.course_code,
+            'syllabus_body': getattr(course, 'syllabus_body', None),
+            'total_students': getattr(course, 'total_students', 0),
             'assignments': [],
             'modules': [],
             'term': getattr(course, 'enrollment_term_id', None),

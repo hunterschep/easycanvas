@@ -32,6 +32,7 @@ class CanvasTools:
         except Exception as e:
             logger.error(f"Error in get_courses: {str(e)}", exc_info=True)
             return json.dumps({"error": f"Failed to retrieve courses: {str(e)}"})
+    
 
     @staticmethod
     async def get_assignments(user_id: str, course_id: Optional[int] = None, days_due: Optional[int] = None) -> str:
@@ -275,17 +276,10 @@ class CanvasTools:
         """Get basic information about the user"""
         try:
             user_data = await UserService.get_user_settings(user_id)
+            # remove canvas_user_id from user_data
+            user_data.pop('canvas_user_id', None)
             
-            # Only return non-sensitive information
-            user_info = {
-                "name": user_data.name,
-                "first_name": user_data.first_name,
-                "last_name": user_data.last_name,
-                "avatar_url": user_data.avatar_url,
-                "email": user_data.email
-            }
-            
-            return json.dumps(user_info)
+            return json.dumps(user_data)
         except Exception as e:
             logger.error(f"Error in get_user_info: {str(e)}", exc_info=True)
             return json.dumps({"error": f"Failed to retrieve user information: {str(e)}"}) 
