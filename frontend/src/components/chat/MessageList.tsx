@@ -1,12 +1,31 @@
 import { ChatMessage, MessageRole } from '@/types/chat';
+import { format } from 'date-fns';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import rehypeHighlight from 'rehype-highlight';
+import rehypeRaw from 'rehype-raw';
+import DOMPurify from 'dompurify';
 
 interface MessageListProps {
   messages: ChatMessage[];
+  isLoading?: boolean;
 }
 
-const MessageList = ({ messages }: MessageListProps) => {
+// Typing indicator component
+const TypingIndicator = () => {
+  return (
+    <div className="flex items-center space-x-2 p-4 bg-gray-900/50 rounded-lg border border-gray-800">
+      <div className="flex items-center space-x-1">
+        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+        <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+      </div>
+      <span className="text-gray-400 text-sm">AI is thinking...</span>
+    </div>
+  );
+};
+
+const MessageList = ({ messages, isLoading = false }: MessageListProps) => {
   if (messages.length === 0) {
     return (
       <div className="flex items-center justify-center h-full text-gray-400">
@@ -150,6 +169,13 @@ const MessageList = ({ messages }: MessageListProps) => {
           )}
         </div>
       ))}
+      {isLoading && (
+        <div className="flex justify-start">
+          <div className="max-w-[90%] sm:max-w-[85%] lg:max-w-[80%]">
+            <TypingIndicator />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

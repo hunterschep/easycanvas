@@ -216,7 +216,7 @@ class ChatService:
                     # Handle multiple rounds of function calls
                     current_response = response
                     input_messages = kwargs["input"].copy()
-                    max_rounds = 3  # Prevent infinite loops
+                    max_rounds = 10  # Prevent infinite loops
                     round_count = 0
                     
                     while (current_response.output and 

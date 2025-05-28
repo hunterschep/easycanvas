@@ -23,7 +23,7 @@ const ChatWindow = ({ messages, onSendMessage, isLoading }: ChatWindowProps) => 
       <div className="relative flex flex-col h-full bg-black border border-gray-800 rounded-lg overflow-hidden">
         {/* Messages container */}
         <div className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 min-h-0">
-          <MessageList messages={messages} />
+          <MessageList messages={messages} isLoading={isLoading} />
           <div ref={messagesEndRef} />
         </div>
         

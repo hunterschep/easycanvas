@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layouts/MainLayout/MainLayout';
 import { Button } from '@/components/common/Button/Button';
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
+import { Toast } from '@/components/common/Toast';
+import { Bars3Icon, XMarkIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import ChatWindow from '@/components/chat/ChatWindow';
 import ChatHistory from '../components/ChatHistory';
 import { ChatMessage, MessageRole, ChatListItem } from '@/types/chat';
@@ -24,7 +25,39 @@ export const ChatPage = () => {
   const [isFetchingMessages, setIsFetchingMessages] = useState(false);
   const [isResumingChat, setIsResumingChat] = useState(false);
   const [showMobileHistory, setShowMobileHistory] = useState(false);
+  const [deletingChatIds, setDeletingChatIds] = useState<Set<string>>(new Set()); // Track chats being deleted
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    // Load sidebar state from localStorage
+    const saved = localStorage.getItem('easycanvas-sidebar-collapsed');
+    return saved ? JSON.parse(saved) : false;
+  });
+  const [toast, setToast] = useState<{
+    message: string;
+    type: 'success' | 'error' | 'info';
+    isVisible: boolean;
+  }>({
+    message: '',
+    type: 'info',
+    isVisible: false
+  });
   const processedParamsRef = useRef(false);
+
+  // Save sidebar state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('easycanvas-sidebar-collapsed', JSON.stringify(isSidebarCollapsed));
+  }, [isSidebarCollapsed]);
+
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed(prev => !prev);
+  };
+
+  const showToast = (message: string, type: 'success' | 'error' | 'info') => {
+    setToast({ message, type, isVisible: true });
+  };
+
+  const hideToast = () => {
+    setToast(prev => ({ ...prev, isVisible: false }));
+  };
 
   // Handle URL parameters for new chat and auto-submit message
   useEffect(() => {
@@ -206,18 +239,52 @@ export const ChatPage = () => {
   };
 
   const handleDeleteChat = async (chatId: string) => {
+    // Store the chat being deleted for potential rollback
+    const chatToDelete = chats.find(chat => chat.chat_id === chatId);
+    if (!chatToDelete) return;
+
+    // Optimistically remove from UI immediately
+    setChats(prev => prev.filter(chat => chat.chat_id !== chatId));
+    setDeletingChatIds(prev => new Set(prev).add(chatId));
+
+    // If this was the current chat, clear it
+    if (chatId === currentChatId) {
+      handleNewChat();
+    }
+
     try {
       await deleteChat(chatId);
-      
-      // Remove from local state
-      setChats(prev => prev.filter(chat => chat.chat_id !== chatId));
-      
-      // If this was the current chat, clear it
-      if (chatId === currentChatId) {
-        handleNewChat();
-      }
+      // Success - remove from deleting set
+      setDeletingChatIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(chatId);
+        return newSet;
+      });
     } catch (error) {
       console.error(`Error deleting chat ${chatId}:`, error);
+      
+      // Rollback - restore the chat to the list
+      setChats(prev => {
+        // Insert the chat back in its original position
+        const newChats = [...prev];
+        const originalIndex = chats.findIndex(chat => chat.chat_id === chatId);
+        if (originalIndex !== -1) {
+          newChats.splice(originalIndex, 0, chatToDelete);
+        } else {
+          newChats.unshift(chatToDelete); // Add to beginning if position unknown
+        }
+        return newChats;
+      });
+
+      // Remove from deleting set
+      setDeletingChatIds(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(chatId);
+        return newSet;
+      });
+
+      // Show error feedback (you might want to add a toast notification here)
+      showToast('Failed to delete chat. Please try again.', 'error');
     }
   };
 
@@ -246,7 +313,15 @@ export const ChatPage = () => {
 
   return (
     <MainLayout showBackButton onBack={() => navigate('/home')}>
-      <div className="flex h-screen max-h-screen overflow-hidden bg-black">
+      <div className="flex overflow-hidden bg-black -mx-4 sm:-mx-6 lg:-mx-8 -my-8" style={{ height: 'calc(100vh - 97px)' }}>
+        {/* Toast Notifications */}
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          isVisible={toast.isVisible}
+          onClose={hideToast}
+        />
+
         {/* Mobile Chat History Overlay */}
         <div className={`fixed inset-0 z-50 bg-black transform transition-transform duration-300 ease-in-out lg:hidden ${
           showMobileHistory ? 'translate-x-0' : '-translate-x-full'
@@ -279,30 +354,64 @@ export const ChatPage = () => {
                   setShowMobileHistory(false);
                 }}
                 onDeleteChat={handleDeleteChat}
+                showHeader={false}
+                deletingChatIds={deletingChatIds}
               />
             </div>
           </div>
         </div>
 
         {/* Desktop Chat History Sidebar */}
-        <div className="hidden lg:flex w-80 xl:w-96 flex-shrink-0 border-r border-gray-800 bg-black overflow-hidden flex-col">
-          <div className="p-4 xl:p-6 flex-1 overflow-y-auto">
-            <ChatHistory 
-              chats={chats}
-              currentChatId={currentChatId}
-              isLoading={isFetchingChats}
-              onSelectChat={handleSelectChat}
-              onNewChat={handleNewChat}
-              onDeleteChat={handleDeleteChat}
-            />
-          </div>
+        <div className={`hidden lg:flex flex-shrink-0 border-r border-gray-800 bg-black overflow-hidden flex-col transition-all duration-300 ease-in-out ${
+          isSidebarCollapsed ? 'w-16' : 'w-80 xl:w-96'
+        }`}>
+          {isSidebarCollapsed ? (
+            // Collapsed sidebar - just toggle button
+            <div className="p-4 flex justify-center">
+              <Button
+                variant="secondary"
+                onClick={toggleSidebar}
+                className="h-12 w-12 !p-0 flex items-center justify-center"
+                title="Expand Chat History"
+              >
+                <ChevronRightIcon className="w-6 h-6" />
+              </Button>
+            </div>
+          ) : (
+            // Expanded sidebar - full chat history
+            <>
+              <div className="p-4 lg:p-6 border-b border-gray-800 flex items-center justify-between h-[73px] lg:h-[97px]">
+                <h2 className="text-xl font-black tracking-tighter text-white">Your Chats</h2>
+                <Button
+                  variant="secondary"
+                  onClick={toggleSidebar}
+                  className="h-10 w-10 !p-0 flex items-center justify-center"
+                  title="Collapse Chat History"
+                >
+                  <ChevronLeftIcon className="w-5 h-5" />
+                </Button>
+              </div>
+              <div className="p-4 lg:p-6 flex-1 overflow-y-auto">
+                <ChatHistory 
+                  chats={chats}
+                  currentChatId={currentChatId}
+                  isLoading={isFetchingChats}
+                  onSelectChat={handleSelectChat}
+                  onNewChat={handleNewChat}
+                  onDeleteChat={handleDeleteChat}
+                  showHeader={false}
+                  deletingChatIds={deletingChatIds}
+                />
+              </div>
+            </>
+          )}
         </div>
         
         {/* Chat Area */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-black">
           {/* Header */}
-          <div className="p-4 lg:p-6 border-b border-gray-800 bg-black flex-shrink-0">
-            <div className="flex items-center justify-between">
+          <div className="p-4 lg:p-6 border-b border-gray-800 bg-black flex-shrink-0 h-[73px] lg:h-[97px]">
+            <div className="flex items-center justify-between h-full">
               <div className="flex items-center gap-2 lg:gap-4 min-w-0">
                 {/* Mobile Menu Button */}
                 <Button
