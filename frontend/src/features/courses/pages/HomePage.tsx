@@ -10,14 +10,24 @@ import { CourseOverview } from '../components/CourseOverview';
 export const HomePage = () => {
   const { courses, loading: coursesLoading, error: coursesError } = useCourses();
 
+  console.log('HomePage render:', {
+    coursesLoading,
+    coursesError,
+    coursesCount: courses?.length || 0,
+    timestamp: new Date().toISOString()
+  });
+
   if (coursesLoading) {
+    console.log('HomePage showing loading screen');
     return <Loading message="Fetching your courses... This may take a few minutes!" />;
   }
 
   if (coursesError) {
+    console.log('HomePage showing error:', coursesError);
     return <div className="text-red-500">{coursesError}</div>;
   }
 
+  console.log('HomePage rendering main content with courses:', courses?.length);
   return (
     <MainLayout>
       <div className="space-y-8">

@@ -28,17 +28,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Separate effect for auth state changes
   useEffect(() => {
+    console.log('🔐 Setting up auth state listener');
     const unsubscribe = auth.onAuthStateChanged((user) => {
+      console.log('🔐 Auth state changed:', { 
+        hasUser: !!user, 
+        userId: user?.uid, 
+        isPageRefresh: performance.navigation?.type === 1,
+        timestamp: new Date().toISOString()
+      });
+      
       setCurrentUser(user);
       // If no user, we can immediately mark everything as complete
       if (!user) {
+        console.log('🔐 No user, marking auth complete');
         setHasCanvasToken(false);
         setLoading(false);
         setInitialAuthCheckComplete(true);
       }
     });
 
-    return () => unsubscribe();
+    return () => {
+      console.log('🔐 Cleaning up auth listener');
+      unsubscribe();
+    };
   }, []);
 
   // Separate effect for fetching user settings when user changes
@@ -46,14 +58,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const checkUserSettings = async () => {
       if (!currentUser) return;
       
+      console.log('🔐 Checking user settings for:', currentUser.uid);
       setCheckingSettings(true);
       try {
         await AuthService.getUserSettings();
+        console.log('🔐 User settings found, has canvas token');
         setHasCanvasToken(true);
       } catch (error) {
-        console.error('Settings error:', error);
+        console.error('🔐 Settings error:', error);
         setHasCanvasToken(false);
       } finally {
+        console.log('🔐 Finished checking settings, marking auth complete');
         setCheckingSettings(false);
         setLoading(false);
         setInitialAuthCheckComplete(true);
@@ -64,6 +79,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       checkUserSettings();
     }
   }, [currentUser]);
+
+  // Debug logging for state changes
+  useEffect(() => {
+    console.log('🔐 AuthProvider state update:', {
+      currentUser: !!currentUser,
+      loading,
+      hasCanvasToken,
+      initialAuthCheckComplete,
+      checkingSettings,
+      timestamp: new Date().toISOString()
+    });
+  }, [currentUser, loading, hasCanvasToken, initialAuthCheckComplete, checkingSettings]);
 
   const value = {
     currentUser,
@@ -76,9 +103,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   // For static pages, don't show loading screen during initial auth check
   // This prevents a jarring flash on page refresh
   if (!initialAuthCheckComplete && !isStaticPage) {
+    console.log('🔐 Showing auth loading screen');
     return <Loading message="Preparing your dashboard..." />;
   }
 
+  console.log('🔐 AuthProvider rendering children');
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 

@@ -17,6 +17,21 @@ import { useEffect } from 'react';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 
+// Clear cache immediately on page refresh - do this at the module level
+if (performance.navigation?.type === 1) { // Page refresh detected
+  console.log('🧹 MODULE LEVEL: Page refresh detected, clearing caches IMMEDIATELY');
+  queryClient.clear();
+  
+  // Clear all persisted caches
+  const keys = Object.keys(localStorage);
+  keys.forEach(key => {
+    if (key.startsWith('REACT_QUERY_OFFLINE_CACHE_')) {
+      localStorage.removeItem(key);
+      console.log(`🧹 MODULE LEVEL: Cleared persisted cache: ${key}`);
+    }
+  });
+}
+
 // Component to handle routing based on auth state
 function AuthRedirect({ children }: { children: React.ReactNode }) {
   const { currentUser, hasCanvasToken, loading, initialAuthCheckComplete } = useAuth();
@@ -40,29 +55,42 @@ function AuthRedirect({ children }: { children: React.ReactNode }) {
         
         console.log('Cleared all React Query cache for logout');
       } else {
-        // If a user is logged in, clear cache from other users
-        const currentUserCacheKey = `REACT_QUERY_OFFLINE_CACHE_${currentUser.uid}`;
-        const keys = Object.keys(localStorage);
+        // If a user is logged in, clear cache from other users (but NOT on refresh)
+        const isPageRefresh = performance.navigation?.type === 1;
+        if (!isPageRefresh) {
+          const currentUserCacheKey = `REACT_QUERY_OFFLINE_CACHE_${currentUser.uid}`;
+          const keys = Object.keys(localStorage);
+          
+          keys.forEach(key => {
+            if (key.startsWith('REACT_QUERY_OFFLINE_CACHE_') && key !== currentUserCacheKey) {
+              localStorage.removeItem(key);
+              console.log(`Cleared cache for different user: ${key}`);
+            }
+            // Also clear sidebar state from other users
+            if (key.startsWith('easycanvas-sidebar-collapsed-') && 
+                key !== `easycanvas-sidebar-collapsed-${currentUser.uid}`) {
+              localStorage.removeItem(key);
+              console.log(`Cleared sidebar state for different user: ${key}`);
+            }
+          });
+        }
         
-        keys.forEach(key => {
-          if (key.startsWith('REACT_QUERY_OFFLINE_CACHE_') && key !== currentUserCacheKey) {
-            localStorage.removeItem(key);
-            console.log(`Cleared cache for different user: ${key}`);
-          }
-          // Also clear sidebar state from other users
-          if (key.startsWith('easycanvas-sidebar-collapsed-') && 
-              key !== `easycanvas-sidebar-collapsed-${currentUser.uid}`) {
-            localStorage.removeItem(key);
-            console.log(`Cleared sidebar state for different user: ${key}`);
-          }
-        });
-        
-        // Clear in-memory cache to ensure fresh start for new user
-        queryClient.clear();
-        console.log(`Cleared in-memory cache for user switch: ${currentUser.uid}`);
+        console.log(`Cache management completed for user: ${currentUser.uid}`);
       }
     }
   }, [currentUser?.uid, initialAuthCheckComplete, loading]);
+
+  // Add timeout for auth check to prevent infinite loading
+  useEffect(() => {
+    if (!initialAuthCheckComplete) {
+      const timeout = setTimeout(() => {
+        console.warn('Auth check taking too long, this might indicate a problem');
+        // Could add additional error handling here
+      }, 10000); // 10 seconds timeout
+      
+      return () => clearTimeout(timeout);
+    }
+  }, [initialAuthCheckComplete]);
 
   // Debug logging
   console.log('AuthRedirect state:', { 
@@ -115,6 +143,13 @@ function QueryPersistenceSetup() {
   
   useEffect(() => {
     if (currentUser?.uid) {
+      // Don't set up persistence on page refresh to avoid race conditions
+      const isPageRefresh = performance.navigation?.type === 1;
+      if (isPageRefresh) {
+        console.log('Page refresh detected, skipping persistence setup to avoid race conditions');
+        return;
+      }
+      
       // Set up user-specific query persistence
       const localStoragePersister = createSyncStoragePersister({
         storage: window.localStorage,

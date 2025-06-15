@@ -3,6 +3,7 @@ import { logError, logInfo } from '@/utils/debug';
 
 export class ApiService {
     private static baseUrl = 'http://localhost:8000';
+    private static timeout = 30000; // 30 seconds timeout
   
     private static async getAuthHeaders() {
       const idToken = await auth.currentUser?.getIdToken();
@@ -16,8 +17,15 @@ export class ApiService {
       };
     }
 
+    private static createTimeoutController(timeout: number = this.timeout) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), timeout);
+      return { controller, timeoutId };
+    }
+
     static async get<T>(endpoint: string): Promise<T> {
       const headers = await this.getAuthHeaders();
+      const { controller, timeoutId } = this.createTimeoutController();
       logInfo(`🔄 API GET: ${endpoint}`);
       
       try {
@@ -25,8 +33,11 @@ export class ApiService {
           method: 'GET',
           headers,
           credentials: 'include',
-          mode: 'cors'
+          mode: 'cors',
+          signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
       
         if (!response.ok) {
           const errorText = await response.text();
@@ -52,6 +63,11 @@ export class ApiService {
         const data = await response.json();
         return data;
       } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+          logError(`API Request Timeout: ${endpoint}`, { timeout: this.timeout });
+          throw new Error(`Request timeout after ${this.timeout}ms`);
+        }
         logError(`API Request Failed: ${endpoint}`, error);
         throw error;
       }
@@ -59,6 +75,7 @@ export class ApiService {
   
     static async post<T>(endpoint: string, data: any): Promise<T> {
       const headers = await this.getAuthHeaders();
+      const { controller, timeoutId } = this.createTimeoutController();
       logInfo(`🔄 API POST: ${endpoint}`);
       
       try {
@@ -66,7 +83,10 @@ export class ApiService {
           method: 'POST',
           headers,
           body: JSON.stringify(data),
+          signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
       
         if (!response.ok) {
           const errorData = await response.json();
@@ -83,6 +103,11 @@ export class ApiService {
         const result = await response.json();
         return result;
       } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+          logError(`API Request Timeout: ${endpoint}`, { timeout: this.timeout });
+          throw new Error(`Request timeout after ${this.timeout}ms`);
+        }
         logError(`API Request Failed: ${endpoint}`, error);
         throw error;
       }
@@ -90,13 +115,17 @@ export class ApiService {
   
     static async delete<T>(endpoint: string): Promise<T> {
       const headers = await this.getAuthHeaders();
+      const { controller, timeoutId } = this.createTimeoutController();
       logInfo(`🔄 API DELETE: ${endpoint}`);
       
       try {
         const response = await fetch(`${this.baseUrl}${endpoint}`, {
           method: 'DELETE',
           headers,
+          signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
       
         if (!response.ok) {
           const errorData = await response.json();
@@ -113,6 +142,11 @@ export class ApiService {
         const result = await response.json();
         return result;
       } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+          logError(`API Request Timeout: ${endpoint}`, { timeout: this.timeout });
+          throw new Error(`Request timeout after ${this.timeout}ms`);
+        }
         logError(`API Request Failed: ${endpoint}`, error);
         throw error;
       }
@@ -120,6 +154,7 @@ export class ApiService {
   
     static async patch<T>(endpoint: string, data: any): Promise<T> {
       const headers = await this.getAuthHeaders();
+      const { controller, timeoutId } = this.createTimeoutController();
       logInfo(`🔄 API PATCH: ${endpoint}`);
       
       try {
@@ -127,7 +162,10 @@ export class ApiService {
           method: 'PATCH',
           headers,
           body: JSON.stringify(data),
+          signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
       
         if (!response.ok) {
           const errorData = await response.json();
@@ -144,6 +182,11 @@ export class ApiService {
         const result = await response.json();
         return result;
       } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+          logError(`API Request Timeout: ${endpoint}`, { timeout: this.timeout });
+          throw new Error(`Request timeout after ${this.timeout}ms`);
+        }
         logError(`API Request Failed: ${endpoint}`, error);
         throw error;
       }
