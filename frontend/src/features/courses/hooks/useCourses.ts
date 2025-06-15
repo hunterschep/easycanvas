@@ -8,49 +8,45 @@ export const useCourses = () => {
   const queryClient = useQueryClient();
   const { currentUser } = useAuth();
   
-  // Clean up cache if no user is logged in
-  useEffect(() => {
-    if (!currentUser) {
-      queryClient.removeQueries({ queryKey: ['courses'] });
-    }
-  }, [currentUser, queryClient]);
-  
   const query = useQuery({
-    queryKey: ['courses'],
-    queryFn: async ({ signal }) => {
+    queryKey: ['courses', currentUser?.uid],
+    queryFn: async () => {
+      console.log('Fetching courses for user:', currentUser?.uid);
       try {
-        return await CourseService.getCourses(false);
+        const courses = await CourseService.getCourses(false);
+        console.log('Courses fetched successfully:', courses?.length || 0);
+        return courses;
       } catch (error) {
-        // If we get an error, it might be because the courses don't exist yet
-        console.log("Error in initial courses fetch, attempting force refresh:", error);
-        return [];
+        console.error("Error in courses fetch:", error);
+        // Don't return empty array on error, let React Query handle the error
+        throw error;
       }
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    enabled: !!currentUser, // Only run the query if there's a logged-in user
+    enabled: !!currentUser,
   });
 
-  // Effect to handle the case of a new user who has just created their account
-  // and selected courses, but doesn't have course data fetched yet
+  // Effect to handle new users who might not have course data yet
   useEffect(() => {
     const checkAndFetchInitialData = async () => {
-      // If we have an empty array, this might be a new user
-      if (currentUser && query.data && query.data.length === 0 && !query.isFetching) {
+      if (currentUser && query.data && query.data.length === 0 && !query.isFetching && !query.isError) {
         console.log("No courses found - likely a new user. Forcing a refresh.");
-        refreshCourses(true);
+        try {
+          await refreshCourses(true);
+        } catch (error) {
+          console.error("Error in force refresh:", error);
+        }
       }
     };
 
     checkAndFetchInitialData();
-  }, [query.data, query.isFetching, currentUser]);
+  }, [query.data, query.isFetching, query.isError, currentUser]);
   
   const refreshCourses = async (forceRefresh: boolean = false) => {
     try {
       if (forceRefresh) {
         console.log("Forcing a full course refresh from Canvas");
-        // Need to bypass the query to force a refresh
         const freshData = await CourseService.getCourses(true);
-        queryClient.setQueryData(['courses'], freshData);
+        queryClient.setQueryData(['courses', currentUser?.uid], freshData);
         return freshData;
       }
       return query.refetch();
@@ -61,9 +57,8 @@ export const useCourses = () => {
   };
 
   const clearCoursesCache = () => {
-    queryClient.removeQueries({ queryKey: ['courses'] });
-    localStorage.removeItem('coursesData');
-    console.log("Cleared courses cache");
+    queryClient.removeQueries({ queryKey: ['courses', currentUser?.uid] });
+    console.log("Cleared courses cache for user:", currentUser?.uid);
   };
 
   return {

@@ -1,9 +1,11 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CourseService } from '../services/course.service';
-import type { Course } from '../types';
+import type { CanvasCourse, CanvasAssignment } from '@/types/canvas.types';
+import { useAuth } from '@/features/auth/context/AuthContext';
 
 export const useCourse = (courseId: string | undefined) => {
   const queryClient = useQueryClient();
+  const { currentUser } = useAuth();
   
   const normalizeId = (id: string | number | undefined): string | undefined => {
     if (id === undefined) return undefined;
@@ -13,12 +15,12 @@ export const useCourse = (courseId: string | undefined) => {
   const normalizedCourseId = normalizeId(courseId);
 
   const result = useQuery({
-    queryKey: ['course', normalizedCourseId],
+    queryKey: ['course', currentUser?.uid, normalizedCourseId],
     queryFn: async () => {
       if (!normalizedCourseId) throw new Error('Course ID is required');
       
       // Try to get from courses cache first
-      const courses = queryClient.getQueryData<Course[]>(['courses']);
+      const courses = queryClient.getQueryData<CanvasCourse[]>(['courses', currentUser?.uid]);
       if (courses) {
         const course = courses.find(c => normalizeId(c.id) === normalizedCourseId);
         if (course) {
@@ -26,9 +28,9 @@ export const useCourse = (courseId: string | undefined) => {
           
           // Prefetch assignments as individual queries for later access
           if (course.assignments) {
-            course.assignments.forEach(assignment => {
+            course.assignments.forEach((assignment: CanvasAssignment) => {
               queryClient.setQueryData(
-                ['assignment', normalizedCourseId, normalizeId(assignment.id)],
+                ['assignment', currentUser?.uid, normalizedCourseId, normalizeId(assignment.id)],
                 assignment
               );
             });
@@ -43,9 +45,9 @@ export const useCourse = (courseId: string | undefined) => {
       
       // Cache individual assignments for future use
       if (courseDetails.assignments) {
-        courseDetails.assignments.forEach(assignment => {
+        courseDetails.assignments.forEach((assignment: CanvasAssignment) => {
           queryClient.setQueryData(
-            ['assignment', normalizedCourseId, normalizeId(assignment.id)],
+            ['assignment', currentUser?.uid, normalizedCourseId, normalizeId(assignment.id)],
             assignment
           );
         });
@@ -53,8 +55,7 @@ export const useCourse = (courseId: string | undefined) => {
       
       return courseDetails;
     },
-    enabled: !!normalizedCourseId,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    enabled: !!normalizedCourseId && !!currentUser,
   });
 
   return {

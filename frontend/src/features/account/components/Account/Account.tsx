@@ -12,10 +12,16 @@ export const Account = () => {
     queryKey: ['userSettings', currentUser?.uid],
     queryFn: UserService.getSettings,
     enabled: !!currentUser,
-    staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
   });
 
   if (!currentUser) return null;
+
+  // Use Firebase user data as fallback if settings are not available or stale
+  const displayName = settings?.first_name && settings?.last_name 
+    ? `${settings.first_name} ${settings.last_name}`
+    : currentUser.displayName || 'User';
+
+  const avatarUrl = settings?.avatar_url || currentUser.photoURL;
 
   return (
     <div className="relative group">
@@ -26,21 +32,21 @@ export const Account = () => {
           variant="secondary"
           className="flex items-center gap-2 h-10"
         >
-          {settings?.avatar_url ? (
+          {avatarUrl ? (
             <img
-              src={settings.avatar_url}
+              src={avatarUrl}
               alt="Profile"
               className="w-8 h-8 rounded-full border border-gray-800 object-cover"
             />
           ) : (
             <div className="w-8 h-8 rounded-full border border-gray-800 bg-black flex items-center justify-center">
               <span className="text-gray-400 text-sm">
-                {currentUser.displayName?.charAt(0).toUpperCase() || '?'}
+                {displayName?.charAt(0).toUpperCase() || '?'}
               </span>
             </div>
           )}
           <span className="text-sm hidden sm:inline">
-            {currentUser.displayName}
+            {displayName}
           </span>
         </Button>
         

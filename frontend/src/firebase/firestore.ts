@@ -117,38 +117,6 @@ export const deleteUserAccount = async (userId: string) => {
   }
 };
 
-export const getCoursesLastUpdated = async (userId: string) => {
-  try {
-    const idToken = await auth.currentUser?.getIdToken();
-    if (!idToken) {
-      throw new Error('Not authenticated');
-    }
-
-    const response = await fetch('http://localhost:8000/api/user/courses/last-updated', {
-      headers: {
-        'Authorization': `Bearer ${idToken}`,
-      },
-    });
-
-    if (!response.ok) {
-      console.error('Failed to get last updated timestamp:', response.status);
-      return 0;
-    }
-
-    const data = await response.json();
-    console.log('Last updated data from backend:', data);
-
-    // Firebase Timestamp comes as { seconds: number, nanoseconds: number }
-    const timestamp = data.lastUpdated?.seconds || 0;
-    console.log('Extracted timestamp:', timestamp);
-    
-    return timestamp;
-  } catch (error) {
-    console.error('Error getting courses last updated:', error);
-    return 0;
-  }
-};
-
 export const getUserCourses = async (forceRefresh: boolean = false) => {
   try {
     const idToken = await auth.currentUser?.getIdToken();
@@ -156,41 +124,11 @@ export const getUserCourses = async (forceRefresh: boolean = false) => {
       throw new Error('Not authenticated');
     }
 
-    // First check localStorage
-    const cachedCoursesData = localStorage.getItem('coursesData');
-    
-    if (!forceRefresh && cachedCoursesData) {
-      // If we have local data, check if we need to refresh
-      const lastUpdated = await getCoursesLastUpdated(auth.currentUser?.uid || '');
-      const sixHoursInSeconds = 6 * 60 * 60;
-      
-      const currentUTCSeconds = Math.floor(new Date().getTime() / 1000);
-      const shouldRefresh = 
-        !lastUpdated ||
-        (currentUTCSeconds - lastUpdated > sixHoursInSeconds);
-
-      console.log('Time check:', {
-        currentUTCTime: new Date().toUTCString(),
-        lastUpdatedTime: new Date(lastUpdated * 1000).toUTCString(),
-        timeDifference: currentUTCSeconds - lastUpdated,
-        shouldRefresh
-      });
-
-      if (!shouldRefresh) {
-        console.log('Using localStorage cached data');
-        return JSON.parse(cachedCoursesData);
-      }
-      // If we need to refresh, set forceRefresh to true
-      forceRefresh = true;
-    }
-
-    // Use CourseService instead of direct fetch
+    // Simply use CourseService - let React Query handle all caching
     const data = await CourseService.getCourses(forceRefresh);
     
     if (data && Array.isArray(data)) {
-      // Log the data to verify announcements are present
-      console.log('Course data before caching:', data);
-      localStorage.setItem('coursesData', JSON.stringify(data));
+      console.log('Course data fetched:', data.length, 'courses');
       return data;
     }
 

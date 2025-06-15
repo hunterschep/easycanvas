@@ -24,11 +24,45 @@ function AuthRedirect({ children }: { children: React.ReactNode }) {
 
   // Effect to reset React Query cache when auth state changes
   useEffect(() => {
-    if (!loading && initialAuthCheckComplete && !currentUser) {
-      // If logged out, clear the QueryClient cache
-      queryClient.clear();
+    if (!loading && initialAuthCheckComplete) {
+      if (!currentUser) {
+        // If logged out, clear both in-memory and persisted cache
+        queryClient.clear();
+        
+        // Clear React Query persisted cache and UI state from localStorage
+        const keys = Object.keys(localStorage);
+        keys.forEach(key => {
+          if (key.startsWith('REACT_QUERY_OFFLINE_CACHE_') ||
+              key.startsWith('easycanvas-sidebar-collapsed-')) {
+            localStorage.removeItem(key);
+          }
+        });
+        
+        console.log('Cleared all React Query cache for logout');
+      } else {
+        // If a user is logged in, clear cache from other users
+        const currentUserCacheKey = `REACT_QUERY_OFFLINE_CACHE_${currentUser.uid}`;
+        const keys = Object.keys(localStorage);
+        
+        keys.forEach(key => {
+          if (key.startsWith('REACT_QUERY_OFFLINE_CACHE_') && key !== currentUserCacheKey) {
+            localStorage.removeItem(key);
+            console.log(`Cleared cache for different user: ${key}`);
+          }
+          // Also clear sidebar state from other users
+          if (key.startsWith('easycanvas-sidebar-collapsed-') && 
+              key !== `easycanvas-sidebar-collapsed-${currentUser.uid}`) {
+            localStorage.removeItem(key);
+            console.log(`Cleared sidebar state for different user: ${key}`);
+          }
+        });
+        
+        // Clear in-memory cache to ensure fresh start for new user
+        queryClient.clear();
+        console.log(`Cleared in-memory cache for user switch: ${currentUser.uid}`);
+      }
     }
-  }, [currentUser, initialAuthCheckComplete, loading]);
+  }, [currentUser?.uid, initialAuthCheckComplete, loading]);
 
   // Debug logging
   console.log('AuthRedirect state:', { 

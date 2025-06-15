@@ -23,9 +23,16 @@ export class AuthService {
       // Clear React Query cache
       queryClient.clear();
       
-      // Clear localStorage cache
-      localStorage.removeItem('coursesData');
-      localStorage.removeItem('REACT_QUERY_OFFLINE_CACHE');
+      // Clear UI-specific localStorage data (sidebar state, etc.)
+      const keys = Object.keys(localStorage);
+      keys.forEach(key => {
+        if (key.startsWith('REACT_QUERY_OFFLINE_CACHE_') || 
+            key.startsWith('easycanvas-sidebar-collapsed-')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
+      console.log('Cleared React Query cache and UI localStorage data');
       
       // Sign out from Firebase
       await firebaseSignOut(auth);

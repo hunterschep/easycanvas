@@ -9,6 +9,8 @@ import ChatHistory from '../components/ChatHistory';
 import { ChatMessage, MessageRole, ChatListItem } from '@/types/chat';
 import { sendMessage, getUserChats, getChatMessages, createChat, deleteChat } from '@/services/chatService';
 import { estimateTokenCount, AVAILABLE_INPUT_TOKENS } from '@/utils/tokenCounter';
+import { useAuth } from '@/features/auth/context/AuthContext';
+import { useSidebarState } from '@/hooks/useSidebarState';
 
 // With 8k token limit, this allows for roughly 40 messages
 // Assuming average message length of ~200 tokens
@@ -17,6 +19,8 @@ const MAX_CONTEXT_MESSAGES = 40;
 export const ChatPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
+  const { isSidebarCollapsed, toggleSidebar } = useSidebarState();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentChatId, setCurrentChatId] = useState<string | undefined>(() => searchParams.get('id') || undefined);
@@ -26,11 +30,6 @@ export const ChatPage = () => {
   const [isResumingChat, setIsResumingChat] = useState(false);
   const [showMobileHistory, setShowMobileHistory] = useState(false);
   const [deletingChatIds, setDeletingChatIds] = useState<Set<string>>(new Set()); // Track chats being deleted
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
-    // Load sidebar state from localStorage
-    const saved = localStorage.getItem('easycanvas-sidebar-collapsed');
-    return saved ? JSON.parse(saved) : false;
-  });
   const [toast, setToast] = useState<{
     message: string;
     type: 'success' | 'error' | 'info';
@@ -41,15 +40,6 @@ export const ChatPage = () => {
     isVisible: false
   });
   const processedParamsRef = useRef(false);
-
-  // Save sidebar state to localStorage whenever it changes
-  useEffect(() => {
-    localStorage.setItem('easycanvas-sidebar-collapsed', JSON.stringify(isSidebarCollapsed));
-  }, [isSidebarCollapsed]);
-
-  const toggleSidebar = () => {
-    setIsSidebarCollapsed(prev => !prev);
-  };
 
   const showToast = (message: string, type: 'success' | 'error' | 'info') => {
     setToast({ message, type, isVisible: true });
