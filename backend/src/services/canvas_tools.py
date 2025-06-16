@@ -63,7 +63,7 @@ class CanvasTools:
                         "name": assignment.get("name"),
                         "due_at": assignment.get("due_at"),
                         "points_possible": assignment.get("points_possible"),
-                        "score": assignment.get("score"),
+                        "grade": assignment.get("grade"),
                         "course_id": assignment.get("course_id"),
                         "course_name": course["name"],
                         "course_code": course["code"],

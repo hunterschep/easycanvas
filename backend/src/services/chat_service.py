@@ -186,6 +186,17 @@ class ChatService:
             
             logger.info(f"Built final conversation with {len(conversation_input)} messages")
             
+            # Print the conversation input being sent to OpenAI
+            print(f"\n📤 INPUT TO OPENAI:")
+            print(f"Model: o4-mini-2025-04-16")
+            print(f"Messages ({len(conversation_input)}):")
+            for i, msg in enumerate(conversation_input):
+                role = msg.get('role', 'unknown')
+                content = msg.get('content', '')
+                content_preview = content[:200] + "..." if len(content) > 200 else content
+                print(f"  [{i}] {role}: {content_preview}")
+            print()
+            
             # Set up the API call parameters
             kwargs = {
                 "model": "o4-mini-2025-04-16",
@@ -202,6 +213,35 @@ class ChatService:
                     executor,
                     partial(client.responses.create, **kwargs)
                 )
+                
+                # Print the raw response from OpenAI
+                print(f"\n📥 RESPONSE FROM OPENAI:")
+                print(f"Response ID: {response.id}")
+                if response.output:
+                    print(f"Output items ({len(response.output)}):")
+                    for i, item in enumerate(response.output):
+                        print(f"  [{i}] Type: {item.type}")
+                        if item.type == "message":
+                            content_preview = item.content[:200] + "..." if len(item.content) > 200 else item.content
+                            print(f"      Content: {content_preview}")
+                        elif item.type == "function_call":
+                            print(f"      Function: {item.name}")
+                            print(f"      Arguments: {item.arguments}")
+                        elif item.type == "reasoning":
+                            # Reasoning items might have different attributes
+                            try:
+                                if hasattr(item, 'content'):
+                                    reasoning_preview = item.content[:200] + "..." if len(item.content) > 200 else item.content
+                                    print(f"      Reasoning: {reasoning_preview}")
+                                else:
+                                    print(f"      Reasoning: [reasoning data available but no content attribute]")
+                            except Exception as e:
+                                print(f"      Reasoning: [error accessing reasoning: {e}]")
+                        else:
+                            print(f"      [Unknown item type: {item.type}]")
+                if response.output_text:
+                    print(f"Output text: {response.output_text}")
+                print()
                 
                 # Log the response structure
                 logger.info(f"OpenAI response received, response ID: {response.id}")
@@ -254,6 +294,13 @@ class ChatService:
                                 "call_id": item.call_id,
                                 "output": result
                             })
+                            
+                            # Print the full function result being sent to the model
+                            print(f"\n🔧 FUNCTION RESULT SENT TO MODEL:")
+                            print(f"Call ID: {item.call_id}")
+                            print(f"Function: {name}")
+                            print(f"Result: {result}")
+                            print()
                         
                         # Make another call with the function results
                         logger.info(f"Making API call round {round_count + 1} with function results")
@@ -348,6 +395,9 @@ class ChatService:
                 logger.error(f"Error in OpenAI API call: {str(api_error)}", exc_info=True)
                 assistant_message = "I'm sorry, I'm having trouble understanding your request right now. Please try again or rephrase your question."
                 response_id = None
+            
+            # Print the assistant's response to console
+            print(f"\n🤖 Assistant Response: {assistant_message}\n")
             
             # Create assistant message object
             assistant_chat_message = ChatMessage(

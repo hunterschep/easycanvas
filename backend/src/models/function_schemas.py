@@ -182,7 +182,7 @@ For example, if a user asks "how am i doing in my history course", you should:
 1. Call get_courses to get all courses
 2. Find the course with "history" in the name
 3. Call get_assignments with that course's ID
-4. Look at assignments with a 'score' field and extrapolate how the user is doing in the course
+4. Look at assignments with a 'grade' field and extrapolate how the user is doing in the course
 
 You can make multiple function calls in a single response when needed. Always use the actual course IDs from the get_courses response when calling other functions.
 
