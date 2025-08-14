@@ -1,6 +1,7 @@
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom'; // TODO: Implement course detail navigation
 import { AcademicCapIcon, ChartBarIcon, BookOpenIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/common/Button/Button';
+import { SectionCard, Card } from '@/components/common/Card/Card';
 import type { CanvasCourse, CanvasAssignment } from '@/types/canvas.types';
 
 interface CourseOverviewProps {
@@ -16,7 +17,7 @@ interface CourseStats {
 }
 
 export const CourseOverview = ({ courses }: CourseOverviewProps) => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate(); // TODO: Implement course detail navigation
 
   const calculateCourseStats = (assignments: CanvasAssignment[]): CourseStats => {
     let pointsEarned = 0;
@@ -70,48 +71,39 @@ export const CourseOverview = ({ courses }: CourseOverviewProps) => {
 
   if (courses.length === 0) {
     return (
-      <div className="relative group">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
-        <div className="relative bg-black border border-gray-800 rounded-xl p-8 sm:p-12">
-          <div className="text-center space-y-6">
-            <div className="flex justify-center">
-              <div className="bg-gray-500/10 border border-gray-500/20 rounded-full p-6">
-                <BookOpenIcon className="w-12 h-12 text-gray-400" />
-              </div>
-            </div>
-            <div>
-              <h2 className="text-3xl font-black tracking-tighter text-white mb-3">
-                No Courses Found
-              </h2>
-              <p className="text-gray-400 text-lg">
-                No courses are currently available. Check your course selection or Canvas integration.
-              </p>
+      <Card size="lg">
+        <div className="text-center space-y-6">
+          <div className="flex justify-center">
+            <div className="bg-gray-500/10 border border-gray-500/20 rounded-full p-6">
+              <BookOpenIcon className="w-12 h-12 text-gray-400" />
             </div>
           </div>
+          <div>
+            <h2 className="text-3xl font-black tracking-tighter text-white mb-3">
+              No Courses Found
+            </h2>
+            <p className="text-gray-400 text-lg">
+              No courses are currently available. Check your course selection or Canvas integration.
+            </p>
+          </div>
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="relative group">
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
-      <div className="relative bg-black border border-gray-800 rounded-xl p-6 sm:p-8 lg:p-10">
-        <div className="space-y-6 sm:space-y-8">
-          {/* Header */}
-          <div className="flex items-center gap-4">
-            <div className="bg-gray-500/10 border border-gray-500/20 rounded-full p-3">
-              <AcademicCapIcon className="w-8 h-8 text-gray-400 flex-shrink-0" />
-            </div>
-            <div>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tighter text-white">
-                Course Overview
-              </h2>
-              <p className="text-gray-400 text-base sm:text-lg">
-                Your academic progress across {courses.length} course{courses.length === 1 ? '' : 's'}
-              </p>
-            </div>
-          </div>
+    <SectionCard 
+      title="Course Overview"
+      icon={<AcademicCapIcon className="w-8 h-8 text-gray-400" />}
+      size="lg"
+    >
+      <div className="space-y-6 sm:space-y-8">
+        {/* Subtitle */}
+        <div className="-mt-2 sm:-mt-4">
+          <p className="text-gray-400 text-base sm:text-lg">
+            Your academic progress across {courses.length} course{courses.length === 1 ? '' : 's'}
+          </p>
+        </div>
 
           {/* Courses Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8">
@@ -124,9 +116,9 @@ export const CourseOverview = ({ courses }: CourseOverviewProps) => {
                   className="relative group/card h-full"
                 >
                   {/* Card gradient border effect - much more subtle */}
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-gray-600/10 via-gray-500/10 to-gray-600/10 rounded-2xl blur opacity-0 group-hover/card:opacity-60 transition-opacity duration-700" />
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-gray-600/10 via-gray-500/10 to-gray-600/10 rounded-xl blur opacity-0 group-hover/card:opacity-60 transition-opacity duration-700" />
                   
-                  <div className="relative bg-black border border-gray-800 rounded-2xl p-6 sm:p-8 hover:border-gray-700 transition-all duration-300 group-hover/card:bg-gray-900/30 h-full flex flex-col">
+                  <div className="relative bg-black border border-gray-800 rounded-xl p-6 sm:p-8 hover:border-gray-700 transition-all duration-300 group-hover/card:bg-gray-900/30 h-full flex flex-col">
                     <div className="space-y-6 flex-1 flex flex-col">
                       
                       {/* Course Header */}
@@ -196,7 +188,8 @@ export const CourseOverview = ({ courses }: CourseOverviewProps) => {
                         <Button
                           onClick={() => handleViewCourse(course.id)}
                           variant="secondary"
-                          className="w-full py-3 text-sm font-medium border-gray-700 hover:border-gray-600 text-gray-300 hover:text-white transition-all duration-200"
+                          fullWidth
+                          size="sm"
                         >
                           View Course Details
                         </Button>
@@ -206,9 +199,8 @@ export const CourseOverview = ({ courses }: CourseOverviewProps) => {
                 </div>
               );
             })}
-          </div>
         </div>
       </div>
-    </div>
+    </SectionCard>
   );
 }; 

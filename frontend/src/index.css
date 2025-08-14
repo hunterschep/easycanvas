@@ -2,70 +2,74 @@
 @tailwind components;
 @tailwind utilities;
 
+/* EasyCanvas Global Styles */
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
+  /* Always use dark theme - no light mode support */
+  color-scheme: dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+  background-color: #000000;
 
+  /* Typography optimizations */
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
+/* Reset default styles to match our design system */
+* {
+  box-sizing: border-box;
 }
-a:hover {
-  color: #535bf2;
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
+  background-color: #000000;
+  color: #ffffff;
+  overflow-x: hidden;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
+/* Remove default button styles - we use our Button component */
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
   cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  outline: inherit;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+/* Remove default link styles - we style them contextually */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Remove default heading margins - we control spacing with Tailwind */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-weight: inherit;
+}
+
+/* Remove default paragraph margins */
+p {
+  margin: 0;
+}
+
+/* Remove default list styles */
+ul, ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 /* Animation delay utilities */
@@ -81,21 +85,61 @@ button:focus-visible {
   animation-delay: 6s;
 }
 
-/* Custom scrollbar styles */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+/* Global scrollbar styles - apply to all scrollable elements */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(75, 75, 75, 0.5) rgba(15, 15, 15, 0.5);
 }
 
-.custom-scrollbar::-webkit-scrollbar-track {
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
   background: rgba(15, 15, 15, 0.5);
   border-radius: 8px;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb {
+*::-webkit-scrollbar-thumb {
   background: rgba(75, 75, 75, 0.5);
   border-radius: 8px;
+  transition: background-color 0.2s ease;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+*::-webkit-scrollbar-thumb:hover {
   background: rgba(100, 100, 100, 0.7);
+}
+
+*::-webkit-scrollbar-corner {
+  background: rgba(15, 15, 15, 0.5);
+}
+
+/* Custom focus styles for accessibility */
+.focus-ring:focus {
+  outline: 2px solid rgba(59, 130, 246, 0.5);
+  outline-offset: 2px;
+}
+
+/* Utility classes for consistent patterns */
+.gradient-border {
+  position: relative;
+}
+
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: -0.5px;
+  padding: 0.5px;
+  background: linear-gradient(to right, white, rgb(107, 114, 128), black);
+  border-radius: inherit;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: subtract;
+  opacity: 0.3;
+  transition: opacity 1000ms;
+}
+
+.gradient-border:hover::before {
+  opacity: 1;
+  transition-duration: 200ms;
 }

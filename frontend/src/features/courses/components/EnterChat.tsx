@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import { ChatBubbleLeftRightIcon, SparklesIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import { ChatBubbleLeftRightIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/common/Button/Button';
+import { SectionCard } from '@/components/common/Card/Card';
 
 export const EnterChat = () => {
   const navigate = useNavigate();
@@ -10,24 +11,19 @@ export const EnterChat = () => {
   };
 
   return (
-    <div className="relative group">
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-600 rounded-xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
-      <div className="relative bg-black border border-gray-800 rounded-xl p-6 sm:p-8 lg:p-10">
-        <div className="space-y-6 sm:space-y-8">
-          {/* Header */}
-          <div className="flex items-center gap-4">
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-full p-3">
-              <ChatBubbleLeftRightIcon className="w-8 h-8 text-blue-400 flex-shrink-0" />
-            </div>
-            <div>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tighter text-white">
-                Chat Assistant
-              </h2>
-              <p className="text-gray-400 text-base sm:text-lg">
-                Powered by OpenAI's latest reasoning models
-              </p>
-            </div>
-          </div>
+    <SectionCard 
+      title="Chat Assistant"
+      icon={<ChatBubbleLeftRightIcon className="w-8 h-8 text-blue-400" />}
+      variant="blue"
+      size="lg"
+    >
+      <div className="space-y-6 sm:space-y-8">
+        {/* Subtitle */}
+        <div className="-mt-2 sm:-mt-4">
+          <p className="text-gray-400 text-base sm:text-lg">
+            Powered by OpenAI's latest reasoning models
+          </p>
+        </div>
 
           <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-8">
             {/* Left Content */}
@@ -56,22 +52,19 @@ export const EnterChat = () => {
               </div>
             </div>
 
-            {/* Right CTA Button */}
-            <div className="flex-shrink-0">
-              <Button
-                onClick={handleStartChat}
-                variant="primary"
-                className="group relative bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 border-0 text-white font-semibold px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-lg transition-all duration-200 transform hover:scale-105"
-              >
-                <span className="flex items-center gap-2 sm:gap-3">
-                  Start Chatting
-                  <ArrowRightIcon className="w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-x-1 transition-transform duration-200" />
-                </span>
-              </Button>
-            </div>
+          {/* Right CTA Button */}
+          <div className="flex-shrink-0">
+            <Button
+              onClick={handleStartChat}
+              variant="gradient"
+              size="lg"
+              rightIcon={<ArrowRightIcon className="w-5 h-5 sm:w-6 sm:h-6 group-hover:translate-x-1 transition-transform duration-200" />}
+            >
+              Start Chatting
+            </Button>
           </div>
         </div>
       </div>
-    </div>
+    </SectionCard>
   );
 }; 

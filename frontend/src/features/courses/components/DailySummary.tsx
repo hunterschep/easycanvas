@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AccountService } from '@/features/account/services/account.service';
 import { CalendarIcon, ClockIcon, BellIcon } from '@heroicons/react/24/outline';
+import { SectionCard, StatCard } from '@/components/common/Card/Card';
 import type { UserSettings } from '@/features/account/types';
 import type { CanvasCourse, CanvasAssignment, CanvasAnnouncement } from '@/types/canvas.types';
 
@@ -65,38 +66,27 @@ export const DailySummary = ({ courses }: DailySummaryProps) => {
 
   if (loading) {
     return (
-      <div className="relative group">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
-        <div className="relative bg-black border border-gray-800 rounded-xl p-6 sm:p-8 lg:p-10">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-800 rounded w-1/3 mb-4"></div>
-            <div className="h-4 bg-gray-800 rounded w-2/3 mb-2"></div>
-            <div className="h-4 bg-gray-800 rounded w-1/2"></div>
-          </div>
-        </div>
-      </div>
+      <SectionCard 
+        loading={true}
+        title="Daily Summary"
+        icon={<CalendarIcon className="w-8 h-8 text-gray-400" />}
+      />
     );
   }
 
   return (
-    <div className="relative group">
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
-      <div className="relative bg-black border border-gray-800 rounded-xl p-6 sm:p-8 lg:p-10">
-        <div className="space-y-6 sm:space-y-8">
-          {/* Header */}
-          <div className="flex items-center gap-4">
-            <div className="bg-gray-500/10 border border-gray-500/20 rounded-full p-3">
-              <CalendarIcon className="w-8 h-8 text-gray-400 flex-shrink-0" />
-            </div>
-            <div>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tighter text-white">
-                Daily Summary
-              </h2>
-              <p className="text-gray-400 text-base sm:text-lg">
-                {dayOfWeek}, {month} {dayOfMonth}, {year}
-              </p>
-            </div>
-          </div>
+    <SectionCard 
+      title="Daily Summary"
+      icon={<CalendarIcon className="w-8 h-8 text-gray-400" />}
+      size="lg"
+    >
+      <div className="space-y-6 sm:space-y-8">
+        {/* Date subtitle */}
+        <div className="-mt-2 sm:-mt-4">
+          <p className="text-gray-400 text-base sm:text-lg">
+            {dayOfWeek}, {month} {dayOfMonth}, {year}
+          </p>
+        </div>
 
           {/* Greeting */}
           <div>
@@ -168,35 +158,36 @@ export const DailySummary = ({ courses }: DailySummaryProps) => {
             </div>
           </div>
 
-          {/* Quick Stats */}
-          <div className="pt-4 border-t border-gray-800">
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-              <div>
-                <p className="text-2xl font-bold text-white">{courses.length}</p>
-                <p className="text-xs text-gray-400">Active Courses</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-white">
-                  {courses.reduce((total, course) => total + course.assignments.length, 0)}
-                </p>
-                <p className="text-xs text-gray-400">Total Assignments</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-white">
-                  {courses.reduce((total, course) => total + course.announcements.length, 0)}
-                </p>
-                <p className="text-xs text-gray-400">Announcements</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-white">
-                  {courses.reduce((total, course) => total + course.modules.length, 0)}
-                </p>
-                <p className="text-xs text-gray-400">Modules</p>
-              </div>
-            </div>
+        {/* Quick Stats */}
+        <div className="pt-4 border-t border-gray-800">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <StatCard 
+              value={courses.length}
+              label="Active Courses"
+              variant="blue"
+              hover={false}
+            />
+            <StatCard 
+              value={courses.reduce((total, course) => total + course.assignments.length, 0)}
+              label="Total Assignments"
+              variant="purple"
+              hover={false}
+            />
+            <StatCard 
+              value={courses.reduce((total, course) => total + course.announcements.length, 0)}
+              label="Announcements"
+              variant="green"
+              hover={false}
+            />
+            <StatCard 
+              value={courses.reduce((total, course) => total + course.modules.length, 0)}
+              label="Modules"
+              variant="yellow"
+              hover={false}
+            />
           </div>
         </div>
       </div>
-    </div>
+    </SectionCard>
   );
 }; 

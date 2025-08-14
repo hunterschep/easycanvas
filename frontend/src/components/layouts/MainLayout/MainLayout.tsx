@@ -1,4 +1,5 @@
 import { Account } from '@/features/account/components/Account/Account';
+import { Button } from '@/components/common/Button/Button';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -21,12 +22,13 @@ export const MainLayout = ({
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
               {showBackButton && (
-                <button
+                <Button
                   onClick={onBack}
-                  className="px-4 py-2 text-sm text-gray-400 hover:text-white border border-gray-800 hover:border-gray-600 rounded-lg transition-all duration-200"
+                  variant="secondary"
+                  size="sm"
                 >
                   ← Back
-                </button>
+                </Button>
               )}
               <h1 className="text-2xl font-black tracking-tighter">
                 easy<span className="text-gray-500">canvas</span>

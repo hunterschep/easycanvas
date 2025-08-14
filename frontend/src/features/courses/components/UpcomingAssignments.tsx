@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ClockIcon, ChatBubbleLeftRightIcon, ArrowTopRightOnSquareIcon, CalendarIcon } from '@heroicons/react/24/outline';
 import { Button } from '@/components/common/Button/Button';
+import { SectionCard, Card } from '@/components/common/Card/Card';
 import type { CanvasCourse, CanvasAssignment } from '@/types/canvas.types';
 
 interface UpcomingAssignmentsProps {
@@ -104,48 +105,39 @@ export const UpcomingAssignments = ({ courses }: UpcomingAssignmentsProps) => {
 
   if (upcomingAssignments.length === 0) {
     return (
-      <div className="relative group">
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-lg blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
-        <div className="relative bg-black border border-gray-800 rounded-lg p-6 sm:p-8">
-          <div className="text-center space-y-4">
-            <div className="flex justify-center">
-              <div className="bg-green-500/10 border border-green-500/20 rounded-full p-4">
-                <CalendarIcon className="w-8 h-8 text-green-400" />
-              </div>
-            </div>
-            <div>
-              <h2 className="text-2xl font-black tracking-tighter text-white mb-2">
-                All Caught Up!
-              </h2>
-              <p className="text-gray-400">
-                No assignments due in the next 30 days. Great job staying on top of your work! 🎉
-              </p>
+      <Card variant="green" size="md">
+        <div className="text-center space-y-4">
+          <div className="flex justify-center">
+            <div className="bg-green-500/10 border border-green-500/20 rounded-full p-4">
+              <CalendarIcon className="w-8 h-8 text-green-400" />
             </div>
           </div>
+          <div>
+            <h2 className="text-2xl font-black tracking-tighter text-white mb-2">
+              All Caught Up!
+            </h2>
+            <p className="text-gray-400">
+              No assignments due in the next 30 days. Great job staying on top of your work! 🎉
+            </p>
+          </div>
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="relative group">
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
-      <div className="relative bg-black border border-gray-800 rounded-xl p-6 sm:p-8 lg:p-10">
-        <div className="space-y-6 sm:space-y-8">
-          {/* Header */}
-          <div className="flex items-center gap-4">
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-full p-3">
-              <ClockIcon className="w-8 h-8 text-blue-400 flex-shrink-0" />
-            </div>
-            <div>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tighter text-white">
-                Upcoming Assignments
-              </h2>
-              <p className="text-gray-400 text-base sm:text-lg">
-                {upcomingAssignments.length} assignment{upcomingAssignments.length === 1 ? '' : 's'} due in the next 30 days
-              </p>
-            </div>
-          </div>
+    <SectionCard 
+      title="Upcoming Assignments"
+      icon={<ClockIcon className="w-8 h-8 text-blue-400" />}
+      size="lg"
+    >
+      <div className="space-y-6 sm:space-y-8">
+        {/* Subtitle */}
+        <div className="-mt-2 sm:-mt-4">
+          <p className="text-gray-400 text-base sm:text-lg">
+            {upcomingAssignments.length} assignment{upcomingAssignments.length === 1 ? '' : 's'} due in the next 30 days
+          </p>
+        </div>
 
           {/* Assignments Grid */}
           <div className="grid grid-cols-1 gap-4 sm:gap-6">
@@ -198,19 +190,21 @@ export const UpcomingAssignments = ({ courses }: UpcomingAssignmentsProps) => {
                         <Button
                           onClick={() => handleAskAI(assignment)}
                           variant="primary"
-                          className="bg-blue-600/90 hover:bg-blue-500 border-blue-600/50 hover:border-blue-500 text-white px-4 py-2.5 text-sm font-medium group-hover/card:scale-105 transition-all duration-200"
+                          size="sm"
+                          leftIcon={<ChatBubbleLeftRightIcon className="w-4 h-4" />}
+                          className="group-hover/card:scale-105 transition-all duration-200"
                         >
-                          <ChatBubbleLeftRightIcon className="w-4 h-4" />
                           <span className="hidden sm:inline">Ask AI</span>
                         </Button>
                         
                         <Button
                           onClick={() => handleViewInCanvas(assignment)}
                           variant="secondary"
-                          className="border-gray-700 hover:border-gray-600 text-gray-300 hover:text-white px-4 py-2.5 text-sm font-medium group-hover/card:scale-105 transition-all duration-200"
+                          size="sm"
+                          leftIcon={<ArrowTopRightOnSquareIcon className="w-4 h-4" />}
                           disabled={!assignment.html_url}
+                          className="group-hover/card:scale-105 transition-all duration-200"
                         >
-                          <ArrowTopRightOnSquareIcon className="w-4 h-4" />
                           <span className="hidden sm:inline">Canvas</span>
                         </Button>
                       </div>
@@ -221,20 +215,19 @@ export const UpcomingAssignments = ({ courses }: UpcomingAssignmentsProps) => {
             })}
           </div>
 
-          {/* Show More/Less Button */}
-          {upcomingAssignments.length > 6 && (
-            <div className="text-center pt-2">
-              <Button
-                onClick={() => setShowAll(!showAll)}
-                variant="secondary"
-                className="text-sm"
-              >
-                {showAll ? 'Show Less' : `Show All ${upcomingAssignments.length} Assignments`}
-              </Button>
-            </div>
-          )}
-        </div>
+        {/* Show More/Less Button */}
+        {upcomingAssignments.length > 6 && (
+          <div className="text-center pt-2">
+            <Button
+              onClick={() => setShowAll(!showAll)}
+              variant="ghost"
+              size="sm"
+            >
+              {showAll ? 'Show Less' : `Show All ${upcomingAssignments.length} Assignments`}
+            </Button>
+          </div>
+        )}
       </div>
-    </div>
+    </SectionCard>
   );
 }; 
