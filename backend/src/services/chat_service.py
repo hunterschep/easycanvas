@@ -199,7 +199,7 @@ class ChatService:
             
             # Set up the API call parameters
             kwargs = {
-                "model": "o4-mini-2025-04-16",
+                "model": "gpt-5-mini",
                 "store": True,
                 "tools": CANVAS_TOOLS,
                 "reasoning": {"effort": "medium"},
@@ -356,34 +356,146 @@ class ChatService:
                         original_message = message_content.lower()
                         
                         if "error" in str(result_data):
-                            assistant_message = f"I'm sorry, I tried to get information about your Canvas data, but encountered an error. The specific error was: {result_data.get('error', 'Unknown error')}"
+                            assistant_message = f"""## ⚠️ Canvas Data Error
+
+I encountered an issue while fetching your Canvas information:
+
+**Error**: {result_data.get('error', 'Unknown error')}
+
+### 💡 What you can try:
+- Check that your Canvas credentials are still valid
+- Try rephrasing your question
+- Contact support if the issue persists
+
+Feel free to ask me something else about your coursework!"""
                         elif function_data.get("name") == "get_courses":
-                            if isinstance(result_data, list):
+                            if isinstance(result_data, list) and len(result_data) > 0:
                                 # Check if user was asking about modules, assignments, etc.
                                 if "module" in original_message:
                                     # Try to find a course that matches their query
                                     nlp_courses = [course for course in result_data if 'nlp' in course.get('name', '').lower() or 'natural language' in course.get('name', '').lower()]
                                     if nlp_courses:
                                         course_names = [course.get('name', 'Unknown') for course in nlp_courses]
-                                        assistant_message = f"I found your NLP course(s): {', '.join(course_names)}. However, I encountered an issue retrieving the modules. Please try asking again or be more specific about which course you'd like to see modules for."
+                                        assistant_message = f"""## 📚 Found Your Course!
+
+I located your NLP course: **{', '.join(course_names)}**
+
+However, I had trouble retrieving the modules. Let me help you with that:
+
+### 🔄 Try asking:
+- "Show me the modules for [specific course name]"
+- "What's in my NLP course?"
+
+Would you like me to try again?"""
                                     else:
-                                        course_names = [course.get('name', 'Unknown') for course in result_data]
-                                        assistant_message = f"I couldn't find a course with 'NLP' in the name. Your courses are: {', '.join(course_names)}. Could you specify which course you'd like to see modules for?"
+                                        course_names = [course.get('name', 'Unknown') for course in result_data[:5]]
+                                        assistant_message = f"""## 🤔 Course Not Found
+
+I couldn't find a course with 'NLP' in the name. Here are your current courses:
+
+### 📚 Your Courses:
+{chr(10).join([f'- **{name}**' for name in course_names])}
+{'- *...and more*' if len(result_data) > 5 else ''}
+
+Could you specify which course you'd like to see modules for?"""
                                 elif "assignment" in original_message or "homework" in original_message or "due" in original_message:
-                                    assistant_message = f"I found your {len(result_data)} courses, but encountered an issue retrieving assignment information. Please try asking again."
+                                    assistant_message = f"""## 📝 Assignment Information
+
+I found your **{len(result_data)} courses** but encountered an issue retrieving assignment details.
+
+### 🔄 Try asking:
+- "What assignments are due this week?"
+- "Show me upcoming deadlines"
+- "What homework do I have?"
+
+Let me try to get that information for you again!"""
                                 elif "announcement" in original_message:
-                                    assistant_message = f"I found your {len(result_data)} courses, but encountered an issue retrieving announcements. Please try asking again."
+                                    assistant_message = f"""## 📢 Course Announcements
+
+I found your **{len(result_data)} courses** but had trouble getting the latest announcements.
+
+### 🔄 Try asking:
+- "What are the latest announcements?"
+- "Any new updates from my professors?"
+- "Show me recent course news"
+
+Would you like me to try again?"""
                                 else:
-                                    assistant_message = f"You are enrolled in {len(result_data)} courses: {', '.join([course.get('name', 'Unknown') for course in result_data[:3]])}{'...' if len(result_data) > 3 else ''}."
+                                    course_names = [course.get('name', 'Unknown') for course in result_data[:3]]
+                                    assistant_message = f"""## 📚 Your Courses
+
+You're currently enrolled in **{len(result_data)} courses**:
+
+### 🎓 Current Enrollment:
+{chr(10).join([f'- **{name}**' for name in course_names])}
+{'- *...and more*' if len(result_data) > 3 else ''}
+
+### 💡 What would you like to know?
+- Assignment deadlines
+- Course modules and content
+- Recent announcements
+- Grade information
+
+Just ask me about any of these topics!"""
                             else:
-                                assistant_message = "I couldn't find any courses in your Canvas account."
+                                assistant_message = """## 🔍 No Courses Found
+
+I couldn't find any courses in your Canvas account.
+
+### 🤔 This might mean:
+- You're not enrolled in any courses this term
+- There's an issue with your Canvas connection
+- Your courses haven't been published yet
+
+### 💡 What to try:
+- Check your Canvas account directly
+- Contact your institution's support
+- Try refreshing your connection in account settings
+
+Is there anything else I can help you with?"""
                         elif function_data.get("name") == "get_upcoming_due_dates":
+                            days = function_data.get('arguments', {}).get('days', 7)
                             if isinstance(result_data, list) and len(result_data) > 0:
-                                assistant_message = f"I found {len(result_data)} upcoming assignments due in the next {function_data.get('arguments', {}).get('days', 7)} days."
+                                assistant_message = f"""## 🗓️ Upcoming Deadlines
+
+I found **{len(result_data)} assignments** due in the next **{days} days**, but had trouble formatting the details.
+
+### 🔄 Try asking:
+- "What's due this week?"
+- "Show me my assignment deadlines"
+- "What do I need to work on?"
+
+Let me try to get those details for you!"""
                             else:
-                                assistant_message = f"Good news! You don't have any assignments due in the next {function_data.get('arguments', {}).get('days', 7)} days."
+                                assistant_message = f"""## ✅ All Clear!
+
+Great news! You don't have any assignments due in the next **{days} days**.
+
+### 🎯 You're caught up! Here's what you can do:
+- Get ahead on upcoming work
+- Review recent course material
+- Check for longer-term projects
+
+### 💡 Want to look further ahead?
+Try asking: "What assignments are due in the next 2 weeks?"
+
+Keep up the great work! 🌟"""
                         else:
-                            assistant_message = "I tried to fetch information from your Canvas account, but couldn't generate a proper response. Please try asking in a different way."
+                            assistant_message = """## 🤖 Processing Issue
+
+I retrieved your Canvas information but had trouble generating a proper response.
+
+### 🔄 Let's try again:
+- Try rephrasing your question
+- Be more specific about what you need
+- Ask about a particular course or assignment
+
+### 💡 Popular questions:
+- "What assignments are due this week?"
+- "Show me my courses"
+- "Any new announcements?"
+
+What would you like to know about your coursework?"""
                     
                     response_id = current_response.id
                 else:
@@ -393,7 +505,21 @@ class ChatService:
                     response_id = response.id
             except Exception as api_error:
                 logger.error(f"Error in OpenAI API call: {str(api_error)}", exc_info=True)
-                assistant_message = "I'm sorry, I'm having trouble understanding your request right now. Please try again or rephrase your question."
+                assistant_message = """## 🤖 Temporary Issue
+
+I'm experiencing a temporary issue processing your request.
+
+### 🔄 Please try:
+- **Rephrasing your question** - sometimes different wording helps
+- **Being more specific** - mention specific courses or assignments
+- **Asking a simpler question** first
+
+### 💡 Example questions that work well:
+- "What assignments are due this week?"
+- "Show me my courses"
+- "Any new announcements?"
+
+I'm here to help once the issue resolves! 🌟"""
                 response_id = None
             
             # Print the assistant's response to console
@@ -419,7 +545,21 @@ class ChatService:
             # Return a fallback message
             error_message = ChatMessage(
                 role=MessageRole.ASSISTANT,
-                content="I'm sorry, I'm having trouble processing your request right now. Please try again later.",
+                content="""## ⚠️ Service Temporarily Unavailable
+
+I'm experiencing technical difficulties right now.
+
+### 🔄 What you can try:
+- **Wait a moment** and try again
+- **Refresh the page** if the issue persists
+- **Check your internet connection**
+
+### 💡 In the meantime:
+- Review your Canvas account directly
+- Check course announcements
+- Prepare questions for when I'm back online
+
+I'll be back to help you soon! 🌟""",
                 timestamp=datetime.utcnow()
             )
             

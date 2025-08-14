@@ -205,7 +205,20 @@ export const ChatPage = () => {
       // Handle error - add error message
       const errorMessage: ChatMessage = {
         role: MessageRole.ASSISTANT,
-        content: "Sorry, I encountered an error. Please try again.",
+        content: `## ⚠️ Connection Issue
+
+I'm having trouble connecting to the server right now.
+
+### 🔄 Please try:
+- **Refresh the page** and try again
+- **Check your internet connection**
+- **Wait a moment** and retry your message
+
+### 💡 If the issue persists:
+- Try a simpler question first
+- Contact support if needed
+
+I'll be back to help you soon! 🌟`,
         timestamp: new Date(),
         chatId: currentChatId
       };

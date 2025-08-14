@@ -59,23 +59,23 @@ const MessageList = ({ messages, isLoading = false }: MessageListProps) => {
                   components={{
                     // Paragraphs
                     p: ({ children }) => (
-                      <p className="mb-2 sm:mb-3 last:mb-0 text-white leading-relaxed text-sm sm:text-base">
+                      <p className="mb-3 sm:mb-4 last:mb-0 text-white leading-relaxed text-sm sm:text-base">
                         {children}
                       </p>
                     ),
                     // Headings
                     h1: ({ children }) => (
-                      <h1 className="text-lg sm:text-xl font-bold mb-2 sm:mb-3 text-white">
+                      <h1 className="text-xl sm:text-2xl font-black mb-3 sm:mb-4 mt-2 text-white tracking-tight">
                         {children}
                       </h1>
                     ),
                     h2: ({ children }) => (
-                      <h2 className="text-base sm:text-lg font-bold mb-2 sm:mb-3 text-white">
+                      <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 mt-4 text-white tracking-tight">
                         {children}
                       </h2>
                     ),
                     h3: ({ children }) => (
-                      <h3 className="text-sm sm:text-base font-bold mb-1 sm:mb-2 text-white">
+                      <h3 className="text-base sm:text-lg font-bold mb-2 sm:mb-3 mt-3 text-white tracking-tight">
                         {children}
                       </h3>
                     ),
@@ -93,17 +93,17 @@ const MessageList = ({ messages, isLoading = false }: MessageListProps) => {
                     ),
                     // Lists
                     ul: ({ children }) => (
-                      <ul className="list-disc list-inside mb-2 sm:mb-3 space-y-1 text-white ml-2 sm:ml-4 text-sm sm:text-base">
+                      <ul className="list-disc list-inside mb-3 sm:mb-4 space-y-2 text-white ml-2 sm:ml-4 text-sm sm:text-base">
                         {children}
                       </ul>
                     ),
                     ol: ({ children }) => (
-                      <ol className="list-decimal list-inside mb-2 sm:mb-3 space-y-1 text-white ml-2 sm:ml-4 text-sm sm:text-base">
+                      <ol className="list-decimal list-inside mb-3 sm:mb-4 space-y-2 text-white ml-2 sm:ml-4 text-sm sm:text-base">
                         {children}
                       </ol>
                     ),
                     li: ({ children }) => (
-                      <li className="text-white leading-relaxed">
+                      <li className="text-white leading-relaxed py-0.5">
                         {children}
                       </li>
                     ),
@@ -134,7 +134,7 @@ const MessageList = ({ messages, isLoading = false }: MessageListProps) => {
                     ),
                     // Blockquotes
                     blockquote: ({ children }) => (
-                      <blockquote className="border-l-4 border-blue-500 pl-3 sm:pl-4 italic text-gray-300 mb-2 sm:mb-3 bg-gray-900 py-2 rounded-r border border-gray-800">
+                      <blockquote className="border-l-4 border-blue-500 pl-4 sm:pl-6 italic text-gray-200 mb-3 sm:mb-4 bg-gray-900/50 py-3 sm:py-4 rounded-r border border-gray-700/50 backdrop-blur-sm">
                         {children}
                       </blockquote>
                     ),
