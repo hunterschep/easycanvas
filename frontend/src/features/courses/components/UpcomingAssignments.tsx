@@ -1,8 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ClockIcon, ChatBubbleLeftRightIcon, ArrowTopRightOnSquareIcon, CalendarIcon } from '@heroicons/react/24/outline';
+import { 
+  ClockIcon, 
+  ChatBubbleLeftRightIcon, 
+  ArrowTopRightOnSquareIcon, 
+  CheckCircleIcon
+} from '@heroicons/react/24/outline';
 import { Button } from '@/components/common/Button/Button';
-import { SectionCard, Card } from '@/components/common/Card/Card';
+import { SectionCard } from '@/components/common/Card/Card';
 import type { CanvasCourse, CanvasAssignment } from '@/types/canvas.types';
 
 interface UpcomingAssignmentsProps {
@@ -105,23 +110,31 @@ export const UpcomingAssignments = ({ courses }: UpcomingAssignmentsProps) => {
 
   if (upcomingAssignments.length === 0) {
     return (
-      <Card variant="green" size="md">
-        <div className="text-center space-y-4">
+      <SectionCard 
+        title="Upcoming Assignments"
+        icon={<ClockIcon className="w-8 h-8 text-green-400" />}
+        variant="green"
+        size="lg"
+      >
+        <div className="text-center space-y-6 py-8">
           <div className="flex justify-center">
-            <div className="bg-green-500/10 border border-green-500/20 rounded-full p-4">
-              <CalendarIcon className="w-8 h-8 text-green-400" />
+            <div className="bg-green-500/10 border border-green-500/20 rounded-full p-6">
+              <CheckCircleIcon className="w-16 h-16 text-green-400" />
             </div>
           </div>
           <div>
-            <h2 className="text-2xl font-black tracking-tighter text-white mb-2">
+            <h3 className="text-2xl font-bold text-white mb-3">
               All Caught Up!
-            </h2>
-            <p className="text-gray-400">
-              No assignments due in the next 30 days. Great job staying on top of your work! 🎉
+            </h3>
+            <p className="text-gray-300 text-lg mb-4">
+              No assignments due in the next 30 days.
+            </p>
+            <p className="text-green-400 font-medium">
+              Great job staying on top of your work! 🎉
             </p>
           </div>
         </div>
-      </Card>
+      </SectionCard>
     );
   }
 
@@ -131,12 +144,55 @@ export const UpcomingAssignments = ({ courses }: UpcomingAssignmentsProps) => {
       icon={<ClockIcon className="w-8 h-8 text-blue-400" />}
       size="lg"
     >
-      <div className="space-y-6 sm:space-y-8">
-        {/* Subtitle */}
-        <div className="-mt-2 sm:-mt-4">
-          <p className="text-gray-400 text-base sm:text-lg">
+      <div className="space-y-6">
+        {/* Compact Header */}
+        <div className="-mt-2 sm:-mt-4 space-y-2">
+          <p className="text-gray-300 text-base font-medium">
             {upcomingAssignments.length} assignment{upcomingAssignments.length === 1 ? '' : 's'} due in the next 30 days
           </p>
+          
+          {/* Priority Summary - Only show if there are urgent items */}
+          {(upcomingAssignments.filter(a => {
+            const dueDate = new Date(a.due_at!);
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 2); // Next 2 days
+            return dueDate <= tomorrow;
+          }).length > 0) && (
+            <div className="flex items-center gap-4 text-sm">
+              {upcomingAssignments.filter(a => {
+                const dueDate = new Date(a.due_at!);
+                const today = new Date();
+                return dueDate.toDateString() === today.toDateString();
+              }).length > 0 && (
+                <span className="text-red-400 font-medium">
+                  {upcomingAssignments.filter(a => {
+                    const dueDate = new Date(a.due_at!);
+                    const today = new Date();
+                    return dueDate.toDateString() === today.toDateString();
+                  }).length} due today
+                </span>
+              )}
+              
+              {upcomingAssignments.filter(a => {
+                const dueDate = new Date(a.due_at!);
+                const today = new Date();
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                return dueDate.toDateString() === tomorrow.toDateString();
+              }).length > 0 && (
+                <span className="text-orange-400 font-medium">
+                  {upcomingAssignments.filter(a => {
+                    const dueDate = new Date(a.due_at!);
+                    const today = new Date();
+                    const tomorrow = new Date(today);
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    return dueDate.toDateString() === tomorrow.toDateString();
+                  }).length} due tomorrow
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
           {/* Assignments Grid */}

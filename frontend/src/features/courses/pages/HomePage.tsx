@@ -1,11 +1,13 @@
-import React from 'react';
+
 import { MainLayout } from '@/components/layouts/MainLayout/MainLayout';
 import { Loading } from '@/components/common/Loading';
+import { Card } from '@/components/common/Card/Card';
 import { useCourses } from '../hooks/useCourses';
 import { DailySummary } from '../components/DailySummary';
 import { EnterChat } from '../components/EnterChat';
 import { UpcomingAssignments } from '../components/UpcomingAssignments';
 import { CourseOverview } from '../components/CourseOverview';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 export const HomePage = () => {
   const { courses, loading: coursesLoading, error: coursesError } = useCourses();
@@ -24,28 +26,53 @@ export const HomePage = () => {
 
   if (coursesError) {
     console.log('HomePage showing error:', coursesError);
-    return <div className="text-red-500">{coursesError}</div>;
+    return (
+      <MainLayout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <Card variant="red" size="lg" className="max-w-2xl mx-auto text-center">
+            <div className="flex flex-col items-center space-y-4">
+              <ExclamationTriangleIcon className="w-16 h-16 text-red-400" />
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-2">Unable to Load Courses</h2>
+                <p className="text-gray-300 mb-4">{coursesError}</p>
+                <p className="text-sm text-gray-400">
+                  Please check your Canvas connection or try refreshing the page.
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
+      </MainLayout>
+    );
   }
 
   console.log('HomePage rendering main content with courses:', courses?.length);
   return (
     <MainLayout>
-      <div className="space-y-8">
-        {/* Daily Summary Component */}
-        <DailySummary courses={courses} />
-        
-        {/* Enter Chat Component */}
-        <EnterChat />
-        
-        {/* Upcoming Assignments Component */}
-        <UpcomingAssignments courses={courses} />
-        
-        {/* Course Overview Component */}
-        <CourseOverview courses={courses} />
-        
-        {/* TODO: Add other components here */}
-        {/* - Course Data Component */}
-        {/* - Analytics Board Component */}
+      <div className="space-y-6 sm:space-y-8 lg:space-y-12">
+        {/* Welcome Section */}
+        <div className="text-center space-y-4 mb-8 sm:mb-12">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tighter">
+            Your Course Dashboard
+          </h1>
+          <p className="text-lg sm:text-xl text-gray-400 max-w-3xl mx-auto">
+            Stay on top of your assignments, track your progress, and get AI-powered insights
+          </p>
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="space-y-6 sm:space-y-8 lg:space-y-12">
+          {/* Daily Summary - Full width, prominent */}
+          <DailySummary courses={courses} />
+          
+          {/* Chat CTA - Full width but less prominent */}
+          <EnterChat />
+          
+          {/* Full width components - no side-by-side */}
+          <UpcomingAssignments courses={courses} />
+          
+          <CourseOverview courses={courses} />
+        </div>
       </div>
     </MainLayout>
   );

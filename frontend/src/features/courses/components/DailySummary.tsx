@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react';
 import { AccountService } from '@/features/account/services/account.service';
-import { CalendarIcon, ClockIcon, BellIcon } from '@heroicons/react/24/outline';
+import { 
+  CalendarIcon, 
+  ClockIcon, 
+  BellIcon, 
+  SparklesIcon,
+  CheckCircleIcon,
+  BookOpenIcon 
+} from '@heroicons/react/24/outline';
 import { SectionCard, StatCard } from '@/components/common/Card/Card';
 import type { UserSettings } from '@/features/account/types';
 import type { CanvasCourse, CanvasAssignment, CanvasAnnouncement } from '@/types/canvas.types';
@@ -74,117 +81,89 @@ export const DailySummary = ({ courses }: DailySummaryProps) => {
     );
   }
 
+  // Get time of day for personalized greeting
+  const getTimeOfDayGreeting = () => {
+    const hour = now.getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
+  };
+
   return (
     <SectionCard 
       title="Daily Summary"
       icon={<CalendarIcon className="w-8 h-8 text-gray-400" />}
       size="lg"
     >
-      <div className="space-y-6 sm:space-y-8">
-        {/* Date subtitle */}
-        <div className="-mt-2 sm:-mt-4">
-          <p className="text-gray-400 text-base sm:text-lg">
+      <div className="space-y-6">
+        {/* Compact Header */}
+        <div className="-mt-2 sm:-mt-4 space-y-2">
+          <p className="text-gray-400 text-sm font-medium">
             {dayOfWeek}, {month} {dayOfMonth}, {year}
           </p>
+          <h2 className="text-lg sm:text-xl font-bold text-white">
+            {getTimeOfDayGreeting()}, <span className="text-gray-300">{userSettings?.first_name || 'Student'}</span>!
+          </h2>
         </div>
 
-          {/* Greeting */}
-          <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-white mb-2">
-              Hey there, <span className="text-gray-400">{userSettings?.first_name || 'Student'}</span>!
-            </h1>
-          </div>
-
-          {/* Today's Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            {/* Assignments Due Today */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <ClockIcon className="w-5 h-5 text-red-400 flex-shrink-0" />
-                <h3 className="text-lg font-semibold text-white">Due Today</h3>
-              </div>
-              
-              {assignmentsDueToday.length > 0 ? (
-                <div className="space-y-2">
-                  {assignmentsDueToday.slice(0, 3).map((assignment) => (
-                    <div key={`${assignment.course_id}-${assignment.id}`} className="bg-gray-900/50 border border-gray-800 rounded-lg p-3">
-                      <h4 className="font-medium text-white text-sm sm:text-base truncate">
-                        {assignment.name}
-                      </h4>
-                      <p className="text-xs text-gray-400">
-                        {assignment.courseCode} • {assignment.points_possible || 0} pts
-                      </p>
-                    </div>
-                  ))}
-                  {assignmentsDueToday.length > 3 && (
-                    <p className="text-xs text-gray-500">
-                      +{assignmentsDueToday.length - 3} more assignments due today
-                    </p>
-                  )}
+        <div className="flex flex-col lg:flex-row items-start gap-6 lg:gap-8">
+          {/* Left: Today's Activity Summary */}
+          <div className="flex-1 space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Due Today Summary */}
+              <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <ClockIcon className="w-4 h-4 text-gray-400" />
+                    <span className="text-sm font-medium text-white">Due Today</span>
+                  </div>
+                  <span className="text-lg font-bold text-white">{assignmentsDueToday.length}</span>
                 </div>
-              ) : (
-                <p className="text-gray-500 text-sm">No assignments due today! 🎉</p>
-              )}
-            </div>
-
-            {/* Announcements Today */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <BellIcon className="w-5 h-5 text-blue-400 flex-shrink-0" />
-                <h3 className="text-lg font-semibold text-white">New Today</h3>
+                {assignmentsDueToday.length > 0 ? (
+                  <p className="text-xs text-gray-400">
+                    {assignmentsDueToday.slice(0, 2).map(a => a.name).join(', ')}
+                    {assignmentsDueToday.length > 2 && ` +${assignmentsDueToday.length - 2} more`}
+                  </p>
+                ) : (
+                  <p className="text-xs text-gray-400">All caught up! 🎉</p>
+                )}
               </div>
-              
-              {announcementsToday.length > 0 ? (
-                <div className="space-y-2">
-                  {announcementsToday.slice(0, 3).map((announcement) => (
-                    <div key={`${announcement.id}`} className="bg-gray-900/50 border border-gray-800 rounded-lg p-3">
-                      <h4 className="font-medium text-white text-sm sm:text-base truncate">
-                        {announcement.title}
-                      </h4>
-                      <p className="text-xs text-gray-400">
-                        {announcement.courseCode}
-                      </p>
-                    </div>
-                  ))}
-                  {announcementsToday.length > 3 && (
-                    <p className="text-xs text-gray-500">
-                      +{announcementsToday.length - 3} more announcements today
-                    </p>
-                  )}
+
+              {/* Announcements Summary */}
+              <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <BellIcon className="w-4 h-4 text-gray-400" />
+                    <span className="text-sm font-medium text-white">New Today</span>
+                  </div>
+                  <span className="text-lg font-bold text-white">{announcementsToday.length}</span>
                 </div>
-              ) : (
-                <p className="text-gray-500 text-sm">No new announcements today</p>
-              )}
+                {announcementsToday.length > 0 ? (
+                  <p className="text-xs text-gray-400">
+                    {announcementsToday.slice(0, 2).map(a => a.title).join(', ')}
+                    {announcementsToday.length > 2 && ` +${announcementsToday.length - 2} more`}
+                  </p>
+                ) : (
+                  <p className="text-xs text-gray-400">All quiet today</p>
+                )}
+              </div>
             </div>
           </div>
 
-        {/* Quick Stats */}
-        <div className="pt-4 border-t border-gray-800">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <StatCard 
-              value={courses.length}
-              label="Active Courses"
-              variant="blue"
-              hover={false}
-            />
-            <StatCard 
-              value={courses.reduce((total, course) => total + course.assignments.length, 0)}
-              label="Total Assignments"
-              variant="purple"
-              hover={false}
-            />
-            <StatCard 
-              value={courses.reduce((total, course) => total + course.announcements.length, 0)}
-              label="Announcements"
-              variant="green"
-              hover={false}
-            />
-            <StatCard 
-              value={courses.reduce((total, course) => total + course.modules.length, 0)}
-              label="Modules"
-              variant="yellow"
-              hover={false}
-            />
+          {/* Right: Quick Stats */}
+          <div className="flex-shrink-0">
+            <div className="grid grid-cols-2 lg:grid-cols-1 gap-3">
+              <div className="text-center lg:text-right">
+                <div className="text-2xl font-bold text-white">{courses.length}</div>
+                <div className="text-xs text-gray-400 uppercase tracking-wide">Courses</div>
+              </div>
+              <div className="text-center lg:text-right">
+                <div className="text-2xl font-bold text-white">
+                  {courses.reduce((total, course) => total + course.assignments.length, 0)}
+                </div>
+                <div className="text-xs text-gray-400 uppercase tracking-wide">Assignments</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

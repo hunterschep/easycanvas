@@ -335,10 +335,11 @@ I'll be back to help you soon! 🌟`,
               <h2 className="text-xl font-black tracking-tighter text-white">Your Chats</h2>
               <Button
                 variant="secondary"
+                size="sm"
                 onClick={() => setShowMobileHistory(false)}
-                className="h-12 w-12 !p-0 flex items-center justify-center"
+                className="h-10 w-10 !p-0 flex items-center justify-center"
               >
-                <XMarkIcon className="w-6 h-6" />
+                <XMarkIcon className="w-5 h-5" />
               </Button>
             </div>
             
@@ -373,11 +374,12 @@ I'll be back to help you soon! 🌟`,
             <div className="p-4 flex justify-center">
               <Button
                 variant="secondary"
+                size="sm"
                 onClick={toggleSidebar}
-                className="h-12 w-12 !p-0 flex items-center justify-center"
+                className="h-10 w-10 !p-0 flex items-center justify-center"
                 title="Expand Chat History"
               >
-                <ChevronRightIcon className="w-6 h-6" />
+                <ChevronRightIcon className="w-5 h-5" />
               </Button>
             </div>
           ) : (
@@ -387,6 +389,7 @@ I'll be back to help you soon! 🌟`,
                 <h2 className="text-xl font-black tracking-tighter text-white">Your Chats</h2>
                 <Button
                   variant="secondary"
+                  size="sm"
                   onClick={toggleSidebar}
                   className="h-10 w-10 !p-0 flex items-center justify-center"
                   title="Collapse Chat History"
@@ -419,11 +422,12 @@ I'll be back to help you soon! 🌟`,
                 {/* Mobile Menu Button */}
                 <Button
                   variant="secondary"
+                  size="sm"
                   onClick={() => setShowMobileHistory(true)}
-                  className="lg:hidden h-12 w-12 !p-0 flex items-center justify-center flex-shrink-0"
+                  className="lg:hidden h-10 w-10 !p-0 flex items-center justify-center flex-shrink-0"
                   title="Open Chat History"
                 >
-                  <Bars3Icon className="w-6 h-6" />
+                  <Bars3Icon className="w-5 h-5" />
                 </Button>
                 
 

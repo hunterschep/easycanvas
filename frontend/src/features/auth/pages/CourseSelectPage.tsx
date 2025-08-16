@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loading } from '@/components/common/Loading';
+import { Button } from '@/components/common/Button/Button';
 import { CourseService } from '@/features/courses/services/course.service';
 import { useAuth } from '../context/AuthContext';
 import type { CourseBase } from '@/types/canvas.types';
@@ -90,7 +91,7 @@ export const CourseSelectPage = () => {
           </div>
 
           {error && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 mb-6">
+            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-6">
               <p className="text-sm text-red-400 text-center">{error}</p>
             </div>
           )}
@@ -101,7 +102,7 @@ export const CourseSelectPage = () => {
               <div
                 key={course.id}
                 onClick={() => handleCourseToggle(course.id)}
-                className={`group relative p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
+                className={`group relative p-4 border rounded-xl cursor-pointer transition-all duration-200 ${
                   selectedCourseIds.includes(course.id)
                     ? 'border-white bg-white/5'
                     : 'border-gray-800 hover:border-gray-600'
@@ -128,19 +129,17 @@ export const CourseSelectPage = () => {
 
           {/* Footer */}
           <div className="mt-8 space-y-4">
-            <button
+            <Button
               onClick={handleSubmit}
               disabled={selectedCourseIds.length === 0}
-              className={`w-full px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
-                selectedCourseIds.length > 0
-                  ? 'bg-white text-black hover:bg-gray-100'
-                  : 'bg-gray-800 text-gray-400 cursor-not-allowed'
-              }`}
+              variant="primary"
+              size="lg"
+              fullWidth
             >
               {selectedCourseIds.length > 0
                 ? `Continue with ${selectedCourseIds.length} course${selectedCourseIds.length === 1 ? '' : 's'}`
                 : 'Select at least one course to continue'}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

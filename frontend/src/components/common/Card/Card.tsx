@@ -66,20 +66,27 @@ export const Card = ({
 };
 
 // Convenience components for common card patterns
-export const SectionCard = ({ children, title, icon, className = '', ...props }: 
-  CardProps & { title?: string; icon?: ReactNode }) => (
+export const SectionCard = ({ children, title, icon, action, className = '', ...props }: 
+  CardProps & { title?: string; icon?: ReactNode; action?: ReactNode }) => (
   <Card className={className} {...props}>
-    {(title || icon) && (
-      <div className="flex items-center gap-4 mb-6 sm:mb-8">
-        {icon && (
-          <div className="bg-gray-500/10 border border-gray-500/20 rounded-full p-3">
-            {icon}
+    {(title || icon || action) && (
+      <div className="flex items-center justify-between mb-6 sm:mb-8">
+        <div className="flex items-center gap-4">
+          {icon && (
+            <div className="bg-gray-500/10 border border-gray-500/20 rounded-full p-3">
+              {icon}
+            </div>
+          )}
+          {title && (
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tighter text-white">
+              {title}
+            </h2>
+          )}
+        </div>
+        {action && (
+          <div className="flex-shrink-0">
+            {action}
           </div>
-        )}
-        {title && (
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tighter text-white">
-            {title}
-          </h2>
         )}
       </div>
     )}

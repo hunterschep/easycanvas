@@ -14,7 +14,7 @@ interface MessageListProps {
 // Typing indicator component
 const TypingIndicator = () => {
   return (
-    <div className="flex items-center space-x-2 p-4 bg-gray-900/50 rounded-lg border border-gray-800">
+    <div className="flex items-center space-x-2 p-4 bg-gray-900/50 rounded-xl border border-gray-800">
       <div className="flex items-center space-x-1">
         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -44,7 +44,7 @@ const MessageList = ({ messages, isLoading = false }: MessageListProps) => {
           {message.role === MessageRole.USER ? (
             // User message
             <div className="max-w-[85%] sm:max-w-[80%] lg:max-w-[75%]">
-              <div className="bg-black border border-blue-500/30 rounded-lg p-3 sm:p-4">
+              <div className="bg-black border border-blue-500/30 rounded-xl p-3 sm:p-4">
                 <div className="whitespace-pre-wrap text-white leading-relaxed text-sm sm:text-base">
                   {message.content}
                 </div>
@@ -53,7 +53,7 @@ const MessageList = ({ messages, isLoading = false }: MessageListProps) => {
           ) : (
             // Assistant message
             <div className="max-w-[90%] sm:max-w-[85%] lg:max-w-[80%]">
-              <div className="bg-black border border-gray-800 rounded-lg p-3 sm:p-4">
+              <div className="bg-black border border-gray-800 rounded-xl p-3 sm:p-4">
                 <ReactMarkdown 
                   remarkPlugins={[remarkGfm]}
                   components={{

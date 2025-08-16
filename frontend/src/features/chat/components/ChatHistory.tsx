@@ -2,6 +2,7 @@ import { ChatListItem } from '@/types/chat';
 import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { format } from 'date-fns';
 import { Button } from '@/components/common/Button/Button';
+import { getMarkdownPreview } from '@/utils/markdown.utils';
 
 interface ChatHistoryProps {
   chats: ChatListItem[];
@@ -43,6 +44,7 @@ const ChatHistory = ({
           <Button
             onClick={onNewChat}
             variant="secondary"
+            size="md"
             className="flex-shrink-0 h-12 w-12 !p-0 flex items-center justify-center"
             title="New Chat"
           >
@@ -68,7 +70,7 @@ const ChatHistory = ({
           <Button
             onClick={onNewChat}
             variant="primary"
-            className="text-sm sm:text-base"
+            size="sm"
           >
             Start a new chat
           </Button>
@@ -87,7 +89,7 @@ const ChatHistory = ({
                 }`}
                 onClick={() => !isDeleting && onSelectChat(chat.chat_id)}
               >
-                <div className={`relative p-3 sm:p-4 rounded-lg border transition-all duration-200 group ${
+                <div className={`relative p-3 sm:p-4 rounded-xl border transition-all duration-200 group ${
                   chat.chat_id === currentChatId
                     ? 'bg-black border-blue-500/50'
                     : 'bg-black border-gray-800 hover:border-gray-700 hover:bg-gray-900/50'
@@ -102,7 +104,7 @@ const ChatHistory = ({
                       </p>
                       {chat.last_message && (
                         <p className="text-xs sm:text-sm text-gray-400 line-clamp-2 leading-relaxed">
-                          {chat.last_message}
+                          {getMarkdownPreview(chat.last_message, 100)}
                         </p>
                       )}
                     </div>
@@ -111,13 +113,15 @@ const ChatHistory = ({
                         <div className="w-6 h-6 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
                       </div>
                     ) : (
-                      <button
+                      <Button
                         onClick={(e) => handleDeleteChat(e, chat.chat_id)}
-                        className="opacity-0 group-hover:opacity-100 p-2 text-gray-500 hover:text-red-400 transition-all duration-200 rounded-md hover:bg-red-500/10 flex-shrink-0"
+                        variant="ghost"
+                        size="sm"
+                        className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 hover:bg-red-500/10 flex-shrink-0 h-10 w-10 !p-0"
                         title="Delete chat"
                       >
                         <TrashIcon className="w-6 h-6" />
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </div>

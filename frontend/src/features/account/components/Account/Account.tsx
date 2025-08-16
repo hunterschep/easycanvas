@@ -24,39 +24,50 @@ export const Account = () => {
   const avatarUrl = settings?.avatar_url || currentUser.photoURL;
 
   return (
-    <div className="relative group">
-      <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-lg blur opacity-0 group-hover:opacity-30 transition duration-1000 group-hover:duration-200" />
-      <div className="relative flex items-center gap-2">
-        <Button
-          onClick={() => navigate('/account')}
-          variant="secondary"
-          className="flex items-center gap-2 h-10"
-        >
-          {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt="Profile"
-              className="w-8 h-8 rounded-full border border-gray-800 object-cover"
-            />
-          ) : (
-            <div className="w-8 h-8 rounded-full border border-gray-800 bg-black flex items-center justify-center">
-              <span className="text-gray-400 text-sm">
-                {displayName?.charAt(0).toUpperCase() || '?'}
-              </span>
-            </div>
-          )}
-          <span className="text-sm hidden sm:inline">
-            {displayName}
-          </span>
-        </Button>
-        
-        <Button
-          onClick={signOut}
-          variant="secondary"
-          className="h-10 text-sm"
-        >
-          Logout
-        </Button>
+    <div className="flex items-center gap-2">
+      <div className="relative group">
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-xl blur opacity-0 group-hover:opacity-30 transition duration-1000 group-hover:duration-200" />
+        <div className="relative">
+          <Button
+            onClick={() => navigate('/account')}
+            variant="secondary"
+            size="sm"
+            leftIcon={
+              avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt="Profile"
+                  className="w-8 h-8 rounded-full border border-gray-800 object-cover"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full border border-gray-800 bg-black flex items-center justify-center">
+                  <span className="text-gray-400 text-sm">
+                    {displayName?.charAt(0).toUpperCase() || '?'}
+                  </span>
+                </div>
+              )
+            }
+            className="h-10"
+          >
+            <span className="hidden sm:inline">
+              {displayName}
+            </span>
+          </Button>
+        </div>
+      </div>
+      
+      <div className="relative group">
+        <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-xl blur opacity-0 group-hover:opacity-30 transition duration-1000 group-hover:duration-200" />
+        <div className="relative">
+          <Button
+            onClick={signOut}
+            variant="secondary"
+            size="sm"
+            className="h-10"
+          >
+            Logout
+          </Button>
+        </div>
       </div>
     </div>
   );

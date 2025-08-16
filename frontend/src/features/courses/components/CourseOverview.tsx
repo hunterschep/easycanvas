@@ -1,7 +1,11 @@
 // import { useNavigate } from 'react-router-dom'; // TODO: Implement course detail navigation
-import { AcademicCapIcon, ChartBarIcon, BookOpenIcon } from '@heroicons/react/24/outline';
+import { 
+  AcademicCapIcon, 
+  ChartBarIcon, 
+  BookOpenIcon
+} from '@heroicons/react/24/outline';
 import { Button } from '@/components/common/Button/Button';
-import { SectionCard, Card } from '@/components/common/Card/Card';
+import { SectionCard } from '@/components/common/Card/Card';
 import type { CanvasCourse, CanvasAssignment } from '@/types/canvas.types';
 
 interface CourseOverviewProps {
@@ -71,23 +75,30 @@ export const CourseOverview = ({ courses }: CourseOverviewProps) => {
 
   if (courses.length === 0) {
     return (
-      <Card size="lg">
-        <div className="text-center space-y-6">
+      <SectionCard 
+        title="Course Overview"
+        icon={<AcademicCapIcon className="w-8 h-8 text-gray-400" />}
+        size="lg"
+      >
+        <div className="text-center space-y-6 py-8">
           <div className="flex justify-center">
             <div className="bg-gray-500/10 border border-gray-500/20 rounded-full p-6">
-              <BookOpenIcon className="w-12 h-12 text-gray-400" />
+              <BookOpenIcon className="w-16 h-16 text-gray-400" />
             </div>
           </div>
           <div>
-            <h2 className="text-3xl font-black tracking-tighter text-white mb-3">
+            <h3 className="text-2xl font-bold text-white mb-3">
               No Courses Found
-            </h2>
-            <p className="text-gray-400 text-lg">
-              No courses are currently available. Check your course selection or Canvas integration.
+            </h3>
+            <p className="text-gray-300 text-lg mb-4">
+              No courses are currently available.
+            </p>
+            <p className="text-gray-400">
+              Check your course selection or Canvas integration.
             </p>
           </div>
         </div>
-      </Card>
+      </SectionCard>
     );
   }
 
@@ -97,12 +108,37 @@ export const CourseOverview = ({ courses }: CourseOverviewProps) => {
       icon={<AcademicCapIcon className="w-8 h-8 text-gray-400" />}
       size="lg"
     >
-      <div className="space-y-6 sm:space-y-8">
-        {/* Subtitle */}
-        <div className="-mt-2 sm:-mt-4">
-          <p className="text-gray-400 text-base sm:text-lg">
+      <div className="space-y-6">
+        {/* Compact Header */}
+        <div className="-mt-2 sm:-mt-4 space-y-2">
+          <p className="text-gray-300 text-base font-medium">
             Your academic progress across {courses.length} course{courses.length === 1 ? '' : 's'}
           </p>
+          
+          {/* Overall Stats - Compact */}
+          <div className="flex items-center gap-4 text-sm">
+            <span className="text-gray-300 font-medium">
+              {(() => {
+                const overallStats = courses.reduce((acc, course) => {
+                  const stats = calculateCourseStats(course.assignments);
+                  return {
+                    totalPoints: acc.totalPoints + stats.pointsEarned,
+                    totalPossible: acc.totalPossible + stats.totalPossiblePointsFromGraded
+                  };
+                }, { totalPoints: 0, totalPossible: 0 });
+                const overallPercentage = overallStats.totalPossible > 0 
+                  ? (overallStats.totalPoints / overallStats.totalPossible) * 100 
+                  : 0;
+                return `${overallPercentage.toFixed(1)}% overall`;
+              })()}
+            </span>
+            
+            <span className="text-gray-400">
+              {courses.reduce((total, course) => {
+                return total + calculateCourseStats(course.assignments).gradedAssignments;
+              }, 0)} graded assignments
+            </span>
+          </div>
         </div>
 
           {/* Courses Grid */}

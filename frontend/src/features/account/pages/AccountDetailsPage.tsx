@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/features/auth/context/AuthContext';
 import { AccountService } from '../services/account.service';
 import { MainLayout } from '@/components/layouts/MainLayout/MainLayout';
 import { Button } from '@/components/common/Button/Button';
+import { SectionCard } from '@/components/common/Card/Card';
+import { UserIcon, CogIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import type { UserSettings } from '../types';
 
 export const AccountDetailsPage = () => {
@@ -133,100 +135,100 @@ export const AccountDetailsPage = () => {
         </div>
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+          <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4">
             <p className="text-sm text-red-400 text-center">{error}</p>
           </div>
         )}
 
         {/* Account Overview */}
-        <div className="relative group">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-lg blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
-          <div className="relative bg-black border border-gray-800 rounded-lg p-6">
-            <div className="space-y-4">
-              <h2 className="text-xl font-bold">Account Overview</h2>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-400">Email</span>
-                  <p className="text-white">{settings?.email || 'No email set'}</p>
-                </div>
-                <div>
-                  <span className="text-gray-400">Canvas User ID</span>
-                  <p className="text-white">{settings?.canvas_user_id}</p>
-                </div>
-                <div>
-                  <span className="text-gray-400">Account Created</span>
-                  <p className="text-white">{new Date(currentUser?.metadata.creationTime || '').toLocaleDateString()}</p>
-                </div>
-                <div>
-                  <span className="text-gray-400">Last Sign In</span>
-                  <p className="text-white">{new Date(currentUser?.metadata.lastSignInTime || '').toLocaleDateString()}</p>
-                </div>
-              </div>
+        <SectionCard
+          title="Account Overview"
+          icon={<UserIcon className="w-8 h-8 text-gray-400" />}
+        >
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="text-gray-400">Email</span>
+              <p className="text-white">{settings?.email || 'No email set'}</p>
+            </div>
+            <div>
+              <span className="text-gray-400">Canvas User ID</span>
+              <p className="text-white">{settings?.canvas_user_id}</p>
+            </div>
+            <div>
+              <span className="text-gray-400">Account Created</span>
+              <p className="text-white">{new Date(currentUser?.metadata.creationTime || '').toLocaleDateString()}</p>
+            </div>
+            <div>
+              <span className="text-gray-400">Last Sign In</span>
+              <p className="text-white">{new Date(currentUser?.metadata.lastSignInTime || '').toLocaleDateString()}</p>
             </div>
           </div>
-        </div>
+        </SectionCard>
 
         {/* Profile Information */}
-        <div className="relative group">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-lg blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
-          <div className="relative bg-black border border-gray-800 rounded-lg p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold">Profile Information</h2>
-              {!isEditing && (
-                <Button onClick={() => setIsEditing(true)} variant="secondary">
-                  Edit Profile
-                </Button>
-              )}
-            </div>
-
-            <div className="space-y-6">
-              {/* Account Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">First Name</label>
-                  <input
-                    type="text"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    disabled={!isEditing}
-                    className="w-full px-4 py-3 bg-transparent border border-gray-800 rounded-lg focus:border-white focus:ring-1 focus:ring-white text-white placeholder-gray-600 transition-all disabled:opacity-50"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-400 mb-2">Last Name</label>
-                  <input
-                    type="text"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    disabled={!isEditing}
-                    className="w-full px-4 py-3 bg-transparent border border-gray-800 rounded-lg focus:border-white focus:ring-1 focus:ring-white text-white placeholder-gray-600 transition-all disabled:opacity-50"
-                  />
-                </div>
+        <SectionCard
+          title="Profile Information"
+          icon={<CogIcon className="w-8 h-8 text-gray-400" />}
+          action={
+            !isEditing ? (
+              <Button onClick={() => setIsEditing(true)} variant="secondary" size="sm">
+                Edit Profile
+              </Button>
+            ) : undefined
+          }
+        >
+          <div className="space-y-6">
+            {/* Account Info */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">First Name</label>
+                <input
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  disabled={!isEditing}
+                  className="w-full px-4 py-3 bg-transparent border border-gray-800 rounded-xl focus:border-white focus:ring-1 focus:ring-white text-white placeholder-gray-600 transition-all disabled:opacity-50"
+                />
               </div>
-
-              {/* Action Buttons */}
-              {isEditing && (
-                <div className="flex justify-end gap-4 pt-4">
-                  <Button onClick={() => setIsEditing(false)} variant="secondary">
-                    Cancel
-                  </Button>
-                  <Button onClick={handleSave}>
-                    Save Changes
-                  </Button>
-                </div>
-              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Last Name</label>
+                <input
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  disabled={!isEditing}
+                  className="w-full px-4 py-3 bg-transparent border border-gray-800 rounded-xl focus:border-white focus:ring-1 focus:ring-white text-white placeholder-gray-600 transition-all disabled:opacity-50"
+                />
+              </div>
             </div>
+
+            {/* Action Buttons */}
+            {isEditing && (
+              <div className="flex justify-end gap-4 pt-4">
+                <Button onClick={() => setIsEditing(false)} variant="secondary" size="sm">
+                  Cancel
+                </Button>
+                <Button onClick={handleSave} variant="primary" size="sm">
+                  Save Changes
+                </Button>
+              </div>
+            )}
           </div>
-        </div>
+        </SectionCard>
 
         {/* Canvas Integration */}
         <div className="relative group">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-red-500 via-red-800 to-black rounded-lg blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
-          <div className="relative bg-black border border-red-900/50 rounded-lg p-6">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-red-500 via-red-800 to-black rounded-xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
+          <div className="relative bg-black border border-red-900/50 rounded-xl p-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-red-500">Canvas Integration</h2>
+              <div className="flex items-center gap-4">
+                <div className="bg-red-500/10 border border-red-500/20 rounded-full p-3">
+                  <ExclamationTriangleIcon className="w-8 h-8 text-red-400" />
+                </div>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tighter text-red-500">Canvas Integration</h2>
+              </div>
               {!isDangerEditing && (
-                <Button onClick={() => setIsDangerEditing(true)} variant="danger">
+                <Button onClick={() => setIsDangerEditing(true)} variant="danger" size="sm">
                   Edit Integration
                 </Button>
               )}
@@ -241,7 +243,7 @@ export const AccountDetailsPage = () => {
                     value={canvasUrl}
                     onChange={(e) => setCanvasUrl(e.target.value)}
                     disabled={!isDangerEditing}
-                    className="w-full px-4 py-3 bg-transparent border border-gray-800 rounded-lg focus:border-white focus:ring-1 focus:ring-white text-white placeholder-gray-600 transition-all disabled:opacity-50"
+                    className="w-full px-4 py-3 bg-transparent border border-gray-800 rounded-xl focus:border-white focus:ring-1 focus:ring-white text-white placeholder-gray-600 transition-all disabled:opacity-50"
                   />
                 </div>
                 <div>
@@ -252,17 +254,17 @@ export const AccountDetailsPage = () => {
                     onChange={(e) => setApiToken(e.target.value)}
                     disabled={!isDangerEditing}
                     placeholder={isDangerEditing ? "Enter new API token" : ""}
-                    className="w-full px-4 py-3 bg-transparent border border-gray-800 rounded-lg focus:border-white focus:ring-1 focus:ring-white text-white placeholder-gray-600 transition-all disabled:opacity-50"
+                    className="w-full px-4 py-3 bg-transparent border border-gray-800 rounded-xl focus:border-white focus:ring-1 focus:ring-white text-white placeholder-gray-600 transition-all disabled:opacity-50"
                   />
                 </div>
               </div>
 
               {isDangerEditing && (
                 <div className="flex justify-end gap-4 pt-4">
-                  <Button onClick={() => setIsDangerEditing(false)} variant="secondary">
+                  <Button onClick={() => setIsDangerEditing(false)} variant="secondary" size="sm">
                     Cancel
                   </Button>
-                  <Button onClick={handleDangerSave} variant="danger">
+                  <Button onClick={handleDangerSave} variant="danger" size="sm">
                     Update Integration
                   </Button>
                 </div>
@@ -274,7 +276,7 @@ export const AccountDetailsPage = () => {
               <p className="text-gray-400 mb-6">
                 Once you delete your account, there is no going back. Please be certain.
               </p>
-              <Button onClick={handleDeleteAccount} variant="danger">
+              <Button onClick={handleDeleteAccount} variant="danger" size="sm">
                 Delete Account
               </Button>
             </div>

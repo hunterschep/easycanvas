@@ -22,13 +22,19 @@ export const MainLayout = ({
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-4">
               {showBackButton && (
-                <Button
-                  onClick={onBack}
-                  variant="secondary"
-                  size="sm"
-                >
-                  ← Back
-                </Button>
+                <div className="relative group">
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-xl blur opacity-0 group-hover:opacity-30 transition duration-1000 group-hover:duration-200" />
+                  <div className="relative">
+                    <Button
+                      onClick={onBack}
+                      variant="secondary"
+                      size="sm"
+                      className="h-10"
+                    >
+                      ← Back
+                    </Button>
+                  </div>
+                </div>
               )}
               <h1 className="text-2xl font-black tracking-tighter">
                 easy<span className="text-gray-500">canvas</span>
