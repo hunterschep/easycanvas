@@ -6,6 +6,7 @@ import { SetupPage } from '@/features/auth/pages/SetupPage';
 import { HomePage } from '@/features/courses/pages/HomePage';
 import { ChatPage } from '@/features/chat/pages/ChatPage';
 import { AccountDetailsPage } from '@/features/account/pages/AccountDetailsPage';
+import LandingPage from '@/features/static-pages/pages/LandingPage';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { CourseSelectPage } from '@/features/auth/pages/CourseSelectPage';
@@ -102,7 +103,7 @@ function AuthRedirect({ children }: { children: React.ReactNode }) {
   });
 
   // Define static pages that don't need auth and should render immediately
-  const staticPages = ['/terms', '/privacy'];
+  const staticPages = ['/', '/terms', '/privacy'];
   const isStaticPage = staticPages.includes(location.pathname);
 
   // For static pages, don't show loading screen, just render the page immediately
@@ -179,7 +180,7 @@ function App() {
             <AuthRedirect>
               <Routes>
                 {/* Root routes first - order matters */}
-                <Route path="/" element={<Navigate to="/login" replace />} />
+                <Route path="/" element={<LandingPage />} />
                 
                 {/* Auth routes */}
                 <Route path="/login" element={<LoginPage />} />
@@ -194,7 +195,7 @@ function App() {
                 <Route path="/select-courses" element={<CourseSelectPage />} />
                 
                 {/* Catch all for non-existent routes */}
-                <Route path="*" element={<Navigate to="/login" replace />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </AuthRedirect>
           </AuthProvider>
