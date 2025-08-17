@@ -77,7 +77,7 @@ export const LoginPage = () => {
             {/* Logo and Heading */}
             <div className="text-center space-y-4">
               <h1 className="text-5xl sm:text-6xl font-black text-white tracking-tighter">
-                easy<span className="bg-gradient-to-r from-gray-200 to-gray-500 inline-block text-transparent bg-clip-text">canvas</span>
+                easy<span className="text-gray-500">canvas</span>
               </h1>
               <p className="text-sm sm:text-base text-gray-400 font-light">
                 Streamline your Canvas experience with AI

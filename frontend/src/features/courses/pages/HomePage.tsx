@@ -61,14 +61,14 @@ export const HomePage = () => {
         </div>
 
         {/* Main Content Grid */}
-        <div className="space-y-6 sm:space-y-8 lg:space-y-12">
-          {/* Daily Summary - Full width, prominent */}
-          <DailySummary courses={courses} />
+        <div className="space-y-8 lg:space-y-12">
+          {/* Top Row: Daily Summary and Chat side by side on large screens */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 xl:items-stretch">
+            <DailySummary courses={courses} />
+            <EnterChat />
+          </div>
           
-          {/* Chat CTA - Full width but less prominent */}
-          <EnterChat />
-          
-          {/* Full width components - no side-by-side */}
+          {/* Full width components */}
           <UpcomingAssignments courses={courses} />
           
           <CourseOverview courses={courses} />

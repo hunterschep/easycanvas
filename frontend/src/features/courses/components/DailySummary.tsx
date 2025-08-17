@@ -94,9 +94,10 @@ export const DailySummary = ({ courses }: DailySummaryProps) => {
       title="Daily Summary"
       icon={<CalendarIcon className="w-8 h-8 text-gray-400" />}
       size="lg"
+      className="h-full"
     >
-      <div className="space-y-6">
-        {/* Compact Header */}
+      <div className="flex flex-col h-full space-y-6">
+        {/* Header */}
         <div className="-mt-2 sm:-mt-4 space-y-2">
           <p className="text-gray-400 text-sm font-medium">
             {dayOfWeek}, {month} {dayOfMonth}, {year}
@@ -106,63 +107,59 @@ export const DailySummary = ({ courses }: DailySummaryProps) => {
           </h2>
         </div>
 
-        <div className="flex flex-col lg:flex-row items-start gap-6 lg:gap-8">
-          {/* Left: Today's Activity Summary */}
-          <div className="flex-1 space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Due Today Summary */}
-              <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <ClockIcon className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm font-medium text-white">Due Today</span>
-                  </div>
-                  <span className="text-lg font-bold text-white">{assignmentsDueToday.length}</span>
+        {/* Today's Activity */}
+        <div className="flex-1 flex flex-col space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Due Today Summary */}
+            <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <ClockIcon className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm font-medium text-white">Due Today</span>
                 </div>
-                {assignmentsDueToday.length > 0 ? (
-                  <p className="text-xs text-gray-400">
-                    {assignmentsDueToday.slice(0, 2).map(a => a.name).join(', ')}
-                    {assignmentsDueToday.length > 2 && ` +${assignmentsDueToday.length - 2} more`}
-                  </p>
-                ) : (
-                  <p className="text-xs text-gray-400">All caught up! 🎉</p>
-                )}
+                <span className="text-xl font-bold text-white">{assignmentsDueToday.length}</span>
               </div>
+              {assignmentsDueToday.length > 0 ? (
+                <p className="text-xs text-gray-400 line-clamp-2">
+                  {assignmentsDueToday.slice(0, 2).map(a => a.name).join(', ')}
+                  {assignmentsDueToday.length > 2 && ` +${assignmentsDueToday.length - 2} more`}
+                </p>
+              ) : (
+                <p className="text-xs text-gray-400">All caught up! 🎉</p>
+              )}
+            </div>
 
-              {/* Announcements Summary */}
-              <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <BellIcon className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm font-medium text-white">New Today</span>
-                  </div>
-                  <span className="text-lg font-bold text-white">{announcementsToday.length}</span>
+            {/* Announcements Summary */}
+            <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <BellIcon className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm font-medium text-white">New Today</span>
                 </div>
-                {announcementsToday.length > 0 ? (
-                  <p className="text-xs text-gray-400">
-                    {announcementsToday.slice(0, 2).map(a => a.title).join(', ')}
-                    {announcementsToday.length > 2 && ` +${announcementsToday.length - 2} more`}
-                  </p>
-                ) : (
-                  <p className="text-xs text-gray-400">All quiet today</p>
-                )}
+                <span className="text-xl font-bold text-white">{announcementsToday.length}</span>
               </div>
+              {announcementsToday.length > 0 ? (
+                <p className="text-xs text-gray-400 line-clamp-2">
+                  {announcementsToday.slice(0, 2).map(a => a.title).join(', ')}
+                  {announcementsToday.length > 2 && ` +${announcementsToday.length - 2} more`}
+                </p>
+              ) : (
+                <p className="text-xs text-gray-400">All quiet today</p>
+              )}
             </div>
           </div>
 
-          {/* Right: Quick Stats */}
-          <div className="flex-shrink-0">
-            <div className="grid grid-cols-2 lg:grid-cols-1 gap-3">
-              <div className="text-center lg:text-right">
-                <div className="text-2xl font-bold text-white">{courses.length}</div>
-                <div className="text-xs text-gray-400 uppercase tracking-wide">Courses</div>
+          {/* Quick Stats - Push to bottom */}
+          <div className="mt-auto grid grid-cols-2 gap-4 pt-4 border-t border-gray-800">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-white">{courses.length}</div>
+              <div className="text-xs text-gray-400 uppercase tracking-wide">Courses</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-white">
+                {courses.reduce((total, course) => total + course.assignments.length, 0)}
               </div>
-              <div className="text-center lg:text-right">
-                <div className="text-2xl font-bold text-white">
-                  {courses.reduce((total, course) => total + course.assignments.length, 0)}
-                </div>
-                <div className="text-xs text-gray-400 uppercase tracking-wide">Assignments</div>
-              </div>
+              <div className="text-xs text-gray-400 uppercase tracking-wide">Assignments</div>
             </div>
           </div>
         </div>

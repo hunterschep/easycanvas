@@ -366,7 +366,7 @@ I'll be back to help you soon! 🌟`,
         </div>
 
         {/* Desktop Chat History Sidebar */}
-        <div className={`hidden lg:flex flex-shrink-0 border-r border-gray-800 bg-black overflow-hidden flex-col transition-all duration-300 ease-in-out ${
+        <div className={`hidden lg:flex flex-shrink-0 border-r border-gray-800/80 bg-gradient-to-b from-black via-gray-950 to-black overflow-hidden flex-col transition-all duration-300 ease-in-out backdrop-blur-sm ${
           isSidebarCollapsed ? 'w-16' : 'w-80 xl:w-96'
         }`}>
           {isSidebarCollapsed ? (
@@ -416,21 +416,22 @@ I'll be back to help you soon! 🌟`,
         {/* Chat Area */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-black">
           {/* Header */}
-          <div className="p-4 lg:p-6 border-b border-gray-800 bg-black flex-shrink-0 h-[73px] lg:h-[97px]">
+          <div className="p-4 lg:p-6 border-b border-gray-800/60 bg-gradient-to-r from-black via-gray-950 to-black flex-shrink-0 h-[73px] lg:h-[97px] backdrop-blur-sm">
             <div className="flex items-center justify-between h-full">
-              <div className="flex items-center gap-2 lg:gap-4 min-w-0">
+              <div className="flex items-center gap-3 lg:gap-4 min-w-0">
                 {/* Mobile Menu Button */}
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setShowMobileHistory(true)}
-                  className="lg:hidden h-10 w-10 !p-0 flex items-center justify-center flex-shrink-0"
-                  title="Open Chat History"
-                >
-                  <Bars3Icon className="w-5 h-5" />
-                </Button>
-                
-
+                <div className="lg:hidden relative group">
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-gray-600/20 via-gray-500/20 to-gray-600/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300" />
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setShowMobileHistory(true)}
+                    className="relative h-10 w-10 !p-0 flex items-center justify-center flex-shrink-0"
+                    title="Open Chat History"
+                  >
+                    <Bars3Icon className="w-5 h-5" />
+                  </Button>
+                </div>
                 
                 {/* Title */}
                 <h1 className="text-lg sm:text-xl lg:text-2xl font-black tracking-tighter text-white truncate">

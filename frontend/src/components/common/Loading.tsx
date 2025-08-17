@@ -29,7 +29,7 @@ export const Loading: React.FC<LoadingProps> = ({
             {/* Animated logo */}
             <div className="relative">
               <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tighter">
-                easy<span className="bg-gradient-to-r from-gray-200 to-gray-500 inline-block text-transparent bg-clip-text">canvas</span>
+                easy<span className="text-gray-500">canvas</span>
               </h1>
               
               {/* Animated bottom line */}

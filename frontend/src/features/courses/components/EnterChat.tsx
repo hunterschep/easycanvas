@@ -41,8 +41,9 @@ export const EnterChat = () => {
       icon={<SparklesIcon className="w-8 h-8 text-blue-400" />}
       variant="blue"
       size="lg"
+      className="h-full"
     >
-      <div className="space-y-6">
+      <div className="flex flex-col h-full space-y-6">
         {/* Compact Header */}
         <div className="-mt-2 sm:-mt-4 space-y-2">
           <div className="flex items-center justify-between">
@@ -61,27 +62,28 @@ export const EnterChat = () => {
           </p>
         </div>
 
-        <div className="flex flex-col lg:flex-row items-start gap-6 lg:gap-8">
-          {/* Left Content - Features */}
-          <div className="flex-1 space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {features.map((feature, index) => (
-                <div key={index} className="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
-                  <div className="flex flex-col items-center text-center space-y-2">
-                    <div className="bg-gray-800/50 rounded-full p-2">
-                      {feature.icon}
-                    </div>
-                    <div>
-                      <h4 className="text-white font-medium text-sm">{feature.title}</h4>
-                      <p className="text-gray-400 text-xs mt-1">{feature.description}</p>
-                    </div>
+        <div className="flex-1 flex flex-col space-y-6">
+          {/* Features Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {features.map((feature, index) => (
+              <div key={index} className="bg-gray-900/50 border border-gray-800 rounded-xl p-4">
+                <div className="flex flex-col items-center text-center space-y-2">
+                  <div className="bg-gray-800/50 rounded-full p-2">
+                    {feature.icon}
+                  </div>
+                  <div>
+                    <h4 className="text-white font-medium text-sm">{feature.title}</h4>
+                    <p className="text-gray-400 text-xs mt-1">{feature.description}</p>
                   </div>
                 </div>
-              ))}
-            </div>
-            
+              </div>
+            ))}
+          </div>
+          
+          {/* Bottom Section: Examples and CTA - Push to bottom */}
+          <div className="mt-auto flex flex-col sm:flex-row items-start gap-4">
             {/* Quick Examples */}
-            <div className="bg-blue-500/5 border border-blue-500/10 rounded-xl p-4">
+            <div className="flex-1 bg-blue-500/5 border border-blue-500/10 rounded-xl p-4">
               <h4 className="text-white font-medium mb-2 flex items-center space-x-2 text-sm">
                 <ChatBubbleLeftRightIcon className="w-4 h-4 text-blue-400" />
                 <span>Try asking:</span>
@@ -92,22 +94,22 @@ export const EnterChat = () => {
                 <p>"Create a study plan for my exams"</p>
               </div>
             </div>
-          </div>
 
-          {/* Right CTA */}
-          <div className="flex-shrink-0 flex flex-col items-center space-y-3">
-            <Button
-              onClick={handleStartChat}
-              variant="primary"
-              size="lg"
-              rightIcon={<ArrowRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />}
-              className="px-6 py-3"
-            >
-              Start Chat
-            </Button>
-            <p className="text-xs text-gray-500 text-center">
-              Available 24/7
-            </p>
+            {/* CTA Button */}
+            <div className="flex-shrink-0 flex flex-col items-center space-y-2 sm:items-end">
+              <Button
+                onClick={handleStartChat}
+                variant="primary"
+                size="lg"
+                rightIcon={<ArrowRightIcon className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />}
+                className="px-6 py-3"
+              >
+                Start Chat
+              </Button>
+              <p className="text-xs text-gray-500 text-center sm:text-right">
+                Available 24/7
+              </p>
+            </div>
           </div>
         </div>
       </div>

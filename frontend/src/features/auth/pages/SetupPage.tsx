@@ -84,7 +84,7 @@ export const SetupPage = () => {
         {/* Header */}
         <div className="text-center space-y-4">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tighter">
-            easy<span className="bg-gradient-to-r from-gray-200 to-gray-500 inline-block text-transparent bg-clip-text">canvas</span>
+            easy<span className="text-gray-500">canvas</span>
           </h1>
           <p className="text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto">
             Connect your Canvas account to get started with AI-powered course management
@@ -197,7 +197,7 @@ export const SetupPage = () => {
                       size="sm"
                       leftIcon={<ArrowTopRightOnSquareIcon className="w-4 h-4" />}
                     >
-                      Open Canvas
+                      Open Canvas Settings
                     </Button>
                   </div>
                   

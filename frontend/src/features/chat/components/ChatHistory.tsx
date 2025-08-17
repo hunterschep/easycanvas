@@ -89,21 +89,27 @@ const ChatHistory = ({
                 }`}
                 onClick={() => !isDeleting && onSelectChat(chat.chat_id)}
               >
-                <div className={`relative p-3 sm:p-4 rounded-xl border transition-all duration-200 group ${
-                  chat.chat_id === currentChatId
-                    ? 'bg-black border-blue-500/50'
-                    : 'bg-black border-gray-800 hover:border-gray-700 hover:bg-gray-900/50'
-                }`}>
+                <div className="relative group">
+                  <div className={`absolute -inset-0.5 rounded-xl blur transition duration-300 ${
+                    chat.chat_id === currentChatId
+                      ? 'bg-gradient-to-r from-blue-500/30 via-blue-400/30 to-blue-500/30 opacity-50'
+                      : 'bg-gradient-to-r from-gray-600/20 via-gray-500/20 to-gray-600/20 opacity-0 group-hover:opacity-30'
+                  }`} />
+                  <div className={`relative p-3 sm:p-4 lg:p-5 rounded-xl border transition-all duration-200 backdrop-blur-sm ${
+                    chat.chat_id === currentChatId
+                      ? 'bg-gradient-to-r from-gray-950/90 via-black to-gray-950/90 border-blue-500/60'
+                      : 'bg-gradient-to-r from-gray-950/60 via-black/80 to-gray-950/60 border-gray-700/60 hover:border-gray-600/80 hover:bg-gray-900/70'
+                  }`}>
                   <div className="flex justify-between items-start">
-                    <div className="flex-1 min-w-0 pr-2">
-                      <h3 className="font-medium text-white text-sm sm:text-base truncate mb-1">
+                    <div className="flex-1 min-w-0 pr-2 sm:pr-3">
+                      <h3 className="font-semibold text-white text-sm sm:text-base truncate mb-1.5">
                         {chat.title}
                       </h3>
-                      <p className="text-xs text-gray-500 mb-1 sm:mb-2">
+                      <p className="text-xs text-gray-400 mb-2 font-medium">
                         {formatDate(chat.updated_at)}
                       </p>
                       {chat.last_message && (
-                        <p className="text-xs sm:text-sm text-gray-400 line-clamp-2 leading-relaxed">
+                        <p className="text-xs sm:text-sm text-gray-500 line-clamp-2 leading-relaxed">
                           {getMarkdownPreview(chat.last_message, 100)}
                         </p>
                       )}
@@ -123,6 +129,7 @@ const ChatHistory = ({
                         <TrashIcon className="w-6 h-6" />
                       </Button>
                     )}
+                  </div>
                   </div>
                 </div>
               </div>
