@@ -19,9 +19,9 @@ export const Tooltip = ({ content, children }: TooltipProps) => {
       
       {isVisible && (
         <div className="absolute z-50 bottom-full left-1/2 transform -translate-x-1/2 mb-2">
-          <div className="relative bg-gray-900 text-white text-sm rounded-lg py-2 px-3 whitespace-nowrap">
+          <div className="relative glass-elevated glass-text-primary text-sm rounded-lg py-2 px-3 whitespace-nowrap">
             {content}
-            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-gray-900" />
+            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rotate-45 w-2 h-2 bg-[rgba(17,25,40,0.16)]" />
           </div>
         </div>
       )}

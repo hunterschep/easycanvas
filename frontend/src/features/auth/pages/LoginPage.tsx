@@ -65,28 +65,34 @@ export const LoginPage = () => {
   // Wrap the UI rendering in an error boundary
   try {
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center px-4 relative overflow-hidden">
+      <div className="min-h-screen flex flex-col items-center justify-center px-4 relative overflow-hidden">
         {/* Background gradient effects */}
         <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
         <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
         <div className="absolute -bottom-8 left-20 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
 
         <div className="relative group max-w-md w-full">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-white via-gray-500 to-black rounded-xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-          <div className="relative bg-black rounded-xl p-8 space-y-8">
+          <div 
+            className="absolute -inset-1 bg-gradient-to-r from-gray-600/80 via-gray-600/90 to-gray-600/80 rounded-[calc(var(--radius-lg)+4px)] blur-sm opacity-15 group-hover:opacity-25 transition-opacity duration-700"
+            style={{
+              filter: 'blur(8px) saturate(1.2)',
+              willChange: 'opacity'
+            }}
+          ></div>
+          <div className="relative glass p-8 space-y-8">
             {/* Logo and Heading */}
             <div className="text-center space-y-4">
-              <h1 className="text-5xl sm:text-6xl font-black text-white tracking-tighter">
-                easy<span className="text-gray-500">canvas</span>
+              <h1 className="text-5xl sm:text-6xl font-black glass-text-primary tracking-tighter">
+                easy<span className="glass-text-secondary">canvas</span>
               </h1>
-              <p className="text-sm sm:text-base text-gray-400 font-light">
+              <p className="text-sm sm:text-base glass-text-secondary font-light">
                 Streamline your Canvas experience with AI
               </p>
             </div>
 
             {/* Error Message */}
             {error && (
-              <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-3">
+              <div className="glass-chip border border-red-500/30 bg-[rgba(239,68,68,0.15)] p-3">
                 <p className="text-sm text-red-400 text-center">{error}</p>
               </div>
             )}
@@ -129,7 +135,7 @@ export const LoginPage = () => {
   } catch (err) {
     console.error('Error rendering login page:', err);
     return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center">
+      <div className="min-h-screen flex flex-col items-center justify-center">
         <h1 className="text-xl text-red-500">Error loading login page</h1>
         <p className="text-white mt-4">Please refresh the page or try again later.</p>
       </div>

@@ -316,7 +316,7 @@ I'll be back to help you soon! 🌟`,
 
   return (
     <MainLayout showBackButton onBack={() => navigate('/home')}>
-      <div className="flex overflow-hidden bg-black -mx-4 sm:-mx-6 lg:-mx-8 -my-8" style={{ height: 'calc(100vh - 97px)' }}>
+      <div className="flex overflow-hidden -mx-4 sm:-mx-6 lg:-mx-8 -my-8" style={{ height: 'calc(100vh - 97px)' }}>
         {/* Toast Notifications */}
         <Toast
           message={toast.message}
@@ -326,13 +326,13 @@ I'll be back to help you soon! 🌟`,
         />
 
         {/* Mobile Chat History Overlay */}
-        <div className={`fixed inset-0 z-50 bg-black transform transition-transform duration-300 ease-in-out lg:hidden ${
+        <div className={`fixed inset-0 z-50 glass-elevated transform transition-transform duration-300 ease-in-out lg:hidden ${
           showMobileHistory ? 'translate-x-0' : '-translate-x-full'
         }`}>
           <div className="flex flex-col h-full">
             {/* Mobile Header */}
-            <div className="p-4 border-b border-gray-800 flex items-center justify-between">
-              <h2 className="text-xl font-black tracking-tighter text-white">Your Chats</h2>
+            <div className="p-4 border-b border-white/10 flex items-center justify-between">
+              <h2 className="text-xl font-black tracking-tighter glass-text-primary">Your Chats</h2>
               <Button
                 variant="secondary"
                 size="sm"
@@ -366,7 +366,7 @@ I'll be back to help you soon! 🌟`,
         </div>
 
         {/* Desktop Chat History Sidebar */}
-        <div className={`hidden lg:flex flex-shrink-0 border-r border-gray-800/80 bg-gradient-to-b from-black via-gray-950 to-black overflow-hidden flex-col transition-all duration-300 ease-in-out backdrop-blur-sm ${
+        <div className={`hidden lg:flex flex-shrink-0 border-r border-white/10 glass-elevated overflow-hidden flex-col transition-all duration-300 ease-in-out ${
           isSidebarCollapsed ? 'w-16' : 'w-80 xl:w-96'
         }`}>
           {isSidebarCollapsed ? (
@@ -385,8 +385,8 @@ I'll be back to help you soon! 🌟`,
           ) : (
             // Expanded sidebar - full chat history
             <>
-              <div className="p-4 lg:p-6 border-b border-gray-800 flex items-center justify-between h-[73px] lg:h-[97px]">
-                <h2 className="text-xl font-black tracking-tighter text-white">Your Chats</h2>
+              <div className="p-4 lg:p-6 border-b border-white/10 flex items-center justify-between h-[73px] lg:h-[97px]">
+                <h2 className="text-xl font-black tracking-tighter glass-text-primary">Your Chats</h2>
                 <Button
                   variant="secondary"
                   size="sm"
@@ -414,19 +414,18 @@ I'll be back to help you soon! 🌟`,
         </div>
         
         {/* Chat Area */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-black">
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Header */}
-          <div className="p-4 lg:p-6 border-b border-gray-800/60 bg-gradient-to-r from-black via-gray-950 to-black flex-shrink-0 h-[73px] lg:h-[97px] backdrop-blur-sm">
+          <div className="p-4 lg:p-6 border-b border-white/10 glass-elevated flex-shrink-0 h-[73px] lg:h-[97px]">
             <div className="flex items-center justify-between h-full">
               <div className="flex items-center gap-3 lg:gap-4 min-w-0">
                 {/* Mobile Menu Button */}
-                <div className="lg:hidden relative group">
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-gray-600/20 via-gray-500/20 to-gray-600/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition duration-300" />
+                <div className="lg:hidden">
                   <Button
                     variant="secondary"
                     size="sm"
                     onClick={() => setShowMobileHistory(true)}
-                    className="relative h-10 w-10 !p-0 flex items-center justify-center flex-shrink-0"
+                    className="h-10 w-10 !p-0 flex items-center justify-center flex-shrink-0"
                     title="Open Chat History"
                   >
                     <Bars3Icon className="w-5 h-5" />
@@ -434,7 +433,7 @@ I'll be back to help you soon! 🌟`,
                 </div>
                 
                 {/* Title */}
-                <h1 className="text-lg sm:text-xl lg:text-2xl font-black tracking-tighter text-white truncate">
+                <h1 className="text-lg sm:text-xl lg:text-2xl font-black tracking-tighter glass-text-primary truncate">
                   {currentChatId ? 'Continue Your Conversation' : 'Start a New Chat'}
                 </h1>
               </div>
@@ -445,9 +444,9 @@ I'll be back to help you soon! 🌟`,
           <div className="flex-1 p-2 sm:p-4 lg:p-6 overflow-hidden">
             {isFetchingMessages ? (
               <div className="flex justify-center items-center h-full">
-                <div className="text-center">
+                <div className="text-center glass-chip p-8">
                   <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                  <p className="text-gray-400">Loading messages...</p>
+                  <p className="glass-text-secondary">Loading messages...</p>
                 </div>
               </div>
             ) : (

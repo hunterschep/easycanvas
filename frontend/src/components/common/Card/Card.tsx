@@ -24,24 +24,29 @@ export const Card = ({
   };
 
   const gradientStyles = {
-    default: 'from-white via-gray-500 to-black',
-    blue: 'from-blue-500 via-purple-500 to-blue-600',
-    purple: 'from-purple-500 via-pink-500 to-purple-600',
-    green: 'from-green-500 via-emerald-500 to-green-600',
-    red: 'from-red-500 via-pink-500 to-red-600',
-    yellow: 'from-yellow-500 via-orange-500 to-yellow-600'
+    default: 'from-gray-600/80 via-gray-600/90 to-gray-600/80',
+    blue: 'from-blue-600/80 via-blue-600/90 to-blue-600/80', 
+    purple: 'from-purple-600/80 via-purple-600/90 to-purple-600/80',
+    green: 'from-green-600/80 via-green-600/90 to-green-600/80',
+    red: 'from-red-600/80 via-red-600/90 to-red-600/80',
+    yellow: 'from-yellow-600/80 via-yellow-600/90 to-yellow-600/80'
   };
 
   if (loading) {
     return (
       <div className="relative group">
-        <div className={`absolute -inset-0.5 bg-gradient-to-r ${gradientStyles[variant]} rounded-xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200`} />
-        <div className={`relative bg-black border border-gray-800 rounded-xl ${sizeStyles[size]}`}>
+        <div 
+          className={`absolute -inset-1 bg-gradient-to-r ${gradientStyles[variant]} rounded-[calc(var(--radius-lg)+4px)] blur-sm opacity-15`}
+          style={{
+            filter: 'blur(8px) saturate(1.2)'
+          }}
+        />
+        <div className={`relative glass ${sizeStyles[size]}`}>
           <div className="animate-pulse space-y-4">
-            <div className="h-6 bg-gray-800 rounded w-1/3"></div>
+            <div className="h-6 bg-white/10 rounded w-1/3"></div>
             <div className="space-y-2">
-              <div className="h-4 bg-gray-800 rounded w-full"></div>
-              <div className="h-4 bg-gray-800 rounded w-2/3"></div>
+              <div className="h-4 bg-white/10 rounded w-full"></div>
+              <div className="h-4 bg-white/10 rounded w-2/3"></div>
             </div>
           </div>
         </div>
@@ -51,13 +56,18 @@ export const Card = ({
 
   return (
     <div className="relative group">
+      {/* Subtle glow effect for glass cards */}
       <div 
-        className={`absolute -inset-0.5 bg-gradient-to-r ${gradientStyles[variant]} rounded-xl blur opacity-30 ${
-          hover ? 'group-hover:opacity-100 transition duration-1000 group-hover:duration-200' : ''
+        className={`absolute -inset-1 bg-gradient-to-r ${gradientStyles[variant]} rounded-[calc(var(--radius-lg)+4px)] blur-sm opacity-15 ${
+          hover ? 'group-hover:opacity-25 transition-opacity duration-700' : ''
         }`} 
+        style={{
+          filter: 'blur(8px) saturate(1.2)',
+          willChange: hover ? 'opacity' : 'auto'
+        }}
       />
       <div 
-        className={`relative bg-black border border-gray-800 rounded-xl ${sizeStyles[size]} ${className}`}
+        className={`relative glass ${sizeStyles[size]} ${className}`}
       >
         {children}
       </div>
@@ -73,12 +83,12 @@ export const SectionCard = ({ children, title, icon, action, className = '', ...
       <div className="flex items-center justify-between mb-6 sm:mb-8">
         <div className="flex items-center gap-4">
           {icon && (
-            <div className="bg-gray-500/10 border border-gray-500/20 rounded-full p-3">
+            <div className="glass-chip p-3 rounded-full">
               {icon}
             </div>
           )}
           {title && (
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tighter text-white">
+            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tighter glass-text-primary">
               {title}
             </h2>
           )}
@@ -105,14 +115,14 @@ export const StatCard = ({ value, label, icon, trend, className = '', ...props }
     <div className="space-y-3">
       {icon && (
         <div className="flex justify-center">
-          <div className="bg-gray-500/10 border border-gray-500/20 rounded-full p-3">
+          <div className="glass-chip p-3 rounded-full">
             {icon}
           </div>
         </div>
       )}
       <div>
-        <p className="text-2xl sm:text-3xl font-bold text-white">{value}</p>
-        <p className="text-xs sm:text-sm text-gray-400">{label}</p>
+        <p className="text-2xl sm:text-3xl font-bold glass-text-primary">{value}</p>
+        <p className="text-xs sm:text-sm glass-text-secondary">{label}</p>
         {trend && (
           <p className={`text-xs mt-1 ${trend.positive ? 'text-green-400' : 'text-red-400'}`}>
             {trend.value}

@@ -74,7 +74,7 @@ export const SetupPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 relative overflow-hidden">
       {/* Background gradient effects */}
       <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
       <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
@@ -83,10 +83,10 @@ export const SetupPage = () => {
       <div className="w-full max-w-4xl mx-auto space-y-6 sm:space-y-8">
         {/* Header */}
         <div className="text-center space-y-4">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tighter">
-            easy<span className="text-gray-500">canvas</span>
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black glass-text-primary tracking-tighter">
+            easy<span className="glass-text-secondary">canvas</span>
           </h1>
-          <p className="text-lg sm:text-xl text-gray-400 max-w-2xl mx-auto">
+          <p className="text-lg sm:text-xl glass-text-secondary max-w-2xl mx-auto">
             Connect your Canvas account to get started with AI-powered course management
           </p>
         </div>
@@ -138,7 +138,7 @@ export const SetupPage = () => {
         {/* Main Content */}
         <div className="max-w-2xl mx-auto">
           {error && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-6 flex items-center space-x-3">
+            <div className="glass-chip border border-red-500/30 bg-[rgba(239,68,68,0.15)] p-4 mb-6 flex items-center space-x-3">
               <InformationCircleIcon className="w-5 h-5 text-red-400 flex-shrink-0" />
               <p className="text-sm text-red-400">{error}</p>
             </div>
@@ -188,7 +188,7 @@ export const SetupPage = () => {
                   Follow these steps to create your Canvas access token:
                 </p>
                 
-                <div className="bg-gray-900/50 border border-gray-800 rounded-xl p-6 space-y-4">
+                <div className="glass p-6 space-y-4">
                   <div className="flex items-center justify-between mb-4">
                     <h4 className="text-white font-semibold">Canvas Settings</h4>
                     <Button

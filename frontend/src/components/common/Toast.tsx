@@ -32,25 +32,25 @@ export const Toast = ({ message, type, isVisible, onClose, duration = 5000 }: To
     }
   };
 
-  const getBgColor = () => {
+  const getGlassStyle = () => {
     switch (type) {
       case 'success':
-        return 'bg-green-900/90 border-green-500/50';
+        return 'glass-chip border border-green-500/30 bg-[rgba(34,197,94,0.15)]';
       case 'error':
-        return 'bg-red-900/90 border-red-500/50';
+        return 'glass-chip border border-red-500/30 bg-[rgba(239,68,68,0.15)]';
       default:
-        return 'bg-blue-900/90 border-blue-500/50';
+        return 'glass-chip border border-blue-500/30 bg-[rgba(59,130,246,0.15)]';
     }
   };
 
   return (
     <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-top-2 duration-300">
-      <div className={`flex items-center gap-3 p-4 rounded-lg border backdrop-blur-sm ${getBgColor()}`}>
+      <div className={`flex items-center gap-3 p-4 ${getGlassStyle()}`}>
         {getIcon()}
-        <p className="text-white text-sm font-medium">{message}</p>
+        <p className="glass-text-primary text-sm font-medium">{message}</p>
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-white transition-colors"
+          className="glass-text-secondary hover:glass-text-primary transition-colors"
         >
           <XMarkIcon className="w-4 h-4" />
         </button>

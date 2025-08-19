@@ -14,13 +14,40 @@
   /* Always use dark theme - no light mode support */
   color-scheme: dark;
   color: rgba(255, 255, 255, 0.87);
-  background-color: #000000;
+  background-color: #0b1220; /* Match gradient base color for overscroll */
+  
+  /* Set document background to match site gradient */
+  background:
+    radial-gradient(1200px 800px at 10% -10%, rgba(120, 160, 255, 0.25), transparent 60%),
+    radial-gradient(1000px 700px at 90% 10%, rgba(255, 120, 180, 0.18), transparent 55%),
+    linear-gradient(180deg, #0b1220, #0a0f1a);
+  background-attachment: fixed;
 
   /* Typography optimizations */
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* Glassmorphism Design Tokens - Ultra-Soft Morning Dew Specification */
+  --glass-blur: 15px; /* Perfect for text clarity */
+  --glass-blur-mobile: 12px;
+  --glass-blur-elevated: 12px;
+  --glass-blur-chip: 18px;
+  --glass-saturate: 1.08; /* Reduced saturation for softer look */
+  --glass-fill-light: rgba(255, 255, 255, 0.08); /* Much softer white overlay */
+  --glass-fill-dark: rgba(17, 25, 40, 0.12); /* Significantly reduced opacity */
+  --glass-fill-dark-elevated: rgba(17, 25, 40, 0.16); /* Softer elevated variant */
+  --glass-fill-dark-chip: rgba(17, 25, 40, 0.08); /* Very subtle for chips */
+  --glass-stroke: rgba(255, 255, 255, 0.08); /* Even more delicate border */
+  --glass-stroke-hover: rgba(255, 255, 255, 0.12); /* Subtle brighten on hover */
+  --glass-inset: rgba(255, 255, 255, 0.04); /* Ultra-subtle inner glow */
+  --glass-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04); /* Softer shadow */
+  --glass-shadow-elevated: 0 24px 60px -12px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+  --radius-lg: 18px;
+  --radius-glass-sm: 16px;
+  --radius-chip: 12px;
+  --transition-fast: 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /* Reset default styles to match our design system */
@@ -30,14 +57,29 @@
 
 html {
   scroll-behavior: smooth;
+  /* Extend background to cover overscroll area */
+  min-height: 100%;
+  background: inherit;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: #000000;
   color: #ffffff;
   overflow-x: hidden;
+  /* Glassmorphism Background Canvas - Extended for overscroll */
+  background:
+    radial-gradient(1200px 800px at 10% -10%, rgba(120, 160, 255, 0.25), transparent 60%),
+    radial-gradient(1000px 700px at 90% 10%, rgba(255, 120, 180, 0.18), transparent 55%),
+    linear-gradient(180deg, #0b1220, #0a0f1a);
+  /* Extend background to cover overscroll areas */
+  background-attachment: fixed;
+  background-size: 100% 120vh; /* Extend beyond viewport */
+  background-repeat: no-repeat;
+  
+  /* Overscroll behavior for mobile */
+  overscroll-behavior: contain;
+  -webkit-overscroll-behavior: contain;
 }
 
 /* Remove default button styles - we use our Button component */
@@ -129,12 +171,23 @@ ul, ol {
   position: relative;
 }
 
+/* Anti-banding optimization for blur effects */
+.blur-sm {
+  filter: blur(4px);
+  /* Force hardware acceleration for smoother gradients */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  /* Improve blur quality */
+  -webkit-backface-visibility: hidden;
+  -webkit-transform: translateZ(0);
+}
+
 .gradient-border::before {
   content: '';
   position: absolute;
   inset: -0.5px;
   padding: 0.5px;
-  background: linear-gradient(to right, white, rgb(107, 114, 128), black);
+  background: linear-gradient(to right, rgb(107, 114, 128), rgb(75, 85, 99), rgb(55, 65, 81));
   border-radius: inherit;
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: subtract;
@@ -182,4 +235,95 @@ ul, ol {
     black 90%,
     transparent 100%
   );
+}
+
+/* Glassmorphism Utilities - Exact Specification */
+.glass {
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  background: var(--glass-fill-dark);
+  border: 1px solid var(--glass-stroke);
+  box-shadow: var(--glass-shadow), inset 0 1px var(--glass-inset);
+  border-radius: var(--radius-lg);
+  transition: 
+    transform var(--transition-fast),
+    background-color var(--transition-fast),
+    box-shadow var(--transition-fast), 
+    border-color var(--transition-fast);
+}
+
+.glass:hover {
+  transform: translateY(-0.5px);
+  background: rgba(17, 25, 40, 0.16); /* Very subtle hover increase */
+  border-color: var(--glass-stroke-hover);
+}
+
+.glass:active {
+  transform: scale(0.99);
+  backdrop-filter: blur(16px) saturate(var(--glass-saturate)); /* -4px blur */
+  -webkit-backdrop-filter: blur(16px) saturate(var(--glass-saturate));
+}
+
+/* Glass variants */
+.glass-elevated {
+  backdrop-filter: blur(var(--glass-blur-elevated)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur-elevated)) saturate(var(--glass-saturate));
+  background: var(--glass-fill-dark-elevated);
+  border: 1px solid var(--glass-stroke);
+  box-shadow: var(--glass-shadow-elevated), inset 0 1px var(--glass-inset);
+  border-radius: var(--radius-lg);
+  transition: 
+    transform var(--transition-fast),
+    background-color var(--transition-fast),
+    box-shadow var(--transition-fast), 
+    border-color var(--transition-fast);
+}
+
+.glass-elevated:hover {
+  transform: translateY(-0.5px);
+  background: rgba(17, 25, 40, 0.20); /* Softer elevated hover */
+  border-color: var(--glass-stroke-hover);
+}
+
+.glass-chip {
+  backdrop-filter: blur(var(--glass-blur-chip)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur-chip)) saturate(var(--glass-saturate));
+  background: var(--glass-fill-dark-chip);
+  border: 1px solid var(--glass-stroke);
+  box-shadow: var(--glass-shadow), inset 0 1px var(--glass-inset);
+  border-radius: var(--radius-chip);
+  transition: 
+    transform var(--transition-fast),
+    background-color var(--transition-fast),
+    box-shadow var(--transition-fast), 
+    border-color var(--transition-fast);
+}
+
+.glass-chip:hover {
+  transform: translateY(-0.25px);
+  background: rgba(17, 25, 40, 0.12); /* Ultra-subtle chip hover */
+  border-color: var(--glass-stroke-hover);
+}
+
+.glass-mobile {
+  backdrop-filter: blur(var(--glass-blur-mobile)) saturate(var(--glass-saturate));
+  -webkit-backdrop-filter: blur(var(--glass-blur-mobile)) saturate(var(--glass-saturate));
+}
+
+/* Fallback for unsupported browsers */
+@supports not (backdrop-filter: blur(1px)) {
+  .glass,
+  .glass-elevated,
+  .glass-chip {
+    background: rgba(17, 25, 40, 0.35); /* Softer fallback */
+  }
+}
+
+/* Text contrast helpers for glass surfaces - Softer but still readable */
+.glass-text-primary {
+  color: rgba(255, 255, 255, 0.92); /* Slightly softer primary text */
+}
+
+.glass-text-secondary {
+  color: rgba(255, 255, 255, 0.65); /* Softer secondary text */
 }

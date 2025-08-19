@@ -73,25 +73,25 @@ export const CourseSelectPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4">
       {/* Background effects */}
       <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob"></div>
       <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-blob animation-delay-2000"></div>
 
       <div className="relative max-w-3xl w-full">
-        <div className="relative bg-black rounded-xl border border-gray-800 p-8 shadow-2xl">
+        <div className="relative glass p-8 shadow-2xl">
           {/* Header */}
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-black text-white tracking-tight mb-3">
+            <h1 className="text-4xl font-black glass-text-primary tracking-tight mb-3">
               Select Your Courses
             </h1>
-            <p className="text-gray-400 max-w-lg mx-auto">
+            <p className="glass-text-secondary max-w-lg mx-auto">
               Choose the courses you want to track. We'll fetch assignments and updates for your selected courses.
             </p>
           </div>
 
           {error && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 mb-6">
+            <div className="glass-chip border border-red-500/30 bg-[rgba(239,68,68,0.15)] p-4 mb-6">
               <p className="text-sm text-red-400 text-center">{error}</p>
             </div>
           )}
@@ -102,17 +102,17 @@ export const CourseSelectPage = () => {
               <div
                 key={course.id}
                 onClick={() => handleCourseToggle(course.id)}
-                className={`group relative p-4 border rounded-xl cursor-pointer transition-all duration-200 ${
+                className={`group relative p-4 cursor-pointer transition-all duration-200 ${
                   selectedCourseIds.includes(course.id)
-                    ? 'border-white bg-white/5'
-                    : 'border-gray-800 hover:border-gray-600'
+                    ? 'glass-chip border border-white/30 bg-[rgba(255,255,255,0.08)]'
+                    : 'glass-chip hover:bg-[rgba(17,25,40,0.24)]'
                 }`}
               >
                 {/* Checkbox indicator */}
                 <div className={`absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 border rounded transition-all duration-200 flex items-center justify-center ${
                   selectedCourseIds.includes(course.id)
                     ? 'border-white bg-white'
-                    : 'border-gray-600 group-hover:border-gray-400'
+                    : 'border-white/40 group-hover:border-white/60'
                 }`}>
                   {selectedCourseIds.includes(course.id) && (
                     <svg className="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -121,8 +121,8 @@ export const CourseSelectPage = () => {
                   )}
                 </div>
 
-                <h3 className="font-medium text-white text-lg mb-1">{course.name}</h3>
-                <p className="text-sm text-gray-400">{course.code}</p>
+                <h3 className="font-medium glass-text-primary text-lg mb-1">{course.name}</h3>
+                <p className="text-sm glass-text-secondary">{course.code}</p>
               </div>
             ))}
           </div>

@@ -29,12 +29,12 @@ export const Button = ({
   };
 
   const variantStyles = {
-    primary: "text-white bg-gray-900 border border-gray-800 hover:border-gray-600 hover:bg-gray-800 focus:ring-gray-500",
-    secondary: "text-gray-400 hover:text-white bg-transparent border border-gray-800 hover:border-gray-600 hover:bg-gray-900/50 focus:ring-gray-500",
-    danger: "text-red-400 hover:text-red-300 bg-red-900/20 border border-red-900/50 hover:border-red-700 hover:bg-red-900/30 focus:ring-red-500",
-    success: "text-green-400 hover:text-green-300 bg-green-900/20 border border-green-900/50 hover:border-green-700 hover:bg-green-900/30 focus:ring-green-500",
-    gradient: "text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 border-0 focus:ring-blue-500 shadow-lg hover:shadow-xl transform hover:scale-105",
-    ghost: "text-gray-400 hover:text-white bg-transparent border-0 hover:bg-gray-900/50 focus:ring-gray-500"
+    primary: "glass-text-primary bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-600 hover:from-blue-500 hover:via-blue-600 hover:to-indigo-500 border-0 focus:ring-blue-500 shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-transform duration-200",
+    secondary: "glass-text-primary glass-chip hover:bg-[rgba(17,25,40,0.12)] focus:ring-white/20",
+    danger: "glass-text-primary glass-chip border border-red-500/30 bg-[rgba(239,68,68,0.15)] hover:bg-[rgba(239,68,68,0.25)] focus:ring-red-500/30",
+    success: "glass-text-primary glass-chip border border-green-500/30 bg-[rgba(34,197,94,0.15)] hover:bg-[rgba(34,197,94,0.25)] focus:ring-green-500/30",
+    gradient: "glass-text-primary bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-600 hover:from-blue-500 hover:via-blue-600 hover:to-indigo-500 border-0 focus:ring-blue-500 shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-transform duration-200",
+    ghost: "glass-text-secondary hover:glass-text-primary bg-transparent border-0 hover:bg-[rgba(17,25,40,0.08)] focus:ring-white/10"
   };
 
   const widthStyles = fullWidth ? "w-full" : "";

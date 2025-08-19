@@ -11,11 +11,11 @@ export const Loading: React.FC<LoadingProps> = ({
 }) => {
   return (
     <div 
-      className={`flex flex-col items-center justify-center bg-black text-white
+      className={`flex flex-col items-center justify-center text-white
       ${fullScreen ? 'fixed inset-0 z-50' : 'w-full h-full min-h-[200px]'}`}
     >
       <div className="relative w-full max-w-md mx-auto px-4">
-        {/* Main loading container with gradient background */}
+        {/* Main loading container with glassmorphism */}
         <div className="relative">
           {/* Animated background blur */}
           <div className="absolute inset-0 -z-10">
@@ -25,26 +25,26 @@ export const Loading: React.FC<LoadingProps> = ({
           </div>
           
           {/* Logo and loading indicator */}
-          <div className="py-8 flex flex-col items-center space-y-6">
+          <div className="glass p-8 flex flex-col items-center space-y-6">
             {/* Animated logo */}
             <div className="relative">
-              <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tighter">
-                easy<span className="text-gray-500">canvas</span>
+              <h1 className="text-3xl sm:text-4xl font-black glass-text-primary tracking-tighter">
+                easy<span className="glass-text-secondary">canvas</span>
               </h1>
               
               {/* Animated bottom line */}
-              <div className="mt-2 h-0.5 w-full bg-gray-800 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-500 to-gray-200 animate-shimmer"></div>
+              <div className="mt-2 h-0.5 w-full bg-white/20 relative overflow-hidden rounded-full">
+                <div className="absolute inset-0 bg-gradient-to-r from-white/40 via-white/80 to-white/40 animate-shimmer"></div>
               </div>
             </div>
             
             {/* Loading animation - a modern gradient bar */}
-            <div className="w-full h-1 bg-gray-800 rounded-full overflow-hidden">
-              <div className="h-full bg-gradient-to-r from-gray-300 via-white to-gray-300 animate-progress"></div>
+            <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-white/60 via-white to-white/60 animate-progress"></div>
             </div>
             
             {/* Message with fade-in effect */}
-            <p className="text-gray-400 text-sm animate-pulse">{message}</p>
+            <p className="glass-text-secondary text-sm animate-pulse">{message}</p>
           </div>
         </div>
       </div>

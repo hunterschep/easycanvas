@@ -1,11 +1,14 @@
-// import { useNavigate } from 'react-router-dom'; // TODO: Implement course detail navigation
+import { useQuery } from '@tanstack/react-query';
 import { 
   AcademicCapIcon, 
   ChartBarIcon, 
-  BookOpenIcon
+  BookOpenIcon,
+  ArrowTopRightOnSquareIcon
 } from '@heroicons/react/24/outline';
 import { Button } from '@/components/common/Button/Button';
 import { SectionCard } from '@/components/common/Card/Card';
+import { AccountService } from '@/features/account/services/account.service';
+import { useAuth } from '@/features/auth/context/AuthContext';
 import type { CanvasCourse, CanvasAssignment } from '@/types/canvas.types';
 
 interface CourseOverviewProps {
@@ -21,7 +24,14 @@ interface CourseStats {
 }
 
 export const CourseOverview = ({ courses }: CourseOverviewProps) => {
-  // const navigate = useNavigate(); // TODO: Implement course detail navigation
+  const { currentUser } = useAuth();
+  
+  // Fetch user settings to get Canvas URL
+  const { data: userSettings } = useQuery({
+    queryKey: ['userSettings', currentUser?.uid],
+    queryFn: AccountService.getUserSettings,
+    enabled: !!currentUser,
+  });
 
   const calculateCourseStats = (assignments: CanvasAssignment[]): CourseStats => {
     let pointsEarned = 0;
@@ -60,17 +70,18 @@ export const CourseOverview = ({ courses }: CourseOverviewProps) => {
   };
 
   const getProgressBarColor = (percentage: number) => {
-    if (percentage >= 90) return 'bg-gradient-to-r from-emerald-500 to-green-400';
-    if (percentage >= 80) return 'bg-gradient-to-r from-blue-500 to-cyan-400';
-    if (percentage >= 70) return 'bg-gradient-to-r from-yellow-500 to-amber-400';
-    if (percentage >= 60) return 'bg-gradient-to-r from-orange-500 to-red-400';
-    return 'bg-gradient-to-r from-red-500 to-pink-400';
+    if (percentage >= 90) return 'bg-gradient-to-r from-emerald-500 via-emerald-400 to-green-400';
+    if (percentage >= 80) return 'bg-gradient-to-r from-blue-500 via-blue-400 to-blue-400';
+    if (percentage >= 70) return 'bg-gradient-to-r from-yellow-500 via-yellow-400 to-amber-400';
+    if (percentage >= 60) return 'bg-gradient-to-r from-orange-500 via-orange-400 to-orange-400';
+    return 'bg-gradient-to-r from-red-500 via-red-400 to-red-400';
   };
 
   const handleViewCourse = (courseId: number) => {
-    // Navigate to a course detail page or Canvas
-    // For now, we'll just log it - you can implement course detail navigation later
-    console.log(`View course ${courseId}`);
+    if (userSettings?.canvasUrl) {
+      const courseUrl = `${userSettings.canvasUrl}/courses/${courseId}`;
+      window.open(courseUrl, '_blank');
+    }
   };
 
   if (courses.length === 0) {
@@ -87,13 +98,13 @@ export const CourseOverview = ({ courses }: CourseOverviewProps) => {
             </div>
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-white mb-3">
+            <h3 className="text-2xl font-bold glass-text-primary mb-3">
               No Courses Found
             </h3>
-            <p className="text-gray-300 text-lg mb-4">
+            <p className="glass-text-secondary text-lg mb-4">
               No courses are currently available.
             </p>
-            <p className="text-gray-400">
+            <p className="glass-text-secondary">
               Check your course selection or Canvas integration.
             </p>
           </div>
@@ -111,13 +122,13 @@ export const CourseOverview = ({ courses }: CourseOverviewProps) => {
       <div className="space-y-6">
         {/* Compact Header */}
         <div className="-mt-2 sm:-mt-4 space-y-2">
-          <p className="text-gray-300 text-base font-medium">
+          <p className="glass-text-secondary text-base font-medium">
             Your academic progress across {courses.length} course{courses.length === 1 ? '' : 's'}
           </p>
           
           {/* Overall Stats - Compact */}
           <div className="flex items-center gap-4 text-sm">
-            <span className="text-gray-300 font-medium">
+            <span className="glass-text-primary font-medium">
               {(() => {
                 const overallStats = courses.reduce((acc, course) => {
                   const stats = calculateCourseStats(course.assignments);
@@ -133,7 +144,7 @@ export const CourseOverview = ({ courses }: CourseOverviewProps) => {
               })()}
             </span>
             
-            <span className="text-gray-400">
+            <span className="glass-text-secondary">
               {courses.reduce((total, course) => {
                 return total + calculateCourseStats(course.assignments).gradedAssignments;
               }, 0)} graded assignments
@@ -152,15 +163,15 @@ export const CourseOverview = ({ courses }: CourseOverviewProps) => {
                   className="relative group/card h-full"
                 >
                   {/* Card gradient border effect - much more subtle */}
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-gray-600/10 via-gray-500/10 to-gray-600/10 rounded-xl blur opacity-0 group-hover/card:opacity-60 transition-opacity duration-700" />
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-blue-500/10 rounded-[var(--radius-lg)] blur opacity-0 group-hover/card:opacity-30 transition-opacity duration-500" />
                   
-                  <div className="relative bg-black border border-gray-800 rounded-xl p-6 sm:p-8 hover:border-gray-700 transition-all duration-300 group-hover/card:bg-gray-900/30 h-full flex flex-col">
+                  <div className="relative glass p-6 sm:p-8 hover:bg-[rgba(17,25,40,0.28)] transition-all duration-300 h-full flex flex-col">
                     <div className="space-y-6 flex-1 flex flex-col">
                       
                       {/* Course Header */}
                       <div className="flex items-start justify-between gap-4">
                         <div className="min-w-0 flex-1">
-                          <h3 className="text-xl font-bold text-white leading-tight group-hover/card:text-gray-100 transition-colors duration-200 mb-2 line-clamp-2">
+                          <h3 className="text-xl font-bold glass-text-primary leading-tight group-hover/card:text-blue-100 transition-colors duration-200 mb-2 line-clamp-2">
                             {course.name}
                           </h3>
                         </div>
@@ -172,12 +183,12 @@ export const CourseOverview = ({ courses }: CourseOverviewProps) => {
                       {/* Grade Display - flex-1 to push button to bottom */}
                       <div className="space-y-4 flex-1">
                         <div className="flex items-center justify-between">
-                          <span className="text-gray-300 font-medium">Current Grade</span>
+                          <span className="glass-text-secondary font-medium">Current Grade</span>
                           <div className="text-right">
                             <div className={`text-2xl font-bold ${getGradeColor(stats.percentage)}`}>
                               {stats.percentage.toFixed(1)}%
                             </div>
-                            <div className="text-sm text-gray-400">
+                            <div className="text-sm glass-text-secondary">
                               {stats.pointsEarned.toFixed(1)} / {stats.totalPossiblePointsFromGraded.toFixed(1)} pts
                             </div>
                           </div>
@@ -186,7 +197,7 @@ export const CourseOverview = ({ courses }: CourseOverviewProps) => {
                         {/* Progress Bar */}
                         <div className="space-y-2">
                           <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-400">
+                            <span className="glass-text-secondary">
                               {stats.gradedAssignments} of {stats.totalAssignments} assignments graded
                             </span>
                           </div>
@@ -199,20 +210,20 @@ export const CourseOverview = ({ courses }: CourseOverviewProps) => {
                         </div>
 
                         {/* Stats Grid */}
-                        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-gray-800">
+                        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/10">
                           <div className="text-center space-y-1">
-                            <div className="text-2xl font-bold text-white group-hover/card:text-gray-100 transition-colors duration-200">
+                            <div className="text-2xl font-bold glass-text-primary group-hover/card:text-blue-100 transition-colors duration-200">
                               {stats.totalAssignments}
                             </div>
-                            <div className="text-xs text-gray-400 uppercase tracking-wide">
+                            <div className="text-xs glass-text-secondary uppercase tracking-wide">
                               Total Assignments
                             </div>
                           </div>
                           <div className="text-center space-y-1">
-                            <div className="text-2xl font-bold text-white group-hover/card:text-gray-100 transition-colors duration-200">
+                            <div className="text-2xl font-bold glass-text-primary group-hover/card:text-blue-100 transition-colors duration-200">
                               {stats.gradedAssignments}
                             </div>
-                            <div className="text-xs text-gray-400 uppercase tracking-wide">
+                            <div className="text-xs glass-text-secondary uppercase tracking-wide">
                               Graded
                             </div>
                           </div>
@@ -226,8 +237,11 @@ export const CourseOverview = ({ courses }: CourseOverviewProps) => {
                           variant="secondary"
                           fullWidth
                           size="sm"
+                          leftIcon={<ArrowTopRightOnSquareIcon className="w-4 h-4" />}
+                          disabled={!userSettings?.canvasUrl}
+                          className="group-hover/card:scale-[1.02] transition-all duration-200"
                         >
-                          View Course Details
+                          View in Canvas
                         </Button>
                       </div>
                     </div>

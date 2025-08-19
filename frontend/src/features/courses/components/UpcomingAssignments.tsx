@@ -123,10 +123,10 @@ export const UpcomingAssignments = ({ courses }: UpcomingAssignmentsProps) => {
             </div>
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-white mb-3">
+            <h3 className="text-2xl font-bold glass-text-primary mb-3">
               All Caught Up!
             </h3>
-            <p className="text-gray-300 text-lg mb-4">
+            <p className="glass-text-secondary text-lg mb-4">
               No assignments due in the next 30 days.
             </p>
             <p className="text-green-400 font-medium">
@@ -147,7 +147,7 @@ export const UpcomingAssignments = ({ courses }: UpcomingAssignmentsProps) => {
       <div className="space-y-6">
         {/* Compact Header */}
         <div className="-mt-2 sm:-mt-4 space-y-2">
-          <p className="text-gray-300 text-base font-medium">
+          <p className="glass-text-secondary text-base font-medium">
             {upcomingAssignments.length} assignment{upcomingAssignments.length === 1 ? '' : 's'} due in the next 30 days
           </p>
           
@@ -206,23 +206,23 @@ export const UpcomingAssignments = ({ courses }: UpcomingAssignmentsProps) => {
                   className="relative group/card"
                 >
                   {/* Card gradient border effect */}
-                  <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-blue-500/20 rounded-xl blur opacity-0 group-hover/card:opacity-100 transition duration-500" />
+                  <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-blue-500/20 rounded-[var(--radius-lg)] blur opacity-0 group-hover/card:opacity-40 transition duration-500" />
                   
-                  <div className="relative bg-gray-900/80 backdrop-blur-sm border border-gray-800 rounded-xl p-6 hover:border-gray-700 transition-all duration-300 group-hover/card:bg-gray-900/90">
+                  <div className="relative glass p-6 hover:bg-[rgba(17,25,40,0.16)] transition-all duration-300">
                     <div className="flex flex-col lg:flex-row lg:items-center gap-4 lg:gap-6">
                       
                       {/* Left: Assignment Info */}
                       <div className="flex-1 min-w-0 space-y-3">
                         {/* Assignment Title & Course */}
                         <div className="space-y-2">
-                          <h3 className="text-lg font-bold text-white leading-tight group-hover/card:text-blue-100 transition-colors duration-200">
+                          <h3 className="text-lg font-bold glass-text-primary leading-tight group-hover/card:text-blue-100 transition-colors duration-200">
                             {assignment.name}
                           </h3>
                           <div className="flex items-center gap-3 text-sm">
-                            <span className="px-3 py-1 bg-gray-800/80 border border-gray-700 rounded-full text-gray-300 font-medium">
+                            <span className="px-3 py-1 glass-chip font-medium">
                               {assignment.courseCode}
                             </span>
-                            <span className="text-gray-400">
+                            <span className="glass-text-secondary">
                               {assignment.points_possible || 0} points
                             </span>
                             {assignment.has_submitted_submissions && (
@@ -236,7 +236,7 @@ export const UpcomingAssignments = ({ courses }: UpcomingAssignmentsProps) => {
 
                       {/* Center: Due Date Badge */}
                       <div className="flex-shrink-0">
-                        <div className={`px-4 py-2 rounded-xl border font-semibold text-sm ${dueDateInfo.bgColor} ${dueDateInfo.color} group-hover/card:scale-105 transition-transform duration-200`}>
+                        <div className={`px-4 py-2 rounded-xl border font-semibold text-sm ${dueDateInfo.bgColor} ${dueDateInfo.color} group-hover/card:scale-[1.02] transition-transform duration-200`}>
                           {dueDateInfo.text}
                         </div>
                       </div>
@@ -248,7 +248,7 @@ export const UpcomingAssignments = ({ courses }: UpcomingAssignmentsProps) => {
                           variant="primary"
                           size="sm"
                           leftIcon={<ChatBubbleLeftRightIcon className="w-4 h-4" />}
-                          className="group-hover/card:scale-105 transition-all duration-200"
+                          className="group-hover/card:scale-[1.02] transition-all duration-200"
                         >
                           <span className="hidden sm:inline">Ask AI</span>
                         </Button>
@@ -259,7 +259,7 @@ export const UpcomingAssignments = ({ courses }: UpcomingAssignmentsProps) => {
                           size="sm"
                           leftIcon={<ArrowTopRightOnSquareIcon className="w-4 h-4" />}
                           disabled={!assignment.html_url}
-                          className="group-hover/card:scale-105 transition-all duration-200"
+                          className="group-hover/card:scale-[1.02] transition-all duration-200"
                         >
                           <span className="hidden sm:inline">Canvas</span>
                         </Button>

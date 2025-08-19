@@ -33,9 +33,9 @@ export const HomePage = () => {
             <div className="flex flex-col items-center space-y-4">
               <ExclamationTriangleIcon className="w-16 h-16 text-red-400" />
               <div>
-                <h2 className="text-2xl font-bold text-white mb-2">Unable to Load Courses</h2>
-                <p className="text-gray-300 mb-4">{coursesError}</p>
-                <p className="text-sm text-gray-400">
+                <h2 className="text-2xl font-bold glass-text-primary mb-2">Unable to Load Courses</h2>
+                <p className="glass-text-secondary mb-4">{coursesError}</p>
+                <p className="text-sm glass-text-secondary">
                   Please check your Canvas connection or try refreshing the page.
                 </p>
               </div>
@@ -52,10 +52,10 @@ export const HomePage = () => {
       <div className="space-y-6 sm:space-y-8 lg:space-y-12">
         {/* Welcome Section */}
         <div className="text-center space-y-4 mb-8 sm:mb-12">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tighter">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black glass-text-primary tracking-tighter">
             Your Course Dashboard
           </h1>
-          <p className="text-lg sm:text-xl text-gray-400 max-w-3xl mx-auto">
+          <p className="text-lg sm:text-xl glass-text-secondary max-w-3xl mx-auto">
             Stay on top of your assignments, track your progress, and get AI-powered insights
           </p>
         </div>

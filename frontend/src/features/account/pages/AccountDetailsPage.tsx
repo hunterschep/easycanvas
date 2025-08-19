@@ -119,8 +119,8 @@ export const AccountDetailsPage = () => {
                 className="w-32 h-32 rounded-full border-2 border-gray-800 object-cover mx-auto"
               />
             ) : (
-              <div className="w-32 h-32 rounded-full border-2 border-gray-800 bg-black flex items-center justify-center mx-auto">
-                <span className="text-4xl text-gray-400">
+              <div className="w-32 h-32 rounded-full glass-chip flex items-center justify-center mx-auto">
+                <span className="text-4xl glass-text-secondary">
                   {settings?.first_name?.charAt(0).toUpperCase() || '?'}
                 </span>
               </div>
@@ -218,14 +218,14 @@ export const AccountDetailsPage = () => {
 
         {/* Canvas Integration */}
         <div className="relative group">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-red-500 via-red-800 to-black rounded-xl blur opacity-30 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
-          <div className="relative bg-black border border-red-900/50 rounded-xl p-6">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-red-500/30 via-red-400/20 to-red-500/30 rounded-[var(--radius-lg)] blur opacity-20 group-hover:opacity-40 transition duration-500" />
+          <div className="relative glass border border-red-500/30 bg-[rgba(239,68,68,0.15)] p-6">
             <div className="flex justify-between items-center mb-6">
               <div className="flex items-center gap-4">
-                <div className="bg-red-500/10 border border-red-500/20 rounded-full p-3">
+                <div className="glass-chip p-3 rounded-full">
                   <ExclamationTriangleIcon className="w-8 h-8 text-red-400" />
                 </div>
-                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tighter text-red-500">Canvas Integration</h2>
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tighter text-red-400">Canvas Integration</h2>
               </div>
               {!isDangerEditing && (
                 <Button onClick={() => setIsDangerEditing(true)} variant="danger" size="sm">

@@ -40,15 +40,15 @@ const ChatHistory = ({
       {/* Header - conditionally rendered */}
       {showHeader && (
         <div className="flex justify-between items-center mb-6 lg:mb-8">
-          <h2 className="text-lg sm:text-xl font-black tracking-tighter text-white">Your Chats</h2>
+          <h2 className="text-lg sm:text-xl font-black tracking-tighter glass-text-primary">Your Chats</h2>
           <Button
             onClick={onNewChat}
             variant="secondary"
-            size="md"
-            className="flex-shrink-0 h-12 w-12 !p-0 flex items-center justify-center"
+            size="sm"
+            className="flex-shrink-0 h-10 w-10 !p-0 flex items-center justify-center"
             title="New Chat"
           >
-            <PlusIcon className="w-6 h-6" />
+            <PlusIcon className="w-5 h-5" />
           </Button>
         </div>
       )}
@@ -56,16 +56,16 @@ const ChatHistory = ({
       {/* Content */}
       {isLoading ? (
         <div className="flex-1 flex justify-center items-center">
-          <div className="text-center space-y-3">
+          <div className="text-center space-y-3 glass-chip p-6">
             <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto"></div>
-            <p className="text-gray-400 text-sm">Loading chats...</p>
+            <p className="glass-text-secondary text-sm">Loading chats...</p>
           </div>
         </div>
       ) : chats.length === 0 ? (
         <div className="flex-1 flex flex-col justify-center items-center space-y-4 lg:space-y-6 px-4">
-          <div className="text-center space-y-2">
-            <p className="text-gray-400 text-sm sm:text-base">No chats yet</p>
-            <p className="text-gray-500 text-xs sm:text-sm">Start your first conversation</p>
+          <div className="text-center space-y-2 glass-chip p-6">
+            <p className="glass-text-secondary text-sm sm:text-base">No chats yet</p>
+            <p className="glass-text-secondary text-xs sm:text-sm">Start your first conversation</p>
           </div>
           <Button
             onClick={onNewChat}
@@ -90,26 +90,26 @@ const ChatHistory = ({
                 onClick={() => !isDeleting && onSelectChat(chat.chat_id)}
               >
                 <div className="relative group">
-                  <div className={`absolute -inset-0.5 rounded-xl blur transition duration-300 ${
+                  <div className={`absolute -inset-0.5 rounded-[var(--radius-chip)] blur transition duration-300 ${
                     chat.chat_id === currentChatId
                       ? 'bg-gradient-to-r from-blue-500/30 via-blue-400/30 to-blue-500/30 opacity-50'
                       : 'bg-gradient-to-r from-gray-600/20 via-gray-500/20 to-gray-600/20 opacity-0 group-hover:opacity-30'
                   }`} />
-                  <div className={`relative p-3 sm:p-4 lg:p-5 rounded-xl border transition-all duration-200 backdrop-blur-sm ${
+                  <div className={`relative p-3 sm:p-4 lg:p-5 transition-all duration-200 ${
                     chat.chat_id === currentChatId
-                      ? 'bg-gradient-to-r from-gray-950/90 via-black to-gray-950/90 border-blue-500/60'
-                      : 'bg-gradient-to-r from-gray-950/60 via-black/80 to-gray-950/60 border-gray-700/60 hover:border-gray-600/80 hover:bg-gray-900/70'
+                      ? 'glass-chip border border-blue-500/40 bg-[rgba(59,130,246,0.08)]'
+                      : 'glass-chip hover:bg-[rgba(17,25,40,0.24)]'
                   }`}>
                   <div className="flex justify-between items-start">
                     <div className="flex-1 min-w-0 pr-2 sm:pr-3">
-                      <h3 className="font-semibold text-white text-sm sm:text-base truncate mb-1.5">
+                      <h3 className="font-semibold glass-text-primary text-sm sm:text-base truncate mb-1.5">
                         {chat.title}
                       </h3>
-                      <p className="text-xs text-gray-400 mb-2 font-medium">
+                      <p className="text-xs glass-text-secondary mb-2 font-medium">
                         {formatDate(chat.updated_at)}
                       </p>
                       {chat.last_message && (
-                        <p className="text-xs sm:text-sm text-gray-500 line-clamp-2 leading-relaxed">
+                        <p className="text-xs sm:text-sm glass-text-secondary line-clamp-2 leading-relaxed">
                           {getMarkdownPreview(chat.last_message, 100)}
                         </p>
                       )}
