@@ -27,7 +27,7 @@ const ChatInput = ({ onSendMessage, isLoading }: ChatInputProps) => {
 
   return (
     <form onSubmit={handleSubmit} className="p-4 sm:p-5 lg:p-6">
-      <div className="flex items-center gap-3 sm:gap-4">
+      <div className="flex items-stretch gap-3 sm:gap-4">
         {/* Enhanced textarea with glassmorphism */}
         <div className="flex-1 relative group">
           <textarea
@@ -53,7 +53,7 @@ const ChatInput = ({ onSendMessage, isLoading }: ChatInputProps) => {
           size="md"
           isLoading={isLoading}
           leftIcon={!isLoading ? <PaperAirplaneIcon className="w-4 h-4 sm:w-5 sm:h-5" /> : undefined}
-          className="flex-shrink-0 h-[48px] sm:h-[56px] px-4 sm:px-6 font-semibold !py-0"
+          className="flex-shrink-0 h-[48px] sm:h-[56px] px-4 sm:px-6 font-semibold"
         >
           {isLoading ? (
             <span className="hidden sm:inline">Generating...</span>

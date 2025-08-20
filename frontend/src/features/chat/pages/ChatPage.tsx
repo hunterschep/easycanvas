@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layouts/MainLayout/MainLayout';
 import { Button } from '@/components/common/Button/Button';
 import { Toast } from '@/components/common/Toast';
-import { Bars3Icon, XMarkIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { Bars3Icon, XMarkIcon, ChevronLeftIcon, ChevronRightIcon, PlusIcon } from '@heroicons/react/24/outline';
 import ChatWindow from '@/components/chat/ChatWindow';
 import ChatHistory from '../components/ChatHistory';
 import { ChatMessage, MessageRole, ChatListItem } from '@/types/chat';
@@ -387,15 +387,26 @@ I'll be back to help you soon! 🌟`,
             <>
               <div className="p-4 lg:p-6 border-b border-white/10 flex items-center justify-between h-[73px] lg:h-[97px]">
                 <h2 className="text-xl font-black tracking-tighter glass-text-primary">Your Chats</h2>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={toggleSidebar}
-                  className="h-10 w-10 !p-0 flex items-center justify-center"
-                  title="Collapse Chat History"
-                >
-                  <ChevronLeftIcon className="w-5 h-5" />
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={handleNewChat}
+                    variant="secondary"
+                    size="sm"
+                    className="h-10 w-10 !p-0 flex items-center justify-center"
+                    title="New Chat"
+                  >
+                    <PlusIcon className="w-5 h-5" />
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={toggleSidebar}
+                    className="h-10 w-10 !p-0 flex items-center justify-center"
+                    title="Collapse Chat History"
+                  >
+                    <ChevronLeftIcon className="w-5 h-5" />
+                  </Button>
+                </div>
               </div>
               <div className="p-4 lg:p-6 flex-1 overflow-y-auto">
                 <ChatHistory 
@@ -436,6 +447,20 @@ I'll be back to help you soon! 🌟`,
                 <h1 className="text-lg sm:text-xl lg:text-2xl font-black tracking-tighter glass-text-primary truncate">
                   {currentChatId ? 'Continue Your Conversation' : 'Start a New Chat'}
                 </h1>
+              </div>
+              
+              {/* New Chat Button */}
+              <div className="flex items-center gap-3">
+                <Button
+                  onClick={handleNewChat}
+                  variant="secondary"
+                  size="sm"
+                  leftIcon={<PlusIcon className="w-4 h-4" />}
+                  className="flex-shrink-0"
+                  title="Start New Chat"
+                >
+                  <span className="hidden sm:inline">New Chat</span>
+                </Button>
               </div>
             </div>
           </div>
