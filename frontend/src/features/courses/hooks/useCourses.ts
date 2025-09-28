@@ -1,14 +1,18 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CourseService } from '../services/course.service';
 import type { CanvasCourse } from '@/types/canvas.types';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/features/auth/context/AuthContext';
+import { shouldRefreshCourses } from '@/utils/refresh.utils';
 
 export const useCourses = () => {
   const queryClient = useQueryClient();
   const { currentUser, initialAuthCheckComplete } = useAuth();
   const executionRef = useRef<string | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const autoRefreshChecked = useRef(false);
   
   const query = useQuery({
     queryKey: ['courses', currentUser?.uid],
@@ -126,6 +130,32 @@ export const useCourses = () => {
     checkAndFetchInitialData();
   }, [query.data, query.isFetching, query.isError, currentUser]);
 
+  // Auto-refresh check on mount
+  useEffect(() => {
+    const checkAutoRefresh = async () => {
+      if (!currentUser || !initialAuthCheckComplete || autoRefreshChecked.current) return;
+      
+      try {
+        console.log('🔍 Checking if auto-refresh is needed...');
+        const timestamp = await CourseService.getCoursesLastUpdated();
+        setLastUpdated(timestamp);
+        
+        if (shouldRefreshCourses(timestamp)) {
+          console.log('⏰ Auto-refresh triggered - 24+ hours since last update');
+          await refreshCourses(true);
+        } else {
+          console.log('✅ No auto-refresh needed, data is recent');
+        }
+      } catch (error) {
+        console.error('Error checking auto-refresh:', error);
+      } finally {
+        autoRefreshChecked.current = true;
+      }
+    };
+
+    checkAutoRefresh();
+  }, [currentUser, initialAuthCheckComplete, query.isSuccess]);
+
   // Comprehensive debug logging
   useEffect(() => {
     if (currentUser && initialAuthCheckComplete) {
@@ -144,16 +174,32 @@ export const useCourses = () => {
   
   const refreshCourses = async (forceRefresh: boolean = false) => {
     try {
+      setIsRefreshing(true);
+      
       if (forceRefresh) {
         console.log("Forcing a full course refresh from Canvas");
         const freshData = await CourseService.getCourses(true);
         queryClient.setQueryData(['courses', currentUser?.uid], freshData);
+        
+        // Update the last updated timestamp
+        const newTimestamp = await CourseService.getCoursesLastUpdated();
+        setLastUpdated(newTimestamp);
+        
         return freshData;
       }
-      return query.refetch();
+      
+      const result = await query.refetch();
+      
+      // Update timestamp after regular refetch too
+      const timestamp = await CourseService.getCoursesLastUpdated();
+      setLastUpdated(timestamp);
+      
+      return result;
     } catch (error) {
       console.error("Error refreshing courses:", error);
       throw error;
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
@@ -184,6 +230,8 @@ export const useCourses = () => {
     loading: isLoading,
     error: query.error ? 'Failed to load courses' : null,
     refreshCourses,
-    clearCoursesCache
+    clearCoursesCache,
+    isRefreshing,
+    lastUpdated
   };
 }; 

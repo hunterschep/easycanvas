@@ -3,18 +3,15 @@ import { AccountService } from '@/features/account/services/account.service';
 import { 
   CalendarIcon, 
   ClockIcon, 
-  BellIcon, 
   SparklesIcon,
   CheckCircleIcon,
   BookOpenIcon,
-  ExclamationTriangleIcon,
-  TrophyIcon,
   ChartBarIcon,
   ArrowRightIcon
 } from '@heroicons/react/24/outline';
-import { SectionCard, StatCard } from '@/components/common/Card/Card';
+import { SectionCard } from '@/components/common/Card/Card';
 import type { UserSettings } from '@/features/account/types';
-import type { CanvasCourse, CanvasAssignment, CanvasAnnouncement } from '@/types/canvas.types';
+import type { CanvasCourse, CanvasAssignment } from '@/types/canvas.types';
 
 interface DailySummaryProps {
   courses: CanvasCourse[];
@@ -94,34 +91,33 @@ export const DailySummary = ({ courses }: DailySummaryProps) => {
     return dueDate > today && dueDate <= nextWeek;
   }).sort((a, b) => new Date(a.due_at).getTime() - new Date(b.due_at).getTime());
 
-  const overdueAssignments = allAssignments.filter(assignment => {
-    if (!assignment.due_at) return false;
-    const dueDate = new Date(assignment.due_at).toISOString().split('T')[0];
-    return dueDate < today && !assignment.has_submitted_submissions;
-  });
+  // Useful analytics
+  const submittedAssignments = allAssignments.filter(assignment => 
+    assignment.has_submitted_submissions
+  );
+  
+  const assignmentsWithDates = allAssignments.filter(assignment => assignment.due_at);
+  const submissionRate = assignmentsWithDates.length > 0 
+    ? Math.round((submittedAssignments.length / assignmentsWithDates.length) * 100) 
+    : 0;
 
-  // Grade analysis
-  const gradedAssignments = allAssignments.filter(a => a.grade !== null && a.grade !== undefined);
-  const totalPoints = gradedAssignments.reduce((sum, a) => sum + (a.points_possible || 0), 0);
-  const earnedPoints = gradedAssignments.reduce((sum, a) => {
-    const grade = typeof a.grade === 'number' ? a.grade : parseFloat(a.grade as string) || 0;
-    return sum + grade;
-  }, 0);
-  const averageGrade = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : null;
+  // Next assignment due date
+  const nextAssignment = assignmentsWithDates
+    .filter(assignment => new Date(assignment.due_at!) > now)
+    .sort((a, b) => new Date(a.due_at!).getTime() - new Date(b.due_at!).getTime())[0];
+  
+  const daysUntilNext = nextAssignment 
+    ? Math.ceil((new Date(nextAssignment.due_at!).getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+    : null;
 
-  // Recent announcements (last 3 days)
-  const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-  const recentAnnouncements = courses.flatMap(course =>
-    course.announcements.filter(announcement => {
-      if (!announcement.posted_at) return false;
-      const postedDate = new Date(announcement.posted_at).toISOString().split('T')[0];
-      return postedDate >= threeDaysAgo;
-    }).map(announcement => ({
-      ...announcement,
-      courseName: course.name,
-      courseCode: course.code
-    }))
-  ).sort((a, b) => new Date(b.posted_at!).getTime() - new Date(a.posted_at!).getTime());
+  // Assignment distribution by course
+  const courseActivity = courses.map(course => ({
+    name: course.name,
+    code: course.code,
+    assignmentCount: course.assignments.length
+  })).sort((a, b) => b.assignmentCount - a.assignmentCount);
+
+  const totalAssignments = allAssignments.length;
 
   // Module progress analysis
   const totalModules = courses.reduce((sum, course) => sum + course.modules.length, 0);
@@ -150,14 +146,6 @@ export const DailySummary = ({ courses }: DailySummaryProps) => {
 
   // Get priority alert
   const getPriorityAlert = () => {
-    if (overdueAssignments.length > 0) {
-      return {
-        type: 'urgent',
-        icon: <ExclamationTriangleIcon className="w-4 h-4 text-red-400" />,
-        message: `${overdueAssignments.length} overdue assignment${overdueAssignments.length > 1 ? 's' : ''}`,
-        color: 'text-red-400'
-      };
-    }
     if (assignmentsDueToday.length > 0) {
       return {
         type: 'today',
@@ -203,20 +191,10 @@ export const DailySummary = ({ courses }: DailySummaryProps) => {
                 {getTimeOfDayGreeting()}, <span className="glass-text-secondary">{userSettings?.first_name || 'Student'}</span>!
               </h2>
             </div>
-            {averageGrade !== null && (
-              <div className="text-right">
-                <div className="flex items-center gap-1">
-                  <TrophyIcon className="w-4 h-4 text-yellow-400" />
-                  <span className="text-lg font-bold glass-text-primary">{averageGrade}%</span>
-                </div>
-                <p className="text-xs glass-text-secondary">Average</p>
-              </div>
-            )}
           </div>
 
           {/* Priority Alert Banner */}
           <div className={`glass-chip p-3 border ${
-            priorityAlert.type === 'urgent' ? 'border-red-500/30 bg-[rgba(239,68,68,0.08)]' :
             priorityAlert.type === 'today' ? 'border-orange-500/30 bg-[rgba(249,115,22,0.08)]' :
             priorityAlert.type === 'tomorrow' ? 'border-yellow-500/30 bg-[rgba(234,179,8,0.08)]' :
             'border-green-500/30 bg-[rgba(34,197,94,0.08)]'
@@ -304,31 +282,59 @@ export const DailySummary = ({ courses }: DailySummaryProps) => {
           </div>
         )}
 
-        {/* Recent Announcements */}
-        {recentAnnouncements.length > 0 && (
+        {/* Course Activity Analytics */}
+        <div className="space-y-2">
+          <h4 className="text-sm font-medium glass-text-primary flex items-center gap-2">
+            <ChartBarIcon className="w-3 h-3 text-purple-400" />
+            Course Activity
+          </h4>
           <div className="space-y-2">
-            <h4 className="text-sm font-medium glass-text-primary flex items-center gap-2">
-              <BellIcon className="w-3 h-3 text-green-400" />
-              Recent News
-            </h4>
-            <div className="space-y-2">
-              {recentAnnouncements.slice(0, 2).map((announcement, index) => (
-                <div key={announcement.id} className="glass-chip p-3 bg-[rgba(34,197,94,0.04)]">
-                  <div className="flex items-start justify-between">
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium glass-text-primary truncate">
-                        {announcement.title}
-                      </p>
-                      <p className="text-xs glass-text-secondary">
-                        {announcement.courseCode} • {new Date(announcement.posted_at!).toLocaleDateString()}
-                      </p>
-                    </div>
+            {courseActivity.slice(0, 2).map((course, index) => (
+              <div key={course.code} className="glass-chip p-3 bg-[rgba(147,51,234,0.04)]">
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium glass-text-primary truncate">
+                      {course.code}
+                    </p>
+                    <p className="text-xs glass-text-secondary">
+                      Most active course
+                    </p>
+                  </div>
+                  <div className="text-right ml-2">
+                    <p className="text-lg font-bold text-purple-400">
+                      {course.assignmentCount}
+                    </p>
+                    <p className="text-xs glass-text-secondary">
+                      assignments
+                    </p>
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
+            {daysUntilNext && (
+              <div className="glass-chip p-3 bg-[rgba(59,130,246,0.04)]">
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium glass-text-primary">
+                      Next Assignment Due
+                    </p>
+                    <p className="text-xs glass-text-secondary truncate">
+                      {nextAssignment?.name}
+                    </p>
+                  </div>
+                  <div className="text-right ml-2">
+                    <p className="text-lg font-bold text-blue-400">
+                      {daysUntilNext}
+                    </p>
+                    <p className="text-xs glass-text-secondary">
+                      {daysUntilNext === 1 ? 'day' : 'days'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        </div>
 
         {/* Progress Stats - Bottom */}
         <div className="mt-auto grid grid-cols-3 gap-3 pt-3 border-t border-white/10">
@@ -337,12 +343,12 @@ export const DailySummary = ({ courses }: DailySummaryProps) => {
             <div className="text-xs glass-text-secondary">Courses</div>
           </div>
           <div className="text-center">
-            <div className="text-xl font-bold glass-text-primary">{moduleProgress}%</div>
-            <div className="text-xs glass-text-secondary">Progress</div>
+            <div className="text-xl font-bold glass-text-primary">{totalAssignments}</div>
+            <div className="text-xs glass-text-secondary">Total</div>
           </div>
           <div className="text-center">
-            <div className="text-xl font-bold glass-text-primary">{gradedAssignments.length}</div>
-            <div className="text-xs glass-text-secondary">Graded</div>
+            <div className="text-xl font-bold glass-text-primary">{submissionRate}%</div>
+            <div className="text-xs glass-text-secondary">Submitted</div>
           </div>
         </div>
       </div>

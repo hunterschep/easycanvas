@@ -10,6 +10,13 @@ interface SelectedCoursesResponse {
   selected_course_ids: number[];
 }
 
+interface LastUpdatedResponse {
+  lastUpdated: {
+    seconds: number;
+    nanoseconds: number;
+  } | null;
+}
+
 export class CourseService {
   // Helper to ensure IDs are consistently formatted
   private static normalizeId(id: string | number): string {
@@ -84,6 +91,23 @@ export class CourseService {
       return await ApiService.get(`/api/user/courses/${normalizedCourseId}/modules/${normalizedModuleId}/items`);
     } catch (error) {
       console.error(`Error fetching module items for module ${moduleId}:`, error);
+      throw error;
+    }
+  }
+
+  static async getCoursesLastUpdated(): Promise<Date | null> {
+    try {
+      const response = await ApiService.get<LastUpdatedResponse>('/api/user/courses/last-updated');
+      
+      if (!response.lastUpdated) {
+        return null;
+      }
+      
+      // Convert Firebase timestamp to JavaScript Date
+      const timestamp = response.lastUpdated.seconds * 1000 + response.lastUpdated.nanoseconds / 1000000;
+      return new Date(timestamp);
+    } catch (error) {
+      console.error('Error fetching courses last updated timestamp:', error);
       throw error;
     }
   }

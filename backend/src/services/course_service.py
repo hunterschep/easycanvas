@@ -15,8 +15,21 @@ logger = setup_logger(__name__)
 
 def should_refresh_courses(last_updated) -> bool:
     logger.debug(f"Checking last_updated: {last_updated}")
-    # If force=True from frontend or no last_updated timestamp, we should refresh
-    return True if not last_updated else False
+    
+    # If no last_updated timestamp, we should refresh
+    if not last_updated:
+        logger.info("No last_updated timestamp found, refresh needed")
+        return True
+    
+    # Calculate hours elapsed since last update
+    now = datetime.now(timezone.utc)
+    hours_elapsed = (now - last_updated).total_seconds() / 3600
+    
+    # Refresh if more than 24 hours have passed
+    should_refresh = hours_elapsed >= 24
+    
+    logger.info(f"Hours elapsed since last update: {hours_elapsed:.1f}h, refresh needed: {should_refresh}")
+    return should_refresh
 
 class CourseService:
 
@@ -33,12 +46,26 @@ class CourseService:
 
             user_data = user_doc.to_dict()
             
-            # If force=True, always refresh. Otherwise, check cache
+            # If force=True, always refresh. Otherwise, check cache and timestamp
             if not force:
-                logger.debug("Checking cache first")
+                logger.debug("Checking cache and timestamp")
                 cached_courses = await CourseService._get_cached_courses(user_id)
                 if cached_courses:
-                    return cached_courses
+                    # Check if we need to refresh based on timestamp
+                    last_updated_response = await CourseService.get_courses_last_updated(user_id)
+                    last_updated = None
+                    if last_updated_response.get('lastUpdated'):
+                        timestamp_data = last_updated_response['lastUpdated']
+                        last_updated = datetime.fromtimestamp(
+                            timestamp_data['seconds'], 
+                            tz=timezone.utc
+                        )
+                    
+                    if not should_refresh_courses(last_updated):
+                        logger.info("Using cached courses, no refresh needed")
+                        return cached_courses
+                    else:
+                        logger.info("Cached courses found but 24+ hours old, refreshing")
             
             logger.info("Fetching fresh courses from Canvas")
             

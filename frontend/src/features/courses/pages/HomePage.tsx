@@ -2,15 +2,33 @@
 import { MainLayout } from '@/components/layouts/MainLayout/MainLayout';
 import { Loading } from '@/components/common/Loading';
 import { Card } from '@/components/common/Card/Card';
+import { Button } from '@/components/common/Button/Button';
 import { useCourses } from '../hooks/useCourses';
 import { DailySummary } from '../components/DailySummary';
 import { EnterChat } from '../components/EnterChat';
 import { UpcomingAssignments } from '../components/UpcomingAssignments';
+import { Announcements } from '../components/Announcements';
 import { CourseOverview } from '../components/CourseOverview';
-import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { ExclamationTriangleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { getLastUpdatedText } from '@/utils/refresh.utils';
 
 export const HomePage = () => {
-  const { courses, loading: coursesLoading, error: coursesError } = useCourses();
+  const { 
+    courses, 
+    loading: coursesLoading, 
+    error: coursesError, 
+    refreshCourses, 
+    isRefreshing, 
+    lastUpdated 
+  } = useCourses();
+
+  const handleRefresh = async () => {
+    try {
+      await refreshCourses(true);
+    } catch (error) {
+      console.error('Error refreshing courses:', error);
+    }
+  };
 
   console.log('HomePage render:', {
     coursesLoading,
@@ -58,6 +76,27 @@ export const HomePage = () => {
           <p className="text-lg sm:text-xl glass-text-secondary max-w-3xl mx-auto">
             Stay on top of your assignments, track your progress, and get AI-powered insights
           </p>
+          
+          {/* Refresh Section */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 pt-4">
+            <div className="text-center">
+              <p className="text-sm glass-text-secondary">
+                {lastUpdated ? getLastUpdatedText(lastUpdated) : 'Course data not yet loaded'}
+              </p>
+            </div>
+            
+            <Button
+              onClick={handleRefresh}
+              variant="secondary"
+              size="sm"
+              leftIcon={<ArrowPathIcon className="w-4 h-4" />}
+              isLoading={isRefreshing}
+              disabled={coursesLoading}
+              className="flex-shrink-0"
+            >
+              {isRefreshing ? 'Refreshing...' : 'Refresh from Canvas'}
+            </Button>
+          </div>
         </div>
 
         {/* Main Content Grid */}
@@ -70,6 +109,8 @@ export const HomePage = () => {
           
           {/* Full width components */}
           <UpcomingAssignments courses={courses} />
+          
+          <Announcements courses={courses} />
           
           <CourseOverview courses={courses} />
         </div>

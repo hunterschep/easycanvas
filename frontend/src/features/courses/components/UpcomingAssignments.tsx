@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   ClockIcon, 
   ChatBubbleLeftRightIcon, 
   ArrowTopRightOnSquareIcon, 
-  CheckCircleIcon
+  CheckCircleIcon,
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 import { Button } from '@/components/common/Button/Button';
 import { SectionCard } from '@/components/common/Card/Card';
@@ -19,9 +20,33 @@ interface AssignmentWithCourse extends CanvasAssignment {
   courseCode: string;
 }
 
+const CLEARED_ASSIGNMENTS_KEY = 'easycanvas-cleared-assignments';
+
 export const UpcomingAssignments = ({ courses }: UpcomingAssignmentsProps) => {
   const navigate = useNavigate();
   const [showAll, setShowAll] = useState(false);
+  const [clearedAssignments, setClearedAssignments] = useState<Set<number>>(new Set());
+
+  // Load cleared assignments from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem(CLEARED_ASSIGNMENTS_KEY);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setClearedAssignments(new Set(parsed));
+      } catch (error) {
+        console.error('Error loading cleared assignments:', error);
+      }
+    }
+  }, []);
+
+  // Save cleared assignments to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(
+      CLEARED_ASSIGNMENTS_KEY, 
+      JSON.stringify(Array.from(clearedAssignments))
+    );
+  }, [clearedAssignments]);
 
   // Get all assignments with course info and filter for upcoming ones
   const allAssignments: AssignmentWithCourse[] = courses.flatMap(course =>
@@ -39,6 +64,7 @@ export const UpcomingAssignments = ({ courses }: UpcomingAssignmentsProps) => {
   const upcomingAssignments = allAssignments
     .filter(assignment => {
       if (!assignment.due_at) return false;
+      if (clearedAssignments.has(assignment.id)) return false;
       const dueDate = new Date(assignment.due_at);
       return dueDate >= now && dueDate <= thirtyDaysFromNow;
     })
@@ -49,6 +75,10 @@ export const UpcomingAssignments = ({ courses }: UpcomingAssignmentsProps) => {
     });
 
   const displayedAssignments = showAll ? upcomingAssignments : upcomingAssignments.slice(0, 6);
+
+  const handleClearAssignment = (assignmentId: number) => {
+    setClearedAssignments(prev => new Set([...prev, assignmentId]));
+  };
 
   const handleAskAI = (assignment: AssignmentWithCourse) => {
     // Navigate to chat with a new chat and pre-filled message about the assignment
@@ -242,7 +272,18 @@ export const UpcomingAssignments = ({ courses }: UpcomingAssignmentsProps) => {
                       </div>
 
                       {/* Right: Action Buttons */}
-                      <div className="flex gap-3 flex-shrink-0">
+                      <div className="flex gap-2 flex-shrink-0">
+                        <Button
+                          onClick={() => handleClearAssignment(assignment.id)}
+                          variant="ghost"
+                          size="sm"
+                          leftIcon={<XMarkIcon className="w-4 h-4" />}
+                          className="group-hover/card:scale-[1.02] transition-all duration-200 text-gray-400 hover:text-red-400"
+                          title="Clear assignment"
+                        >
+                          <span className="sr-only">Clear</span>
+                        </Button>
+                        
                         <Button
                           onClick={() => handleAskAI(assignment)}
                           variant="primary"
