@@ -2,7 +2,7 @@ import { useMutation } from '@tanstack/react-query';
 import { AIPlannerService, AIPlannerResponse } from '../services/ai-planner.service';
 
 interface UseAIPlannerResult {
-  generatePlan: () => void;
+  generatePlan: (forceRegenerate?: boolean) => void;
   isGenerating: boolean;
   planData: AIPlannerResponse | undefined;
   error: Error | null;
@@ -11,9 +11,9 @@ interface UseAIPlannerResult {
 
 export const useAIPlanner = (): UseAIPlannerResult => {
   const mutation = useMutation({
-    mutationFn: () => {
-      console.log('🤖 [AI Planner Hook] Starting AI plan generation...');
-      return AIPlannerService.generatePlan();
+    mutationFn: ({ forceRegenerate = false }: { forceRegenerate?: boolean } = {}) => {
+      console.log('🤖 [AI Planner Hook] Starting AI plan generation...', { forceRegenerate });
+      return AIPlannerService.generatePlan(forceRegenerate);
     },
     retry: (failureCount, error) => {
       // Don't retry on timeout errors to avoid spam
@@ -64,7 +64,7 @@ export const useAIPlanner = (): UseAIPlannerResult => {
   });
 
   return {
-    generatePlan: mutation.mutate,
+    generatePlan: (forceRegenerate = false) => mutation.mutate({ forceRegenerate }),
     isGenerating: mutation.isPending,
     planData: mutation.data,
     error: mutation.error,

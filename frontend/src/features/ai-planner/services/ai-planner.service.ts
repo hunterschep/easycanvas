@@ -56,15 +56,18 @@ export interface AIPlannerResponse {
 }
 
 export class AIPlannerService {
-  static async generatePlan(): Promise<AIPlannerResponse> {
+  static async generatePlan(forceRegenerate: boolean = false): Promise<AIPlannerResponse> {
     try {
       console.log('📡 [AI Planner Service] Starting AI Planner API call (extended timeout)');
-      console.log('📡 [AI Planner Service] Request payload: {}');
+      console.log('📡 [AI Planner Service] Force regenerate:', forceRegenerate);
       
       const startTime = performance.now();
       
       // Custom fetch with extended timeout for AI operations (2 minutes)
-      const response = await this.postWithExtendedTimeout('/api/ai-planner/generate', {});
+      const endpoint = forceRegenerate 
+        ? '/api/ai-planner/generate?force_regenerate=true' 
+        : '/api/ai-planner/generate';
+      const response = await this.postWithExtendedTimeout(endpoint, {});
       const endTime = performance.now();
       
       console.log('📡 [AI Planner Service] API call completed in', Math.round(endTime - startTime), 'ms');

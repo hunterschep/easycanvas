@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from src.services.course_service import CourseService
+from src.services.ai_planner_service import AIPlannerService
 from src.services.chat_service import ChatService
 from src.api.middleware.auth import verify_firebase_token
 from pydantic import BaseModel
@@ -65,16 +66,21 @@ class AIPlannerResponse(BaseModel):
 
 @router.post("/ai-planner/generate", response_model=AIPlannerResponse)
 async def generate_ai_plan(
+    force_regenerate: bool = False,
     user_id: str = Depends(verify_firebase_token)
 ):
     """
-    Generate an AI-powered todo list and calendar based on user's course data
+    Generate an AI-powered academic planner based on user's Canvas course data.
+    Uses smart caching - only regenerates if data changed or 24+ hours old.
+    
+    Args:
+        force_regenerate: If True, bypasses cache and generates fresh plan
     """
     try:
         logger.info(f"🚀 [AI Planner API] === STARTING AI PLAN GENERATION ===")
-        logger.info(f"🚀 [AI Planner API] User ID: {user_id}")
+        logger.info(f"🚀 [AI Planner API] User ID: {user_id}, Force regenerate: {force_regenerate}")
         
-        # Get user's course data
+        # Step 1: Get user's course data
         logger.info(f"🚀 [AI Planner API] Step 1: Fetching user course data...")
         courses = await CourseService.get_user_courses(user_id, force=False)
         logger.info(f"🚀 [AI Planner API] Retrieved {len(courses) if courses else 0} courses")
@@ -83,55 +89,95 @@ async def generate_ai_plan(
             logger.warning(f"🚀 [AI Planner API] No courses found for user {user_id}")
             raise HTTPException(status_code=404, detail="No courses found for user")
         
-        # Count assignments for logging
         total_assignments = sum(len(course.get('assignments', [])) for course in courses)
         logger.info(f"🚀 [AI Planner API] Course summary: {len(courses)} courses, {total_assignments} total assignments")
         
-        # Format course data for AI consumption
-        logger.info(f"🚀 [AI Planner API] Step 2: Formatting course data for AI...")
+        # Step 2: Check cache first (unless force_regenerate is True)
+        cached_plan = None
+        if not force_regenerate:
+            logger.info(f"🚀 [AI Planner API] Step 2: Checking cached plan...")
+            cached_plan = await AIPlannerService.get_cached_ai_plan(user_id, courses)
+            
+            if cached_plan:
+                logger.info(f"🚀 [AI Planner API] Using cached plan! Skipping AI generation")
+                
+                # Return cached plan with current metadata
+                response = AIPlannerResponse(
+                    todos=cached_plan.get("todos", []),
+                    deadlines=cached_plan.get("deadlines", []),
+                    studyBlocks=cached_plan.get("studyBlocks", []),
+                    insights=cached_plan.get("insights", []),
+                    summary=cached_plan.get("summary", {
+                        "totalTasks": 0,
+                        "highPriorityCount": 0,
+                        "upcomingDeadlines": 0,
+                        "estimatedStudyTime": "0 hours"
+                    }),
+                    generated_at=str(datetime.utcnow()),
+                    course_count=len(courses),
+                    assignment_count=total_assignments
+                )
+                
+                logger.info(f"🚀 [AI Planner API] === CACHED PLAN RETURNED SUCCESSFULLY ===")
+                return response
+        else:
+            logger.info(f"🚀 [AI Planner API] Step 2: Skipping cache check (force_regenerate=True)")
+        
+        # Step 3: Generate fresh plan
+        logger.info(f"🚀 [AI Planner API] Step 3: Generating fresh AI plan...")
+        logger.info(f"🚀 [AI Planner API] Step 3a: Formatting course data for AI...")
         formatted_data = format_course_data_for_ai(courses)
         logger.info(f"🚀 [AI Planner API] Formatted data summary:")
         logger.info(f"🚀 [AI Planner API]   - Upcoming assignments: {len(formatted_data['summary']['upcoming_assignments'])}")
         logger.info(f"🚀 [AI Planner API]   - Total assignments: {formatted_data['summary']['total_assignments']}")
         logger.info(f"🚀 [AI Planner API]   - Data size: ~{len(str(formatted_data))} chars")
         
-        # Generate AI todo list using chat service
-        logger.info(f"🚀 [AI Planner API] Step 3: Creating AI prompt...")
+        logger.info(f"🚀 [AI Planner API] Step 3b: Creating AI prompt...")
         ai_prompt = create_ai_planner_prompt(formatted_data)
         logger.info(f"🚀 [AI Planner API] Prompt created, length: {len(ai_prompt)} characters")
         
-        # Use a simplified version of the chat service without saving to chat history
-        logger.info(f"🚀 [AI Planner API] Step 4: Calling OpenAI API...")
+        logger.info(f"🚀 [AI Planner API] Step 3c: Calling OpenAI API...")
         json_response = await generate_structured_plan_with_ai(ai_prompt, user_id)
         logger.info(f"🚀 [AI Planner API] OpenAI JSON response received, length: {len(json_response)} characters")
         logger.info(f"🚀 [AI Planner API] Response preview: {json_response[:200]}...")
         
-        logger.info(f"🚀 [AI Planner API] Step 5: Parsing and preparing final response...")
+        # Step 4: Parse and prepare response
+        logger.info(f"🚀 [AI Planner API] Step 4: Parsing JSON response...")
         try:
             parsed_data = json.loads(json_response)
             logger.info(f"🚀 [AI Planner API] JSON parsed successfully with keys: {parsed_data.keys()}")
             
-            response = AIPlannerResponse(
-                todos=parsed_data.get("todos", []),
-                deadlines=parsed_data.get("deadlines", []),
-                studyBlocks=parsed_data.get("studyBlocks", []),
-                insights=parsed_data.get("insights", []),
-                summary=parsed_data.get("summary", {
+            # Create response data for both API response and caching
+            response_data = {
+                "todos": parsed_data.get("todos", []),
+                "deadlines": parsed_data.get("deadlines", []),
+                "studyBlocks": parsed_data.get("studyBlocks", []),
+                "insights": parsed_data.get("insights", []),
+                "summary": parsed_data.get("summary", {
                     "totalTasks": 0,
                     "highPriorityCount": 0,
                     "upcomingDeadlines": 0,
                     "estimatedStudyTime": "0 hours"
-                }),
+                })
+            }
+            
+            response = AIPlannerResponse(
+                **response_data,
                 generated_at=str(datetime.utcnow()),
                 course_count=len(courses),
                 assignment_count=total_assignments
             )
+            
+            # Step 5: Save to cache for future use
+            logger.info(f"🚀 [AI Planner API] Step 5: Saving plan to cache...")
+            await AIPlannerService.save_ai_plan(user_id, response_data, courses)
+            
         except json.JSONDecodeError as e:
             logger.error(f"🚀 [AI Planner API] Failed to parse JSON response: {str(e)}")
             logger.error(f"🚀 [AI Planner API] Raw response: {json_response}")
             raise HTTPException(status_code=500, detail="Failed to parse AI response")
         
-        logger.info(f"🚀 [AI Planner API] === AI PLAN GENERATION COMPLETED SUCCESSFULLY ===")
+        logger.info(f"🚀 [AI Planner API] === FRESH AI PLAN GENERATION COMPLETED SUCCESSFULLY ===")
         logger.info(f"🚀 [AI Planner API] Final response: {response.course_count} courses, {response.assignment_count} assignments")
         
         return response

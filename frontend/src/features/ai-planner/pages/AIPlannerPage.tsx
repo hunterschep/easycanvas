@@ -6,6 +6,7 @@ import { useCourses } from '@/features/courses/hooks/useCourses';
 import { useAIPlanner } from '../hooks/useAIPlanner';
 import { CalendarDaysIcon, SparklesIcon, ClockIcon, ArrowPathIcon, CheckCircleIcon, ExclamationTriangleIcon, BookOpenIcon, LightBulbIcon } from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { TodoCard } from '../components/TodoCard';
 import { DeadlineCard } from '../components/DeadlineCard';
 import { StudyBlockCard } from '../components/StudyBlockCard';
@@ -13,6 +14,7 @@ import { InsightCard } from '../components/InsightCard';
 import type { TodoItem } from '../services/ai-planner.service';
 
 export const AIPlannerPage = () => {
+  const navigate = useNavigate();
   const { courses, loading: coursesLoading } = useCourses();
   const { generatePlan, isGenerating, planData, error, isSuccess } = useAIPlanner();
   
@@ -78,7 +80,7 @@ export const AIPlannerPage = () => {
       coursesCount: courses?.length || 0
     });
     return (
-      <MainLayout>
+      <MainLayout showBackButton onBack={() => navigate('/home')}>
         <div className="max-w-6xl mx-auto space-y-8">
           {/* Header */}
           <div className="text-center space-y-6">
@@ -170,7 +172,7 @@ export const AIPlannerPage = () => {
   // Handle error state
   if (error && !isLoading) {
     return (
-      <MainLayout>
+      <MainLayout showBackButton onBack={() => navigate('/home')}>
         <div className="max-w-6xl mx-auto space-y-8">
           <div className="text-center space-y-6">
             <div className="flex items-center justify-center gap-3">
@@ -205,7 +207,7 @@ export const AIPlannerPage = () => {
   // Render the structured AI plan
   if (planData) {
     return (
-      <MainLayout>
+      <MainLayout showBackButton onBack={() => navigate('/home')}>
         <div className="max-w-7xl mx-auto space-y-8">
           {/* Header */}
           <div className="text-center space-y-6">
@@ -246,7 +248,7 @@ export const AIPlannerPage = () => {
             {/* Regenerate Button */}
             <div className="flex justify-center">
               <Button
-                onClick={generatePlan}
+                onClick={() => generatePlan(true)} // Force regenerate
                 variant="secondary"
                 size="sm"
                 leftIcon={<ArrowPathIcon className="w-4 h-4" />}
@@ -369,7 +371,7 @@ export const AIPlannerPage = () => {
 
   // Fallback for empty state
   return (
-    <MainLayout>
+    <MainLayout showBackButton onBack={() => navigate('/home')}>
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="text-center space-y-6">
           <div>
