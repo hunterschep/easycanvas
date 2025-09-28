@@ -13,8 +13,52 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+class TodoItem(BaseModel):
+    id: str
+    title: str
+    description: str
+    priority: str  # 'high' | 'medium' | 'low'
+    dueDate: Optional[str] = None
+    estimatedTime: Optional[str] = None
+    course: Optional[str] = None
+    completed: bool = False
+
+class DeadlineItem(BaseModel):
+    id: str
+    title: str
+    course: str
+    dueDate: str
+    priority: str  # 'urgent' | 'important' | 'normal'
+    points: Optional[int] = None
+    description: Optional[str] = None
+
+class StudyBlock(BaseModel):
+    id: str
+    title: str
+    course: str
+    duration: str
+    topics: List[str]
+    difficulty: str  # 'easy' | 'medium' | 'hard'
+
+class InsightCard(BaseModel):
+    id: str
+    type: str  # 'tip' | 'warning' | 'success' | 'info'
+    title: str
+    message: str
+    action: Optional[str] = None
+
+class PlanSummary(BaseModel):
+    totalTasks: int
+    highPriorityCount: int
+    upcomingDeadlines: int
+    estimatedStudyTime: str
+
 class AIPlannerResponse(BaseModel):
-    todo_list: str
+    todos: List[TodoItem]
+    deadlines: List[DeadlineItem]
+    studyBlocks: List[StudyBlock]
+    insights: List[InsightCard]
+    summary: PlanSummary
     generated_at: str
     course_count: int
     assignment_count: int
@@ -58,17 +102,34 @@ async def generate_ai_plan(
         
         # Use a simplified version of the chat service without saving to chat history
         logger.info(f"🚀 [AI Planner API] Step 4: Calling OpenAI API...")
-        todo_response = await generate_todo_list_with_ai(ai_prompt, user_id)
-        logger.info(f"🚀 [AI Planner API] OpenAI response received, length: {len(todo_response)} characters")
-        logger.info(f"🚀 [AI Planner API] Response preview: {todo_response[:200]}...")
+        json_response = await generate_structured_plan_with_ai(ai_prompt, user_id)
+        logger.info(f"🚀 [AI Planner API] OpenAI JSON response received, length: {len(json_response)} characters")
+        logger.info(f"🚀 [AI Planner API] Response preview: {json_response[:200]}...")
         
-        logger.info(f"🚀 [AI Planner API] Step 5: Preparing final response...")
-        response = AIPlannerResponse(
-            todo_list=todo_response,
-            generated_at=str(datetime.utcnow()),
-            course_count=len(courses),
-            assignment_count=total_assignments
-        )
+        logger.info(f"🚀 [AI Planner API] Step 5: Parsing and preparing final response...")
+        try:
+            parsed_data = json.loads(json_response)
+            logger.info(f"🚀 [AI Planner API] JSON parsed successfully with keys: {parsed_data.keys()}")
+            
+            response = AIPlannerResponse(
+                todos=parsed_data.get("todos", []),
+                deadlines=parsed_data.get("deadlines", []),
+                studyBlocks=parsed_data.get("studyBlocks", []),
+                insights=parsed_data.get("insights", []),
+                summary=parsed_data.get("summary", {
+                    "totalTasks": 0,
+                    "highPriorityCount": 0,
+                    "upcomingDeadlines": 0,
+                    "estimatedStudyTime": "0 hours"
+                }),
+                generated_at=str(datetime.utcnow()),
+                course_count=len(courses),
+                assignment_count=total_assignments
+            )
+        except json.JSONDecodeError as e:
+            logger.error(f"🚀 [AI Planner API] Failed to parse JSON response: {str(e)}")
+            logger.error(f"🚀 [AI Planner API] Raw response: {json_response}")
+            raise HTTPException(status_code=500, detail="Failed to parse AI response")
         
         logger.info(f"🚀 [AI Planner API] === AI PLAN GENERATION COMPLETED SUCCESSFULLY ===")
         logger.info(f"🚀 [AI Planner API] Final response: {response.course_count} courses, {response.assignment_count} assignments")
@@ -166,59 +227,85 @@ def format_course_data_for_ai(courses: List[Dict[str, Any]]) -> Dict[str, Any]:
 
 def create_ai_planner_prompt(course_data: Dict[str, Any]) -> str:
     """
-    Create a comprehensive prompt for AI todo list generation
+    Create a focused prompt for structured JSON academic planning
     """
     upcoming_count = len(course_data["summary"]["upcoming_assignments"])
     course_count = course_data["summary"]["total_courses"]
     
     prompt = f"""
-You are an expert academic planner and study strategist. Based on the following Canvas course data, create a comprehensive, personalized todo list and study plan.
+You are an expert academic planner. Based on this Canvas course data, create a structured academic plan.
 
-COURSE DATA SUMMARY:
-- Total Courses: {course_count}
-- Total Assignments: {course_data["summary"]["total_assignments"]}
-- Upcoming Assignments (next 30 days): {upcoming_count}
-
-DETAILED COURSE INFORMATION:
+COURSE DATA:
 {json.dumps(course_data, indent=2, default=str)}
 
-INSTRUCTIONS:
-Create a detailed, actionable todo list and study plan that includes:
+RETURN ONLY valid JSON matching this exact structure:
 
-1. **IMMEDIATE PRIORITIES** (This Week)
-   - List urgent assignments due soon
-   - Include specific deadlines and point values
-   - Prioritize by due date and importance
+{{
+  "todos": [
+    {{
+      "id": "unique-id-1",
+      "title": "Complete Assignment Name", 
+      "description": "Brief description or next steps",
+      "priority": "high|medium|low",
+      "dueDate": "YYYY-MM-DD" or null,
+      "estimatedTime": "2 hours" or null,
+      "course": "Course Code" or null,
+      "completed": false
+    }}
+  ],
+  "deadlines": [
+    {{
+      "id": "unique-id-2",
+      "title": "Assignment Name",
+      "course": "Course Code", 
+      "dueDate": "YYYY-MM-DD",
+      "priority": "urgent|important|normal",
+      "points": 100 or null,
+      "description": "Brief description"
+    }}
+  ],
+  "studyBlocks": [
+    {{
+      "id": "unique-id-3",
+      "title": "Study Session Name",
+      "course": "Course Code",
+      "duration": "90 minutes",
+      "topics": ["Topic 1", "Topic 2"],
+      "difficulty": "easy|medium|hard"
+    }}
+  ],
+  "insights": [
+    {{
+      "id": "unique-id-4",
+      "type": "tip|warning|success|info",
+      "title": "Insight Title",
+      "message": "Helpful message or tip",
+      "action": "Suggested action" or null
+    }}
+  ],
+  "summary": {{
+    "totalTasks": 8,
+    "highPriorityCount": 3,
+    "upcomingDeadlines": 5,
+    "estimatedStudyTime": "12 hours"
+  }}
+}}
 
-2. **STUDY SCHEDULE RECOMMENDATIONS**
-   - Suggest optimal study times for each subject
-   - Recommend time blocks for different types of work
-   - Include review sessions for completed material
-
-3. **LONG-TERM PLANNING** (Next 2-4 Weeks)
-   - Break down larger assignments into manageable tasks
-   - Suggest preparation timelines for upcoming work
-   - Identify potential conflicts and suggest solutions
-
-4. **ORGANIZATION TIPS**
-   - Course-specific recommendations
-   - Resource management suggestions
-   - Productivity strategies based on workload
-
-5. **WELLNESS & BALANCE**
-   - Suggest break times and stress management
-   - Recommend balance between courses
-   - Include buffer time for unexpected issues
-
-FORMAT your response as a clean, well-structured markdown document with clear headings, bullet points, and actionable items. Make it specific to the actual courses and assignments provided.
-
-Be encouraging, practical, and specific. Include actual assignment names, due dates, and course names from the data provided.
+REQUIREMENTS:
+- Focus on actionable, specific tasks from the actual course data
+- Include only assignments/tasks due in next 2 weeks for todos
+- Use actual course codes and assignment names
+- Prioritize by due date and point value
+- Keep descriptions concise (1-2 sentences)
+- Generate 5-10 todos, 3-7 deadlines, 3-5 study blocks, 2-4 insights
+- All IDs must be unique
+- Return ONLY the JSON, no other text
 """
     
     return prompt
 
 
-async def generate_todo_list_with_ai(prompt: str, user_id: str) -> str:
+async def generate_structured_plan_with_ai(prompt: str, user_id: str) -> str:
     """
     Generate todo list using OpenAI without saving to chat history
     """
@@ -233,7 +320,7 @@ async def generate_todo_list_with_ai(prompt: str, user_id: str) -> str:
         # Build conversation input for AI
         conversation_input = [{
             "role": "system",
-            "content": "You are an expert academic planner and study strategist. You help students create comprehensive, actionable todo lists and study plans based on their Canvas course data."
+            "content": "You are an expert academic planner. You analyze Canvas course data and return structured JSON plans with todos, deadlines, study blocks, and insights. Always return valid JSON only, no markdown or explanation text."
         }, {
             "role": "user", 
             "content": prompt

@@ -4,13 +4,32 @@ import { SectionCard } from '@/components/common/Card/Card';
 import { Button } from '@/components/common/Button/Button';
 import { useCourses } from '@/features/courses/hooks/useCourses';
 import { useAIPlanner } from '../hooks/useAIPlanner';
-import { CalendarDaysIcon, SparklesIcon, ClockIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
-import { useEffect } from 'react';
-import ReactMarkdown from 'react-markdown';
+import { CalendarDaysIcon, SparklesIcon, ClockIcon, ArrowPathIcon, CheckCircleIcon, ExclamationTriangleIcon, BookOpenIcon, LightBulbIcon } from '@heroicons/react/24/outline';
+import { useEffect, useState } from 'react';
+import { TodoCard } from '../components/TodoCard';
+import { DeadlineCard } from '../components/DeadlineCard';
+import { StudyBlockCard } from '../components/StudyBlockCard';
+import { InsightCard } from '../components/InsightCard';
+import type { TodoItem } from '../services/ai-planner.service';
 
 export const AIPlannerPage = () => {
   const { courses, loading: coursesLoading } = useCourses();
   const { generatePlan, isGenerating, planData, error, isSuccess } = useAIPlanner();
+  
+  // Local state for todo completion
+  const [completedTodos, setCompletedTodos] = useState<Set<string>>(new Set());
+
+  const handleTodoToggle = (todoId: string) => {
+    setCompletedTodos(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(todoId)) {
+        newSet.delete(todoId);
+      } else {
+        newSet.add(todoId);
+      }
+      return newSet;
+    });
+  };
 
   // Auto-generate plan when courses are loaded and we don't have plan data yet
   useEffect(() => {
@@ -46,7 +65,8 @@ export const AIPlannerPage = () => {
     hasPlanData: !!planData,
     hasError: !!error,
     isSuccess,
-    planDataLength: planData?.todo_list?.length || 0,
+    planDataTodosLength: planData?.todos?.length || 0,
+    planDataDeadlinesLength: planData?.deadlines?.length || 0,
     errorMessage: error?.message || 'No error'
   });
 
@@ -182,11 +202,11 @@ export const AIPlannerPage = () => {
     );
   }
 
-  // Render the AI-generated todo list
+  // Render the structured AI plan
   if (planData) {
     return (
       <MainLayout>
-        <div className="max-w-6xl mx-auto space-y-8">
+        <div className="max-w-7xl mx-auto space-y-8">
           {/* Header */}
           <div className="text-center space-y-6">
             <div className="flex items-center justify-center gap-3">
@@ -203,8 +223,24 @@ export const AIPlannerPage = () => {
                 Your AI Study Plan
               </h1>
               <p className="text-xl sm:text-2xl glass-text-secondary max-w-3xl mx-auto leading-relaxed">
-                Personalized todo list based on {planData.course_count} courses and {planData.assignment_count} assignments
+                Personalized plan based on {planData.course_count} courses and {planData.assignment_count} assignments
               </p>
+            </div>
+
+            {/* Summary Stats */}
+            <div className="flex flex-wrap justify-center gap-4 mt-6">
+              <div className="glass-chip px-4 py-2 text-sm">
+                <span className="text-purple-400 font-bold">{planData.summary.totalTasks}</span> tasks
+              </div>
+              <div className="glass-chip px-4 py-2 text-sm">
+                <span className="text-red-400 font-bold">{planData.summary.highPriorityCount}</span> high priority
+              </div>
+              <div className="glass-chip px-4 py-2 text-sm">
+                <span className="text-orange-400 font-bold">{planData.summary.upcomingDeadlines}</span> deadlines
+              </div>
+              <div className="glass-chip px-4 py-2 text-sm">
+                <span className="text-blue-400 font-bold">{planData.summary.estimatedStudyTime}</span> study time
+              </div>
             </div>
 
             {/* Regenerate Button */}
@@ -222,81 +258,109 @@ export const AIPlannerPage = () => {
             </div>
           </div>
 
-          {/* AI-Generated Content */}
-          <div className="space-y-8">
-            <SectionCard 
-              title="Your Personalized Academic Plan"
-              icon={<SparklesIcon className="w-8 h-8 text-purple-400" />}
-              size="lg"
-              className="overflow-hidden"
-            >
-              <div className="space-y-6 -mt-2 sm:-mt-4">
-                {/* Generated timestamp */}
-                <div className="text-sm glass-text-secondary text-center pb-4 border-b border-white/10">
-                  Generated on {new Date(planData.generated_at).toLocaleDateString('en-US', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: 'numeric',
-                    minute: '2-digit'
-                  })}
-                </div>
-
-                {/* Markdown content with custom styling */}
-                <div className="prose prose-invert prose-sm sm:prose-base max-w-none">
-                  <div className="ai-planner-content">
-                    <ReactMarkdown
-                      components={{
-                        h1: ({children}) => <h1 className="text-2xl sm:text-3xl font-bold glass-text-primary mb-4 flex items-center gap-2"><SparklesIcon className="w-6 h-6 text-purple-400" />{children}</h1>,
-                        h2: ({children}) => <h2 className="text-xl sm:text-2xl font-bold glass-text-primary mb-3 mt-8 flex items-center gap-2"><CalendarDaysIcon className="w-5 h-5 text-blue-400" />{children}</h2>,
-                        h3: ({children}) => <h3 className="text-lg font-bold glass-text-primary mb-2 mt-6">{children}</h3>,
-                        h4: ({children}) => <h4 className="text-base font-bold glass-text-primary mb-2 mt-4">{children}</h4>,
-                        p: ({children}) => <p className="glass-text-secondary mb-3 leading-relaxed">{children}</p>,
-                        ul: ({children}) => <ul className="space-y-2 mb-4">{children}</ul>,
-                        ol: ({children}) => <ol className="space-y-2 mb-4 list-decimal">{children}</ol>,
-                        li: ({children}) => (
-                          <li className="glass-text-secondary flex items-start gap-2">
-                            <span className="w-2 h-2 bg-purple-400 rounded-full mt-2 flex-shrink-0"></span>
-                            <span>{children}</span>
-                          </li>
-                        ),
-                        strong: ({children}) => <strong className="glass-text-primary font-semibold">{children}</strong>,
-                        em: ({children}) => <em className="text-blue-300">{children}</em>,
-                        blockquote: ({children}) => (
-                          <blockquote className="border-l-4 border-purple-400 pl-4 py-2 glass-chip bg-[rgba(147,51,234,0.06)] my-4">
-                            <div className="glass-text-secondary">{children}</div>
-                          </blockquote>
-                        ),
-                        code: ({children}) => (
-                          <code className="bg-gray-800 text-green-300 px-2 py-1 rounded text-sm">{children}</code>
-                        ),
-                        hr: () => <hr className="border-white/20 my-8" />
-                      }}
-                    >
-                      {planData.todo_list}
-                    </ReactMarkdown>
+          {/* AI-Generated Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            {/* Left Column - Todos and Deadlines */}
+            <div className="lg:col-span-2 space-y-8">
+              
+              {/* Todo List */}
+              {planData.todos && planData.todos.length > 0 && (
+                <SectionCard 
+                  title="Todo List"
+                  icon={<CheckCircleIcon className="w-6 h-6 text-green-400" />}
+                  size="md"
+                >
+                  <div className="space-y-4">
+                    {planData.todos.map((todo) => (
+                      <TodoCard
+                        key={todo.id}
+                        todo={{
+                          ...todo,
+                          completed: completedTodos.has(todo.id)
+                        }}
+                        onToggle={handleTodoToggle}
+                      />
+                    ))}
                   </div>
-                </div>
+                </SectionCard>
+              )}
 
-                {/* Footer with action buttons */}
-                <div className="pt-6 border-t border-white/10 text-center space-y-4">
-                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Button
-                      onClick={generatePlan}
-                      variant="primary"
-                      leftIcon={<SparklesIcon className="w-4 h-4" />}
-                      disabled={isGenerating}
-                    >
-                      Generate New Plan
-                    </Button>
+              {/* Upcoming Deadlines */}
+              {planData.deadlines && planData.deadlines.length > 0 && (
+                <SectionCard 
+                  title="Upcoming Deadlines"
+                  icon={<ExclamationTriangleIcon className="w-6 h-6 text-red-400" />}
+                  size="md"
+                >
+                  <div className="space-y-4">
+                    {planData.deadlines.map((deadline) => (
+                      <DeadlineCard
+                        key={deadline.id}
+                        deadline={deadline}
+                      />
+                    ))}
                   </div>
-                  <p className="text-sm glass-text-secondary">
-                    💡 Tip: Your plan updates automatically as your courses and assignments change
-                  </p>
-                </div>
-              </div>
-            </SectionCard>
+                </SectionCard>
+              )}
+            </div>
+
+            {/* Right Column - Study Blocks and Insights */}
+            <div className="space-y-8">
+              
+              {/* Study Blocks */}
+              {planData.studyBlocks && planData.studyBlocks.length > 0 && (
+                <SectionCard 
+                  title="Study Sessions"
+                  icon={<BookOpenIcon className="w-6 h-6 text-blue-400" />}
+                  size="md"
+                >
+                  <div className="space-y-4">
+                    {planData.studyBlocks.map((block) => (
+                      <StudyBlockCard
+                        key={block.id}
+                        studyBlock={block}
+                      />
+                    ))}
+                  </div>
+                </SectionCard>
+              )}
+
+              {/* Insights */}
+              {planData.insights && planData.insights.length > 0 && (
+                <SectionCard 
+                  title="AI Insights"
+                  icon={<LightBulbIcon className="w-6 h-6 text-yellow-400" />}
+                  size="md"
+                >
+                  <div className="space-y-4">
+                    {planData.insights.map((insight) => (
+                      <InsightCard
+                        key={insight.id}
+                        insight={insight}
+                      />
+                    ))}
+                  </div>
+                </SectionCard>
+              )}
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="text-center space-y-4 pt-8">
+            <div className="text-sm glass-text-secondary">
+              Generated on {new Date(planData.generated_at).toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: '2-digit'
+              })}
+            </div>
+            <p className="text-sm glass-text-secondary">
+              💡 Tip: Check off completed tasks and regenerate for updated recommendations
+            </p>
           </div>
         </div>
       </MainLayout>

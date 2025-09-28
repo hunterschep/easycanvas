@@ -1,8 +1,55 @@
 import { ApiService } from '@/services/api/api.service';
 import { auth } from '@/config/firebase.config';
 
+export interface TodoItem {
+  id: string;
+  title: string;
+  description: string;
+  priority: 'high' | 'medium' | 'low';
+  dueDate?: string;
+  estimatedTime?: string;
+  course?: string;
+  completed: boolean;
+}
+
+export interface DeadlineItem {
+  id: string;
+  title: string;
+  course: string;
+  dueDate: string;
+  priority: 'urgent' | 'important' | 'normal';
+  points?: number;
+  description?: string;
+}
+
+export interface StudyBlock {
+  id: string;
+  title: string;
+  course: string;
+  duration: string;
+  topics: string[];
+  difficulty: 'easy' | 'medium' | 'hard';
+}
+
+export interface InsightCard {
+  id: string;
+  type: 'tip' | 'warning' | 'success' | 'info';
+  title: string;
+  message: string;
+  action?: string;
+}
+
 export interface AIPlannerResponse {
-  todo_list: string;
+  todos: TodoItem[];
+  deadlines: DeadlineItem[];
+  studyBlocks: StudyBlock[];
+  insights: InsightCard[];
+  summary: {
+    totalTasks: number;
+    highPriorityCount: number;
+    upcomingDeadlines: number;
+    estimatedStudyTime: string;
+  };
   generated_at: string;
   course_count: number;
   assignment_count: number;
@@ -102,7 +149,10 @@ export class AIPlannerService {
         course_count: result.course_count,
         assignment_count: result.assignment_count,
         generated_at: result.generated_at,
-        todo_list_length: result.todo_list?.length || 0
+        todos_count: result.todos?.length || 0,
+        deadlines_count: result.deadlines?.length || 0,
+        studyBlocks_count: result.studyBlocks?.length || 0,
+        insights_count: result.insights?.length || 0
       });
       return result;
 
