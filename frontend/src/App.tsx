@@ -5,6 +5,7 @@ import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { SetupPage } from '@/features/auth/pages/SetupPage';
 import { HomePage } from '@/features/courses/pages/HomePage';
 import { ChatPage } from '@/features/chat/pages/ChatPage';
+import { AIPlannerPage } from '@/features/ai-planner/pages/AIPlannerPage';
 import { AccountDetailsPage } from '@/features/account/pages/AccountDetailsPage';
 import LandingPage from '@/features/static-pages/pages/LandingPage';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -189,6 +190,7 @@ function App() {
                 {/* Protected routes */}
                 <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
                 <Route path="/chat" element={<ProtectedRoute><ChatPage /></ProtectedRoute>} />
+                <Route path="/ai-planner" element={<ProtectedRoute><AIPlannerPage /></ProtectedRoute>} />
                 <Route path="/account" element={<ProtectedRoute><AccountDetailsPage /></ProtectedRoute>} />
                 
                 {/* Public routes */}

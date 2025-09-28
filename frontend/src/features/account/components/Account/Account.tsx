@@ -3,7 +3,7 @@ import { useAuth } from '@/features/auth/context/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { UserService } from '@/services/user.service';
 import { Button } from '@/components/common/Button/Button';
-import { ChatBubbleLeftRightIcon } from '@heroicons/react/24/outline';
+import { ChatBubbleLeftRightIcon, CalendarDaysIcon } from '@heroicons/react/24/outline';
 
 export const Account = () => {
   const navigate = useNavigate();
@@ -34,6 +34,17 @@ export const Account = () => {
         className="h-10 flex items-center"
       >
         <span className="hidden sm:inline">Chat</span>
+      </Button>
+      
+      <Button
+        onClick={() => navigate('/ai-planner')}
+        variant="secondary"
+        size="sm"
+        leftIcon={<CalendarDaysIcon className="w-4 h-4" />}
+        className="h-10 flex items-center"
+        title="AI Generated todo list and calendar"
+      >
+        <span className="hidden sm:inline">AI Planner</span>
       </Button>
       
       <Button
